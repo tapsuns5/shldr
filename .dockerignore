@@ -1,0 +1,14 @@
+node_modules
+.next
+npm-debug.log
+Dockerfile
+.dockerignore
+.env
+.env*
+.git
+dump.rdb
+.geocode-cache.json
+
+# Prevent the marketing app from being sent to the main-app build context
+marketing
+marketing/**

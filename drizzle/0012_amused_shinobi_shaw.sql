@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "user_travel_docs_account_user_label_uniq" ON "user_travel_docs" USING btree ("account_id","user_id","label");

@@ -1,0 +1,291 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:32a5:b0:1e59:7630:e223 with SMTP id js5csp2147818njb;
+        Thu, 25 Jun 2026 17:10:42 -0700 (PDT)
+X-Received: by 2002:a05:6000:1446:b0:46d:6dd6:b89d with SMTP id ffacd0b85a97d-46dc1b9c113mr7333388f8f.39.1782432642100;
+        Thu, 25 Jun 2026 17:10:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1782432642; cv=none;
+        d=google.com; s=arc-20260327;
+        b=VNJabxWyeNGxZF/KQHwbriUihfrTEID3LNweO/4KsOvBkRHiiB5t434DjUJr9phnTh
+         Fm29MeTJfSLmTFgnA3f5Am3Z/TLdywBjFDoYug6Ba2ZUgVzjMk+GoQMEESsVjDuKOSqr
+         C4wEH4zghkohD59kUNpl7yg5OiZF00wIMhWZBEVvy8xaB8Pvnig41deY7u7KUODIro7J
+         SpL+f97CrtYMOpRoelPlkDVo65rFCkIwDcmxY6LsgRE1ElBsPMYvDYFFLkSbKihSoC9r
+         KlFzqD8MqWIjIBWqN0f3bNtzUbWjPE1GXmFRM4Je1gNFlnuWl3lEc8hKAwrnlIFfsktW
+         +nfw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:mime-version:message-id:reply-to:from
+         :date:subject:to:dkim-signature;
+        bh=bkleUwPpne8jVww769w4SC9lwmAxXVSRh+AP7WawsRI=;
+        fh=B4oUh4UPJ//db4OK1a6dVB8082r0zSqowk1mghl+/L8=;
+        b=bPk9zQhEd8ZfeclaM9MwbDtEEJZ86pEw9nrbNFfQWRV+SukOGtcdcHEGuTWwGRDhKL
+         fzwfogHgiwrMWrvUne+0Bg8sVdXkfL5vNNpzeujAcNAzP1/ApxWl+a7m5LffBq13GY1P
+         AGbTBsgoF8eCM4z+rzku6T7q++CuFLaggXJkOKBTCZOYzXMI1P8BBzAx+T/UZeIdGkhG
+         K5tByUlzWk3bJ8mHuP2gsMmKC6mw0boPuUrjQcxHlzwmw2sgnCZcy7859xm7EfkUWcA6
+         fB6zPPDNs0+4/Mw+b3BRxDYyi/PJmD5ls5R6E5J+w+k3H5IZb63/D7R9d6nC6qV+HSzi
+         uZ5Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@only-sardinia.com header.s=default header.b=dBVQ5fvj;
+       spf=pass (google.com: domain of info@only-sardinia.com designates 89.40.173.223 as permitted sender) smtp.mailfrom=info@only-sardinia.com
+Return-Path: <info@only-sardinia.com>
+Received: from mail.only-sardinia.com (mail.only-sardinia.com. [89.40.173.223])
+        by mx.google.com with ESMTPS id ffacd0b85a97d-46c221d9b20si13267800f8f.193.2026.06.25.17.10.41
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 25 Jun 2026 17:10:41 -0700 (PDT)
+Received-SPF: pass (google.com: domain of info@only-sardinia.com designates 89.40.173.223 as permitted sender) client-ip=89.40.173.223;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@only-sardinia.com header.s=default header.b=dBVQ5fvj;
+       spf=pass (google.com: domain of info@only-sardinia.com designates 89.40.173.223 as permitted sender) smtp.mailfrom=info@only-sardinia.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=only-sardinia.com; s=default; h=Content-Transfer-Encoding:Content-Type:
+	MIME-Version:Message-ID:Reply-To:From:Date:Subject:To:Sender:Cc:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=bkleUwPpne8jVww769w4SC9lwmAxXVSRh+AP7WawsRI=; b=dBVQ5fvjb85/vigicshxCdPsPc
+	vIny468IQt8wyfK4XtgrUOYQ2Lz4s4MEOZo+r6AIM1YkCwHk1y4h57W1DAeojICggWSB7WkvBWiCl
+	TvRAQN/B+brDYWw3vOnysorxJ047QeHUD7ZPIVqSxcz/07p0VNr+WzkHqy46aMTr3AK97rahhnFcO
+	zd8uvueiC/FveIFEZJgjqCYPn8xTiTNSzKnPsPRwakhNSUgAJ0Lv2X5aKK2bskNGzag21co+mdEtc
+	T5q/KC6TqCPdWjf3yiOoTT37IGnov59Ge//BaDax2gjOak+UOdZJu1k9mcBsuu2CKRgybkLQM3DTf
+	EI2yyMTg==;
+Received: from mailnull by hostingssd15.netsons.net with spam-scanner (Exim 4.99.4)
+	(envelope-from <info@only-sardinia.com>)
+	id 1wcu9Z-000000026NL-1S9u
+	for tapsuns5@gmail.com;
+	Fri, 26 Jun 2026 02:10:41 +0200
+X-ImunifyEmail-Filter-Action: no action
+X-ImunifyEmail-Filter-Score: -2.78
+X-ImunifyEmail-Filter-Version: 3.8.25/202606241025
+X-ImunifyEmail-Filter-Info: UkVQTFlUT19FUV9GUk9NIEZST01fRVFfRU5WRlJPTSBCQVlF
+	U19IQU0
+		gRlJPTV9FWENFU1NfQkFTRTY0IE1JRF9SSFNfTUFUQ0hfRlJPTVRMRC
+		BNSU1FX1VOS05PV04gTUlEX1JIU19XV1cgUkNWRF9OT19UTFNfTEFTV
+		CBBUkNfTkEgUkVQTFlUT19FWENFU1NfQkFTRTY0IEhBU19QSFBNQUlM
+		RVJfU0lHIEhBU19SRVBMWVRPIFJDVkRfQ09VTlRfT05FIE1JTUVfVFJ
+		BQ0UgUkNQVF9DT1VOVF9PTkUgVkVSSUxPQ0tfQ0IgSEFTX1hfUEhQX1
+		NDUklQVCBNSU1FX0hUTUxfT05MWSBGUk9NX0hBU19ETiBUT19ETl9OT
+		05FIFRPX01BVENIX0VOVlJDUFRfQUxM
+Received: from eozkiicv by hostingssd15.netsons.net with local (Exim 4.99.4)
+	(envelope-from <info@only-sardinia.com>)
+	id 1wcu9Y-000000026ML-3q9N
+	for tapsuns5@gmail.com;
+	Fri, 26 Jun 2026 02:10:41 +0200
+To: tapsuns5@gmail.com
+Subject: Your car rental ticket 054716
+X-PHP-Script: www.only-sardinia.com/car-rental/index.php for 2600:1700:5122:1180:d12c:f076:de3d:7a7, 104.23.248.168, 2600:1700:5122:1180:d12c:f076:de3d:7a7
+ X-PHP-Originating-Script: 1523:pjPHPMailer.component.php
+Date: Fri, 26 Jun 2026 02:10:40 +0200
+From: =?UTF-8?B?T25seSBTYXJkaW5pYSBBdXRvbm9sZWdnaW8=?= <info@only-sardinia.com>
+Reply-To: =?UTF-8?B?T25seSBTYXJkaW5pYSBBdXRvbm9sZWdnaW8=?= <info@only-sardinia.com>
+Message-ID: <XZlB1V0vuG49Hwoy2IaIAcmPZ9uUfzt2GKYMUI3hI@www.only-sardinia.com>
+X-Mailer: PHPMailer 6.7.1 (https://github.com/PHPMailer/PHPMailer)
+MIME-Version: 1.0
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - hostingssd15.netsons.net
+X-AntiAbuse: Original Domain - gmail.com
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - only-sardinia.com
+X-Get-Message-Sender-Via: hostingssd15.netsons.net: authenticated_id: info@only-sardinia.com
+X-Authenticated-Sender: hostingssd15.netsons.net: info@only-sardinia.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+
+<div><table class=3D"auto-style14" style=3D"height: 723px; width: 690px;" c=
+ellspacing=3D"7" cellpadding=3D"3" align=3D"center"><tbody><tr><td class=3D=
+"auto-style15" style=3D"width: 184.312px; background-color: #e3ebf9; border=
+-color: #e3ebf9; text-align: center;"><strong>&nbsp;Name:</strong></td><td =
+class=3D"auto-style16" style=3D"width: 466.688px; border-color: #e3ebf9;"><=
+span style=3D"color: #000000; font-size: 14px; font-style: normal; font-var=
+iant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter=
+-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-tra=
+nsform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-te=
+xt-stroke-width: 0px; background-color: #ffffff; text-decoration-thickness:=
+ initial; text-decoration-style: initial; text-decoration-color: initial; d=
+isplay: inline !important; float: none;">&nbsp;Tyler Palmer</span></td></tr=
+><tr><td class=3D"auto-style5" style=3D"width: 184.312px; height: 37px;">&n=
+bsp;</td><td class=3D"auto-style5" style=3D"height: 37px; width: 466.688px;=
+ text-align: left;"><h3><span class=3D"auto-style18"><strong>Dates:&nbsp;</=
+strong></span><span class=3D"auto-style18" style=3D"color: #000000; font-si=
+ze: 14px; font-style: normal; font-variant-ligatures: normal; font-variant-=
+caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-al=
+ign: start; text-indent: 0px; text-transform: none; white-space: normal; wi=
+dows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-colo=
+r: #ffffff; text-decoration-thickness: initial; text-decoration-style: init=
+ial; text-decoration-color: initial; display: inline !important; float: non=
+e;">from 16.09.2026, 18:00 to 24.09.2026, 20:00<br /></span></h3></td></tr>=
+<tr><td class=3D"auto-style19" style=3D"width: 184.312px; text-align: cente=
+r;"><span class=3D"auto-style27"><strong><br class=3D"auto-style28" /><br c=
+lass=3D"auto-style28" />CAR RENTAL<br />TICKET<br /> </strong></span><br cl=
+ass=3D"auto-style28" /> <br class=3D"auto-style28" /><span class=3D"auto-st=
+yle28">This is the summary of your booking request.<br /> <br /> </span></t=
+d><td class=3D"auto-style19" style=3D"width: 466.688px;" rowspan=3D"8" vali=
+gn=3D"top"><table class=3D"auto-style25" style=3D"float: right; width: 435.=
+969px;" cellspacing=3D"3" cellpadding=3D"5"><tbody><tr><td class=3D"auto-st=
+yle26" style=3D"background-color: #ecfff2; width: 143px;"><strong>Email</st=
+rong></td><td class=3D"auto-style24" style=3D"width: 257.969px;"><span styl=
+e=3D"color: #000000; font-family: Verdana, Arial, Helvetica, sans-serif; fo=
+nt-size: 14px; font-style: normal; font-variant-ligatures: normal; font-var=
+iant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; te=
+xt-align: start; text-indent: 0px; text-transform: none; white-space: norma=
+l; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background=
+-color: #ffffff; text-decoration-thickness: initial; text-decoration-style:=
+ initial; text-decoration-color: initial; display: inline !important; float=
+: none;"> tapsuns5@gmail.com</span></td></tr><tr><td class=3D"auto-style26"=
+ style=3D"background-color: #ecfff2; width: 143px;"><strong>Telephone</stro=
+ng></td><td class=3D"auto-style24" style=3D"width: 257.969px;"><span style=
+=3D"color: #000000; font-family: Verdana, Arial, Helvetica, sans-serif; fon=
+t-size: 14px; font-style: normal; font-variant-ligatures: normal; font-vari=
+ant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; tex=
+t-align: start; text-indent: 0px; text-transform: none; white-space: normal=
+; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-=
+color: #ffffff; text-decoration-thickness: initial; text-decoration-style: =
+initial; text-decoration-color: initial; display: inline !important; float:=
+ none;"> +19542741970</span></td></tr><tr><td class=3D"auto-style26" style=
+=3D"background-color: #ecfff2; width: 143px;"><strong>Country</strong></td>=
+<td class=3D"auto-style24" style=3D"width: 257.969px;"><span style=3D"color=
+: #000000; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 1=
+4px; font-style: normal; font-variant-ligatures: normal; font-variant-caps:=
+ normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: =
+start; text-indent: 0px; text-transform: none; white-space: normal; widows:=
+ 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: #f=
+fffff; text-decoration-thickness: initial; text-decoration-style: initial; =
+text-decoration-color: initial; display: inline !important; float: none;"> =
+United States</span></td></tr><tr><td class=3D"auto-style26" style=3D"backg=
+round-color: #ecfff2; width: 143px;"><strong>Zip Code and City</strong></td=
+><td class=3D"auto-style24" style=3D"width: 257.969px;"><span style=3D"colo=
+r: #000000; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: =
+14px; font-style: normal; font-variant-ligatures: normal; font-variant-caps=
+: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align:=
+ start; text-indent: 0px; text-transform: none; white-space: normal; widows=
+: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: #=
+ffffff; text-decoration-thickness: initial; text-decoration-style: initial;=
+ text-decoration-color: initial; display: inline !important; float: none;">=
+  FORT LAUDERDALE</span></td></tr><tr><td class=3D"auto-style26" style=3D"b=
+ackground-color: #ecfff2; width: 143px;"><strong>Address</strong></td><td c=
+lass=3D"auto-style24" style=3D"width: 257.969px;"><span style=3D"color: #00=
+0000; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 14px; =
+font-style: normal; font-variant-ligatures: normal; font-variant-caps: norm=
+al; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: start=
+; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; w=
+ord-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: #ffffff=
+; text-decoration-thickness: initial; text-decoration-style: initial; text-=
+decoration-color: initial; display: inline !important; float: none;"> 850 S=
+W 16TH ST</span></td></tr><tr><td class=3D"auto-style26" style=3D"backgroun=
+d-color: #ecfff2; width: 143px;"><strong>Company</strong></td><td class=3D"=
+auto-style24" style=3D"width: 257.969px;"><span style=3D"color: #000000; fo=
+nt-family: Verdana, Arial, Helvetica, sans-serif; font-size: 14px; font-sty=
+le: normal; font-variant-ligatures: normal; font-variant-caps: normal; font=
+-weight: 400; letter-spacing: normal; orphans: 2; text-align: start; text-i=
+ndent: 0px; text-transform: none; white-space: normal; widows: 2; word-spac=
+ing: 0px; -webkit-text-stroke-width: 0px; background-color: #ffffff; text-d=
+ecoration-thickness: initial; text-decoration-style: initial; text-decorati=
+on-color: initial; display: inline !important; float: none;"> </span></td><=
+/tr><tr><td class=3D"auto-style26" style=3D"background-color: #ecfff2; widt=
+h: 143px;"><strong>Pick-up Location</strong></td><td class=3D"auto-style24"=
+ style=3D"width: 257.969px;"><span style=3D"color: #000000; font-family: Ve=
+rdana, Arial, Helvetica, sans-serif; font-size: 14px; font-style: normal; f=
+ont-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400;=
+ letter-spacing: normal; orphans: 2; text-align: start; text-indent: 0px; t=
+ext-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -we=
+bkit-text-stroke-width: 0px; background-color: #ffffff; text-decoration-thi=
+ckness: initial; text-decoration-style: initial; text-decoration-color: ini=
+tial; display: inline !important; float: none;"> 1 - OLB - Olbia Airport, C=
+ar rental terminal</span></td></tr><tr><td class=3D"auto-style26" style=3D"=
+background-color: #ecfff2; width: 143px;"><strong>Drop-off Location</strong=
+></td><td class=3D"auto-style24" style=3D"width: 257.969px;">1 - OLB - Olbi=
+a Airport, Car rental terminal</td></tr><tr><td class=3D"auto-style26" styl=
+e=3D"background-color: #ecfff2; width: 143px;"><strong>Vehicle</strong></td=
+><td class=3D"auto-style24" style=3D"width: 257.969px;">Group CA / Eco / Au=
+tomatic</td></tr><tr><td class=3D"auto-style26" style=3D"background-color: =
+#ecfff2; width: 143px;"><strong>Additional products</strong></td><td class=
+=3D"auto-style24" style=3D"width: 257.969px;"></td></tr><tr><td class=3D"au=
+to-style26" style=3D"background-color: #ecfff2; width: 143px;"><strong>Loca=
+tion fee</strong></td><td class=3D"auto-style24" style=3D"width: 257.969px;=
+"><span style=3D"color: #000000; font-family: Verdana, Arial, Helvetica, sa=
+ns-serif; font-size: 14px; font-style: normal; font-variant-ligatures: norm=
+al; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; or=
+phans: 2; text-align: start; text-indent: 0px; text-transform: none; white-=
+space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px=
+; background-color: #ffffff; text-decoration-thickness: initial; text-decor=
+ation-style: initial; text-decoration-color: initial; display: inline !impo=
+rtant; float: none;"> 0.00 EUR</span></td></tr><tr><td class=3D"auto-style2=
+6" style=3D"background-color: #ecfff2; width: 143px;"><strong>Night fee</st=
+rong></td><td class=3D"auto-style24" style=3D"width: 257.969px;">0.00 EUR</=
+td></tr><tr><td class=3D"auto-style26" style=3D"background-color: #ecfff2; =
+width: 143px;">&nbsp;</td><td class=3D"auto-style24" style=3D"width: 257.96=
+9px;">&nbsp;</td></tr><tr><td class=3D"auto-style26" style=3D"background-co=
+lor: #ecfff2; width: 143px;"><strong>Payment Method</strong></td><td class=
+=3D"auto-style24" style=3D"width: 257.969px;">Payment cards</td></tr><tr><t=
+d class=3D"auto-style26" style=3D"background-color: #ecfff2; width: 143px;"=
+>&nbsp;</td><td class=3D"auto-style24" style=3D"width: 257.969px;">&nbsp;</=
+td></tr><tr><td class=3D"auto-style29" style=3D"width: 400.969px; backgroun=
+d-color: #ffffe8;" colspan=3D"2">Notes: <br /> <span class=3D"auto-style30"=
+>&nbsp;</span></td></tr></tbody></table></td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td></tr><tr><td class=3D"auto-sty=
+le19" style=3D"width: 184.312px;">&nbsp;</td><td class=3D"auto-style18" sty=
+le=3D"width: 466.688px;">&nbsp; </td></tr><tr><td class=3D"auto-style20" st=
+yle=3D"width: 184.312px; background-color: #e3ebf9;">&nbsp;<strong>Total pa=
+id:</strong></td><td class=3D"auto-style19" style=3D"width: 466.688px; bord=
+er-color: #e3ebf9;"><span style=3D"color: #000000; font-family: Verdana, Ar=
+ial, Helvetica, sans-serif; font-size: 14px; font-style: normal; font-varia=
+nt-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-s=
+pacing: normal; orphans: 2; text-align: start; text-indent: 0px; text-trans=
+form: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text=
+-stroke-width: 0px; background-color: #ffffff; text-decoration-thickness: i=
+nitial; text-decoration-style: initial; text-decoration-color: initial; dis=
+play: inline !important; float: none;">&nbsp;&euro; 407.16 EUR</span></td><=
+/tr></tbody></table></div><div><table style=3D"width: 690px; height: 242px;=
+" align=3D"center"><tbody><tr><td style=3D"width: 680px; text-align: justif=
+y;"><p style=3D"text-align: center;"><span class=3D"auto-style4"><span styl=
+e=3D"text-decoration: underline;">Your booking request has been registered.=
+ </span>The booking is only considered unconfirmed if the payment is not su=
+ccessful.<br /><br /><strong>To speed up the car pick-up procedure</strong>=
+, you can send to patenti@only-sardinia.com a double-sided photograph of yo=
+ur driver&rsquo;s license and identity card, where your current residence i=
+s clearly visible.<br />If the vehicle will be picked-up by another person,=
+ send their documents to patenti@only-sardinia.com, accompanied by a scan o=
+f your ID and your social security number.<br />The contract will be comple=
+ted upon delivery of the vehicle; you will receive the invoice once the ren=
+tal is completed.</span><br class=3D"auto-style4" /><br class=3D"auto-style=
+4" /><span class=3D"auto-style4"><strong>Only Sardinia Autonoleggio<br />Te=
+l.</strong> +39 0789 68947 (also Whatsapp) &bull; <a href=3D"mailto:info@on=
+ly-sardinia.com" target=3D"_blank" rel=3D"noopener noreferrer">info@only-sa=
+rdinia.com</a>&nbsp;<br /><br /></span></p><p style=3D"text-align: center;"=
+><strong><span class=3D"auto-style4">Thank you.</span></strong></p><p style=
+=3D"text-align: center;"><span class=3D"auto-style4">-</span></p><p style=
+=3D"text-align: center;"><span class=3D"auto-style4">Useful links:<strong><=
+br /></strong>|&nbsp;<a href=3D"https://www.only-sardinia.com/en/cancellati=
+on-and-refunds/" target=3D"_blank" rel=3D"noopener noreferrer" data-safered=
+irecturl=3D"https://www.google.com/url?q=3Dhttps://www.only-sardinia.com/ca=
+ncellazione-e-rimborsi/&amp;source=3Dgmail&amp;ust=3D1659187318857000&amp;u=
+sg=3DAOvVaw2paAPGplr9ceg3N8CStcle">Cancellations and Refunds</a>&nbsp;|&nbs=
+p;<strong><a href=3D"https://www.only-sardinia.com/Cauzioni_e_depositi-Auto=
+noleggio%20Eng.pdf" target=3D"_blank" rel=3D"noopener noreferrer" data-safe=
+redirecturl=3D"https://www.google.com/url?q=3Dhttps://www.only-sardinia.com=
+/Cauzioni_e_depositi-Autonoleggio.pdf&amp;source=3Dgmail&amp;ust=3D16591873=
+18857000&amp;usg=3DAOvVaw1EP6yfm-bGvRAV9epJz89I">Excesses and Deposits</a><=
+/strong>&nbsp;|&nbsp;<a href=3D"https://www.iubenda.com/privacy-policy/5105=
+8650/legal" target=3D"_blank" rel=3D"noopener noreferrer" data-saferedirect=
+url=3D"https://www.google.com/url?q=3Dhttps://www.iubenda.com/privacy-polic=
+y/475924&amp;source=3Dgmail&amp;ust=3D1659187318857000&amp;usg=3DAOvVaw3fgq=
+UMv83otGgfaErArs8-">Privacy</a>&nbsp;|&nbsp;<a href=3D"https://only-sardini=
+a.com/GENERAL%20CONDITIONS%20OF%20THE%20DRIVERLESS%20RENTAL%20CONTRACT%201.=
+pdf" target=3D"_blank" rel=3D"noopener noreferrer" data-saferedirecturl=3D"=
+https://www.google.com/url?q=3Dhttps://www.only-sardinia.com/cms/Termini%25=
+20e%2520Condizioni%2520Generali%2520Only%2520Sardinia%2520SRL%252001_2021.p=
+df&amp;source=3Dgmail&amp;ust=3D1659187318857000&amp;usg=3DAOvVaw3kI5dd7oR3=
+kc5zVKlCdgKM">General Rental Terms and Conditions </a>&nbsp;|</span></p></t=
+d></tr></tbody></table></div><div><table style=3D"width: 682.5px;" align=3D=
+"center"><tbody><tr><td class=3D"auto-style5" style=3D"width: 672.5px;"><im=
+g src=3D"https://www.only-sardinia.com/cms/images/only-sardinia-bar.jpg" wi=
+dth=3D"689" height=3D"58" /></td></tr></tbody></table></div>
+

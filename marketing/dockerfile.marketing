@@ -1,0 +1,65 @@
+# ---------- Base image ----------
+FROM node:20-alpine AS base
+
+# ---------- deps: install ALL deps for building ----------
+FROM base AS deps
+WORKDIR /app
+
+# Prefer IPv4 for Node's DNS resolution (avoids IPv6 EHOSTUNREACH in some VPS/Coolify setups)
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
+
+# Native build tooling
+RUN apk add --no-cache libc6-compat openssl python3 make g++
+
+# Install from lockfile with full (dev) deps to support `next build`
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund --include=dev --silent \
+  && npm cache clean --force
+
+# ---------- builder: compile Next app ----------
+FROM base AS builder
+WORKDIR /app
+
+# Prefer IPv4 here too
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
+
+# Rehydrate node_modules from deps
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy the marketing app
+COPY . ./
+
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the app
+RUN npm run build
+
+# ---------- runner: production image ----------
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
+
+# Copy the public folder
+COPY --from=builder /app/public ./public
+
+# Copy the standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+
+# Copy the static files
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3002
+
+ENV PORT=3002
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]

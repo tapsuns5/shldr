@@ -1,0 +1,49 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 theme at-rule"
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4 custom variant at-rule"
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS v4 apply at-rule"
+    },
+    {
+      "name": "@import",
+      "description": "Tailwind CSS v4 import at-rule"
+    },
+    {
+      "name": "@layer",
+      "description": "Tailwind CSS v4 layer at-rule"
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS v4 config at-rule"
+    },
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4 plugin at-rule"
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4 utility at-rule"
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4 variant at-rule"
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4 source at-rule"
+    },
+    {
+      "name": "@reference",
+      "description": "Tailwind CSS v4 reference at-rule"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import Image from "next/image";
+import { auth } from "@/lib/auth";
+import { LoginForm } from "../login/LoginForm";
+
+export default async function SignUpPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (session) {
+    redirect("/trips");
+  }
+
+  return (
+    <div className="flex min-h-screen">
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <Image
+          src="https://picsum.photos/seed/travel/1200/1600"
+          alt="Travel destination"
+          fill
+          sizes="50vw"
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-12">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Plan your trips with ease
+          </h1>
+          <p className="text-lg text-white/80">
+            Organize flights, hotels, and activities all in one place.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-background px-4">
+        <LoginForm defaultToSignup />
+      </div>
+    </div>
+  );
+}

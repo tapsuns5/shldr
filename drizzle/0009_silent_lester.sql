@@ -1,0 +1,1 @@
+ALTER TABLE "imported_emails" ADD COLUMN "body_html" text;
