@@ -48,7 +48,7 @@ const navItems: { label: string; icon: typeof HomeIcon; path: string }[] = [
 
 const sidebarIconProps = { strokeWidth: 2 };
 
-const FULL_PAGE_ROUTES = ['/login', '/signup', '/invite'];
+const FULL_PAGE_ROUTES = ['/login', '/signup', '/invite', '/onboarding', '/team-invite'];
 const MINIMAL_HEADER_ROUTES = ['/public'];
 
 export default function Sidebar({ children }: { children: React.ReactNode }) {

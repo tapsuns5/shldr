@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -42,6 +42,7 @@ export default function EditTripDialog({
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [destinations, setDestinations] = useState<LocationResult[]>([]);
+  const initialDestinationsRef = useRef('');
   const [locationInputKey, setLocationInputKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,16 +54,16 @@ export default function EditTripDialog({
       setTitle(trip.title);
       setStartDate(dayjs(trip.startDate));
       setEndDate(dayjs(trip.endDate));
-      setDestinations(
-        trip.destinations.map((d) => ({
-          city: d.city,
-          state: d.state || '',
-          country: d.country,
-          formattedAddress: d.location,
-          lat: 0,
-          lng: 0,
-        }))
-      );
+      const initialDestinations = trip.destinations.map((d) => ({
+        city: d.city,
+        state: d.state || '',
+        country: d.country,
+        formattedAddress: d.location,
+        lat: 0,
+        lng: 0,
+      }));
+      setDestinations(initialDestinations);
+      initialDestinationsRef.current = JSON.stringify(initialDestinations.map(({ city, state, country }) => ({ city, state, country })));
       setError(null);
     }
   }, [open, trip]);
@@ -104,6 +105,12 @@ export default function EditTripDialog({
 
     try {
       const firstDest = destinations[0];
+      const destinationPayload = destinations.map((d) => ({
+        city: d.city,
+        state: d.state,
+        country: d.country,
+      }));
+      const destinationsChanged = JSON.stringify(destinationPayload) !== initialDestinationsRef.current;
       const response = await fetch(`/api/trips/${trip.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -113,11 +120,7 @@ export default function EditTripDialog({
           endDate: endDate.format('YYYY-MM-DD'),
           destinationCity: firstDest?.city,
           destinationCountry: firstDest?.country,
-          destinations: destinations.map((d) => ({
-            city: d.city,
-            state: d.state,
-            country: d.country,
-          })),
+          ...(destinationsChanged ? { destinations: destinationPayload } : {}),
         }),
       });
 

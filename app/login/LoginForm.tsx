@@ -72,17 +72,43 @@ export function LoginForm({
     }
   };
 
+  const getInviteToken = () => {
+    const urlToken = redirectTo.match(/^\/team-invite\/([^/?]+)/)?.[1];
+    if (urlToken) return urlToken;
+    return typeof window !== 'undefined' ? sessionStorage.getItem('pending-team-invite') : null;
+  };
+
+  const clearInviteToken = () => {
+    if (typeof window !== 'undefined') sessionStorage.removeItem('pending-team-invite');
+  };
+
   const handleOAuthSignIn = (provider: string) => {
     setError("");
     setIsLoading(true);
-    const onboardingUrl = `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
+    const inviteToken = getInviteToken();
+    const callbackURL = inviteToken
+      ? redirectTo
+      : `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
     signIn.social({
       provider: provider as "google" | "microsoft",
-      callbackURL: onboardingUrl,
+      callbackURL,
     });
   };
 
   const redirectAfterLogin = async () => {
+    const inviteToken = getInviteToken();
+    if (inviteToken) {
+      const inviteResponse = await fetch(`/api/account-invite/${inviteToken}/accept`, { method: 'POST' });
+      if (!inviteResponse.ok) {
+        const data = await inviteResponse.json().catch(() => ({}));
+        throw new Error(typeof data.error === 'string' ? data.error : 'Unable to accept invitation');
+      }
+      clearInviteToken();
+      router.push('/trips');
+      router.refresh();
+      return;
+    }
+
     const accountsResponse = await fetch('/api/accounts');
     if (!accountsResponse.ok) throw new Error('Unable to load accounts');
     const accounts = await accountsResponse.json();

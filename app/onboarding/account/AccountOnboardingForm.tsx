@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { Button } from '@/components/auth-ui/button';
@@ -22,6 +22,11 @@ function slugify(value: string) {
 export default function AccountOnboardingForm({ redirectTo }: { redirectTo: string }) {
   const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
+  const [pendingInviteToken] = useState<string | null>(() => (
+    typeof window !== 'undefined' ? sessionStorage.getItem('pending-team-invite') : null
+  ));
+  const inviteToken = redirectTo.match(/^\/team-invite\/([^/?]+)/)?.[1] || pendingInviteToken;
+  const inviteAttemptedRef = useRef(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
@@ -46,12 +51,30 @@ export default function AccountOnboardingForm({ redirectTo }: { redirectTo: stri
 
     fetch('/api/accounts')
       .then((response) => (response.ok ? response.json() : []))
-      .then((accounts) => {
-        if (accounts.length > 0) router.replace(redirectTo);
+      .then(async (accounts) => {
+        if (accounts.length > 0) {
+          router.replace(redirectTo);
+          return;
+        }
+
+        if (inviteToken && !inviteAttemptedRef.current) {
+          inviteAttemptedRef.current = true;
+          setLoading(true);
+          const response = await fetch(`/api/account-invite/${inviteToken}/accept`, { method: 'POST' });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(typeof data.error === 'string' ? data.error : 'Unable to join the invited account');
+          sessionStorage.removeItem('pending-team-invite');
+          router.replace('/trips');
+        }
       })
-      .catch(() => {})
-      .finally(() => setChecking(false));
-  }, [redirectTo, router, session, sessionLoading]);
+      .catch((fetchError) => {
+        setError(fetchError instanceof Error ? fetchError.message : 'Unable to join the invited account');
+      })
+      .finally(() => {
+        setChecking(false);
+        setLoading(false);
+      });
+  }, [inviteToken, redirectTo, router, session, sessionLoading]);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -85,6 +108,26 @@ export default function AccountOnboardingForm({ redirectTo }: { redirectTo: stri
 
   if (sessionLoading || checking || !session) {
     return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
+  }
+
+  if (inviteToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md shadow-none">
+          <CardHeader>
+            <CardTitle>{error ? 'Unable to join account' : 'Joining account...'}</CardTitle>
+            <CardDescription>
+              {error || 'We are adding you to the account you were invited to join.'}
+            </CardDescription>
+          </CardHeader>
+          {error && (
+            <CardContent>
+              <a className="text-sm underline" href={`/team-invite/${inviteToken}`}>Return to invite</a>
+            </CardContent>
+          )}
+        </Card>
+      </div>
+    );
   }
 
   return (

@@ -12,8 +12,10 @@ import {
   CircularProgress,
   Paper,
 } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
 import { CheckIcon } from '@/components/Icons';
 import Logo from '@/components/Logo';
+import { getTheme } from '@/lib/theme';
 
 interface InviteData {
   id: string;
@@ -64,6 +66,7 @@ export default function AccountInviteLanding({ status, token, invite }: AccountI
   }, [status, session, sessionLoading]);
 
   const doAccept = async () => {
+    rememberInvite();
     setAccepting(true);
     setError(null);
     try {
@@ -85,11 +88,17 @@ export default function AccountInviteLanding({ status, token, invite }: AccountI
     }
   };
 
+  const rememberInvite = () => {
+    sessionStorage.setItem('pending-team-invite', token);
+  };
+
   const handleSignUp = () => {
+    rememberInvite();
     router.push(`/login?mode=signup&redirect=/team-invite/${token}`);
   };
 
   const handleLogIn = () => {
+    rememberInvite();
     router.push(`/login?redirect=/team-invite/${token}`);
   };
 
@@ -112,127 +121,137 @@ export default function AccountInviteLanding({ status, token, invite }: AccountI
   if (!invite) return null;
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 4,
-      }}
-    >
-      <Box sx={{ maxWidth: 520, width: '100%' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-          <Logo height={40} />
-        </Box>
+    <ThemeProvider theme={getTheme('light')}>
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Box
+        sx={{
+          px: { xs: 3, sm: 5 },
+          py: 2.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+          bgcolor: 'rgba(255,255,255,0.72)',
+        }}
+      >
+        <Logo height={32} />
+      </Box>
 
-        <Paper
-          elevation={0}
-          sx={{
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 3,
-            p: 4,
-          }}
-        >
-          <Stack spacing={3} alignItems="center">
-            <Avatar
-              src={invite.invitedByUser.image || undefined}
-              sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: 26, fontWeight: 700 }}
+      <Box
+        sx={{
+          minHeight: 'calc(100vh - 81px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: { xs: 2, sm: 4 },
+          background: 'linear-gradient(145deg, #f4faf7 0%, #e7f3ec 48%, #f8fbf9 100%)',
+        }}
+      >
+        <Box sx={{ maxWidth: 560, width: '100%' }}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: 1,
+              borderColor: 'rgba(27,107,58,0.16)',
+              borderRadius: 4,
+              overflow: 'hidden',
+              boxShadow: '0 18px 50px rgba(27,107,58,0.12)',
+            }}
+          >
+            <Box
+              sx={{
+                px: { xs: 3, sm: 5 },
+                py: 3,
+                color: 'white',
+                background: 'linear-gradient(120deg, #155d38 0%, #2f8a5b 100%)',
+              }}
             >
-              {invite.invitedByUser.name.charAt(0).toUpperCase()}
-            </Avatar>
-
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                You&apos;ve been invited by
+              <Typography variant="overline" sx={{ letterSpacing: 1.5, opacity: 0.8 }}>
+                Shldr workspace invite
               </Typography>
-              <Typography variant="h6" fontWeight={700}>
-                {invite.invitedByUser.name}
+              <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5 }}>
+                You&apos;re invited
               </Typography>
             </Box>
 
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                to join the account
-              </Typography>
-              <Typography variant="h5" fontWeight={800}>
-                {invite.account.name}
-              </Typography>
-            </Box>
+            <Stack spacing={3} sx={{ p: { xs: 3, sm: 5 } }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Avatar
+                  sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: 22, fontWeight: 700 }}
+                >
+                  {invite.account.name.charAt(0).toUpperCase()}
+                </Avatar>
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Join the workspace
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800}>
+                    {invite.account.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {invite.account.slug}
+                  </Typography>
+                </Box>
+              </Stack>
 
-            {error && (
-              <Typography color="error" variant="body2">
-                {error}
-              </Typography>
-            )}
-
-            {accepted ? (
-              <Paper
-                elevation={0}
-                sx={{
-                  border: 1,
-                  borderColor: 'success.main',
-                  borderRadius: 2,
-                  p: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  bgcolor: 'success.light',
-                  color: 'success.dark',
-                  width: '100%',
-                }}
-              >
-                <CheckIcon />
-                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                  You&apos;ve joined! Redirecting…
+              <Paper elevation={0} sx={{ p: 2, borderRadius: 2, bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Avatar
+                  src={invite.invitedByUser.image || undefined}
+                  sx={{ width: 40, height: 40, bgcolor: 'secondary.main', fontSize: 17, fontWeight: 700 }}
+                >
+                  {invite.invitedByUser.name.charAt(0).toUpperCase()}
+                </Avatar>
+                <Typography variant="body2">
+                  <strong>{invite.invitedByUser.name}</strong> invited you to collaborate on trips and travel plans.
                 </Typography>
               </Paper>
-            ) : (
-              <Stack spacing={2} sx={{ width: '100%' }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  onClick={doAccept}
-                  disabled={accepting}
-                  startIcon={accepting ? <CircularProgress size={18} color="inherit" /> : null}
-                  sx={{ fontWeight: 700, textTransform: 'none', py: 1.5, borderRadius: 2 }}
-                >
-                  {accepting ? 'Joining…' : 'Accept & Join Account'}
-                </Button>
 
-                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
-                  <Typography variant="body2" color="text.secondary">
-                    Don&apos;t have an account?
-                  </Typography>
-                  <Button
-                    size="small"
-                    onClick={handleSignUp}
-                    sx={{ textTransform: 'none', fontWeight: 600, p: 0, minWidth: 0 }}
-                  >
-                    Sign up
-                  </Button>
-                  <Typography variant="body2" color="text.secondary">·</Typography>
-                  <Button
-                    size="small"
-                    onClick={handleLogIn}
-                    sx={{ textTransform: 'none', fontWeight: 600, p: 0, minWidth: 0 }}
-                  >
-                    Sign in
-                  </Button>
-                </Stack>
+              <Typography variant="body1" color="text.secondary">
+                Accept this invitation to share the workspace&apos;s trips, documents, and travel plans with your team.
+              </Typography>
 
-                <Typography variant="caption" color="text.secondary" align="center">
-                  This invite expires on {new Date(invite.expiresAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
+              {error && (
+                <Typography color="error" variant="body2">
+                  {error}
                 </Typography>
-              </Stack>
-            )}
-          </Stack>
-        </Paper>
+              )}
+
+              {accepted ? (
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'success.main', borderRadius: 2, p: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'success.light', color: 'success.dark' }}>
+                  <CheckIcon />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    You&apos;ve joined! Redirecting…
+                  </Typography>
+                </Paper>
+              ) : (
+                <Stack spacing={2}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={doAccept}
+                    disabled={accepting}
+                    startIcon={accepting ? <CircularProgress size={18} color="inherit" /> : null}
+                    sx={{ fontWeight: 700, textTransform: 'none', py: 1.5, borderRadius: 2 }}
+                  >
+                    {accepting ? 'Joining…' : `Join ${invite.account.name}`}
+                  </Button>
+
+                  <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+                    <Typography variant="body2" color="text.secondary">Already have an account?</Typography>
+                    <Button size="small" onClick={handleLogIn} sx={{ textTransform: 'none', fontWeight: 600, p: 0, minWidth: 0 }}>Sign in</Button>
+                    <Typography variant="body2" color="text.secondary">or</Typography>
+                    <Button size="small" onClick={handleSignUp} sx={{ textTransform: 'none', fontWeight: 600, p: 0, minWidth: 0 }}>create one</Button>
+                  </Stack>
+
+                  <Typography variant="caption" color="text.secondary" align="center">
+                    Invitation expires on {new Date(invite.expiresAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
+                  </Typography>
+                </Stack>
+              )}
+            </Stack>
+          </Paper>
+        </Box>
       </Box>
     </Box>
+    </ThemeProvider>
   );
 }
 

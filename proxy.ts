@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   '/signup',
   '/forgot-password',
   '/invite',
+  '/team-invite',
   '/public',
   '/api/public',
 ];
