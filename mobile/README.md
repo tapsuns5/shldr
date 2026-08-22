@@ -54,8 +54,11 @@ src/
 │   └── (app)/                 # gated behind an active session
 │       ├── _layout.tsx        # session + onboarding gate, registers push token
 │       ├── onboarding.tsx     # first-run: create an account
-│       ├── settings.tsx       # theme (system/light/dark), sign out
-│       ├── maps.tsx           # account-wide travel map (pins, flight arcs, wishlist, stats)
+│       ├── settings/
+│       │   ├── index.tsx      # theme (system/light/dark), sign out
+│       │   └── integrations.tsx  # Gmail connect/disconnect, TripIt feed + sync
+│       ├── maps.tsx           # account-wide travel map (clustered pins, flight arcs,
+│       │                        wishlist, stats)
 │       └── trips/
 │           ├── index.tsx      # list, Upcoming/Active/Past, FAB → new
 │           ├── new.tsx        # create trip form
@@ -68,11 +71,14 @@ src/
 │   ├── ui/                    # design-system wrappers over react-native-paper
 │   │                            (Button, TextField, Card, Chip, Dialog, ...) —
 │   │                            same names as web's components/ui, native impl
-│   ├── map/                   # PinBadge, StatChip — map-specific pieces
+│   ├── map/                   # PinBadge, StatChip, Add/List/Item wishlist dialogs
 │   └── TripCard.tsx, ReservationRow.tsx, DateField.tsx
 ├── hooks/                      # useTrips, useTrip, useReservations, useAccounts,
 │                                  useCreateTrip, useDocuments, useCreateTripInvite,
-│                                  useRegisterPushToken, useAccountMapData, useTripRoute
+│                                  useRegisterPushToken, useAccountMapData, useTripRoute,
+│                                  useCreate/Update/DeleteWishlistItem,
+│                                  useGmailAccounts, useConnectGmail, useDisconnectGmail,
+│                                  useTripitFeed, useSaveTripitFeed, useSyncTripit
 └── lib/
     ├── api-client.ts           # typed JSON fetch over the shared API
     ├── auth-client.ts          # better-auth React client + Expo bearer-token plugin
@@ -93,6 +99,45 @@ mobile draws the same GeoJSON through `@maplibre/maplibre-react-native`'s `Map` 
 `Camera` / `GeoJSONSource` / `Layer` / `Marker`. Both use the same OpenFreeMap style URLs
 (`MAP_STYLE_LIGHT`/`MAP_STYLE_DARK` in `@shldr/shared`) as web's `components/map/*`.
 
+### Wishlist
+
+`(app)/maps.tsx`'s heart icon opens the wishlist list (remove, toggle visited); the
+star FAB opens an add form. Mobile has no Google Places autocomplete, so
+`AddWishlistDialog` resolves coordinates itself from `@shldr/shared`'s
+`getCityCoords`/`COUNTRY_CENTROIDS` — the same fallback chain `getCityCoords` on web
+uses — rather than a geocoding API call. Only `city`-type items render as map pins
+(matching web's `WishlistMarkers`, which does the same); `country`-type items still
+save, list, and delete correctly, they just don't have a single point to pin.
+
+### Clustering
+
+City pins on the account-wide map use a real `GeoJSONSource cluster` (not a
+client-side grouping) with the same `clusterMaxZoom`/`clusterRadius` and step-expression
+colors as web's `components/map/layers/MarkerLayer.tsx`, so both clients cluster
+identically at the same zoom levels.
+
+### Gmail / TripIt as map data sources
+
+Connecting either integration doesn't touch the map code at all — it makes the account's
+`trips`/`reservations` tables grow, and `/api/trips/map-data` (the only thing the map
+screens read) already includes every trip regardless of where it came from. So
+"Gmail/TripIt as map data sources" is really "let the mobile app drive those existing
+import pipelines"; `(app)/settings/integrations.tsx` does that:
+
+- **TripIt** is a plain `.ics` URL — save it, then Sync now (`POST
+  /api/integrations/tripit/sync`) to import.
+- **Gmail** needs OAuth, which took one small, additive server change.
+  `app/api/integrations/gmail/auth/route.ts` normally 302s straight to Google; the mobile
+  fetch client can't hand a redirect off to a browser, so it now returns `{ url }` as JSON
+  when called with `?json=1`. The mobile app opens that URL with
+  `expo-web-browser`'s `openAuthSessionAsync`. On the way back,
+  `app/api/integrations/gmail/callback/route.ts` normally redirects to the web
+  `/settings/integrations` page; it now redirects to `shldr://settings/integrations`
+  instead whenever the signed OAuth `state` carries `platform: "mobile"` (added to
+  `AuthState` in `lib/gmail.ts`), which `openAuthSessionAsync` is watching for and
+  resolves on. Both changes are additive — the default (`platform` unset) still does
+  exactly what the web app needs.
+
 ## What's real vs. what's next
 
 Real, against the live API: auth, onboarding, the trips list and its Upcoming/Active/Past
@@ -100,21 +145,22 @@ filter (shared with web via `@shldr/shared`), trip detail with reservations, cre
 trip, generating and sharing an invite link, document upload, push notification
 registration and delivery (Expo Push, fanned out from `lib/notifications.ts` on the
 server), a persisted light/dark/system theme, offline read access to the last-loaded
-trips (TanStack Query cached to AsyncStorage), an account-wide travel map (visited-city
-pins sized by visit count, flight great-circle arcs, wishlist pins, a stats strip), and a
-per-trip route map (numbered stops in chronological order, flight/transit lines).
+trips (TanStack Query cached to AsyncStorage), an account-wide travel map with clustered
+city pins, flight great-circle arcs, and wishlist add/remove/mark-visited, a per-trip
+route map (numbered stops, flight/transit lines), and Gmail connect/disconnect + TripIt
+feed save/sync/disconnect.
 
-Not built: editing an existing trip or reservation, wishlist management (the map shows
-wishlist pins read-only — no add/remove screen yet), Gmail/TripIt integration connect
-flows, marker clustering on the travel map (`GeoJSONSource` supports it; the web version
-uses it, mobile doesn't yet), and an EAS project/store submission (`eas.json` has build
-profiles but no real `projectId` — that needs an Expo account to create). The
-design-system wrapper layer covers what the built screens use, not the full
-~30-component "clean mapping" set from the plan; more get added as needed.
+Not built: editing an existing trip or reservation, a country-highlight overlay for
+country-type wishlist entries (web has one; mobile just doesn't render a pin for those —
+see "Wishlist" above), and an EAS project/store submission (`eas.json` has build profiles
+but no real `projectId` — that needs an Expo account to create). The design-system
+wrapper layer covers what the built screens use, not the full ~30-component "clean
+mapping" set from the plan; more get added as needed.
 
 Testing here was `tsc --noEmit` (clean), `expo export` (a full Metro bundle, resolving
 every workspace and native dependency, including maplibre), and `expo prebuild` (confirms
 the maplibre config plugin patches the generated Android project without error) — this
-environment can't run an iOS/Android simulator, so the maps have not been visually
-verified. Building a dev client and testing on a real device or simulator is the next
-gate before this ships.
+environment can't run an iOS/Android simulator, so the maps and the Gmail OAuth round
+trip have not been exercised on a device. Building a dev client and testing on a real
+device or simulator — including actually completing a Gmail connect flow and confirming
+the deep link brings the app back to the foreground — is the next gate before this ships.

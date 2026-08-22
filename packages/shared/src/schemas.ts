@@ -73,3 +73,38 @@ export const documentTypeSchema = z.enum([
 ]);
 
 export type DocumentType = z.infer<typeof documentTypeSchema>;
+
+export const wishlistTypeSchema = z.enum(['city', 'country']);
+
+export const createWishlistSchema = z
+  .object({
+    accountId: z.string().uuid(),
+    type: wishlistTypeSchema.default('city'),
+    city: z.string().min(1).max(255).optional(),
+    country: z.string().min(1, 'Country is required').max(255),
+    countryCode: z.string().max(2).optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+    note: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'city' && !data.city) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'City is required',
+        path: ['city'],
+      });
+    }
+  });
+
+export type CreateWishlistInput = z.infer<typeof createWishlistSchema>;
+
+export const tripitFeedSchema = z.object({
+  accountId: z.string().uuid(),
+  icalUrl: z
+    .string()
+    .url('Enter a valid URL')
+    .refine((u) => u.endsWith('.ics'), { message: 'URL must end in .ics' }),
+});
+
+export type TripitFeedInput = z.infer<typeof tripitFeedSchema>;

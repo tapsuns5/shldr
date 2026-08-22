@@ -66,3 +66,27 @@ export interface APIReservation {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface APIGmailAccount {
+  id: string;
+  email: string;
+  status: string;
+  lastSyncAt: string | null;
+  watchExpiration: string | null;
+}
+
+export interface APITripitFeed {
+  id: string;
+  accountId: string;
+  icalUrl: string;
+  status: 'active' | 'paused' | 'error';
+  lastSyncAt: string | null;
+  lastError: string | null;
+}
+
+export interface TripitSyncResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
+}

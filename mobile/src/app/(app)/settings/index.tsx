@@ -46,6 +46,16 @@ export default function SettingsScreen() {
         </RadioButton.Group>
       </List.Section>
 
+      <List.Section title="Data">
+        <List.Item
+          title="Integrations"
+          description="Gmail and TripIt"
+          onPress={() => router.push('/settings/integrations')}
+          left={(props) => <List.Icon {...props} icon="connection" />}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+        />
+      </List.Section>
+
       <View style={styles.footer}>
         <List.Item
           title="Sign out"
