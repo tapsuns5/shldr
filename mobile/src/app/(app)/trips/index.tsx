@@ -30,6 +30,7 @@ export default function TripsScreen() {
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.Content title="Trips" />
+        <Appbar.Action icon="map-outline" onPress={() => router.push('/maps')} />
         <Appbar.Action icon="cog-outline" onPress={() => router.push('/settings')} />
       </Appbar.Header>
 

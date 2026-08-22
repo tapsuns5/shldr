@@ -24,6 +24,7 @@ export default function TripDetailScreen() {
       <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={uiTrip?.title ?? 'Trip'} />
+        <Appbar.Action icon="map-outline" onPress={() => router.push(`/trips/${tripId}/map`)} />
         <Appbar.Action icon="file-document-outline" onPress={() => router.push(`/trips/${tripId}/documents`)} />
         <Appbar.Action icon="share-variant" onPress={() => router.push(`/trips/${tripId}/share`)} />
       </Appbar.Header>
