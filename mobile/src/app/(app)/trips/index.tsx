@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { RefreshControl } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Appbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Appbar, FAB, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { filterTrips, type TripTab } from '@shldr/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTrips } from '@/hooks/use-trips';
 import { TripCard } from '@/components/TripCard';
-import { signOut } from '@/lib/auth-client';
 
 const TABS: { value: TripTab; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
@@ -29,7 +30,7 @@ export default function TripsScreen() {
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.Content title="Trips" />
-        <Appbar.Action icon="logout" onPress={() => signOut()} />
+        <Appbar.Action icon="cog-outline" onPress={() => router.push('/settings')} />
       </Appbar.Header>
 
       <View style={styles.tabs}>
@@ -47,7 +48,7 @@ export default function TripsScreen() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={visibleTrips}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
@@ -57,6 +58,14 @@ export default function TripsScreen() {
           )}
         />
       )}
+
+      <FAB
+        icon="plus"
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        color={theme.colors.onPrimary}
+        onPress={() => router.push('/trips/new')}
+        disabled={!accountId}
+      />
     </View>
   );
 }
@@ -64,6 +73,7 @@ export default function TripsScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   tabs: { paddingHorizontal: 16, paddingVertical: 12 },
-  list: { paddingHorizontal: 16, paddingBottom: 24 },
+  list: { paddingHorizontal: 16, paddingBottom: 88 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  fab: { position: 'absolute', right: 20, bottom: 24 },
 });

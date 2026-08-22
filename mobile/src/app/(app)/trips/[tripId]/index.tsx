@@ -1,4 +1,5 @@
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Appbar, Text, useTheme } from 'react-native-paper';
 import { formatTrip } from '@shldr/shared';
@@ -14,12 +15,17 @@ export default function TripDetailScreen() {
   const { data: reservations, isLoading: reservationsLoading } = useReservations(tripId);
 
   const uiTrip = trip ? formatTrip(trip) : undefined;
+  const sortedReservations = reservations
+    ? [...reservations].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime))
+    : [];
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
       <Appbar.Header elevated>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={uiTrip?.title ?? 'Trip'} />
+        <Appbar.Action icon="file-document-outline" onPress={() => router.push(`/trips/${tripId}/documents`)} />
+        <Appbar.Action icon="share-variant" onPress={() => router.push(`/trips/${tripId}/share`)} />
       </Appbar.Header>
 
       {tripLoading || !uiTrip ? (
@@ -39,13 +45,13 @@ export default function TripDetailScreen() {
             <View style={styles.center}>
               <ActivityIndicator />
             </View>
-          ) : !reservations || reservations.length === 0 ? (
+          ) : sortedReservations.length === 0 ? (
             <View style={styles.center}>
               <Text style={{ color: theme.colors.onSurfaceVariant }}>No reservations yet.</Text>
             </View>
           ) : (
-            <FlatList
-              data={[...reservations].sort((a, b) => a.startDateTime.localeCompare(b.startDateTime))}
+            <FlashList
+              data={sortedReservations}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => <ReservationRow reservation={item} />}
             />

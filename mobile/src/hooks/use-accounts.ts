@@ -7,9 +7,10 @@ export interface APIAccount {
   slug: string;
 }
 
-export function useAccounts() {
+export function useAccounts(options?: { enabled?: boolean }) {
   return useQuery<APIAccount[]>({
     queryKey: ['accounts'],
     queryFn: () => apiClient.get<APIAccount[]>('/api/accounts'),
+    enabled: options?.enabled ?? true,
   });
 }
