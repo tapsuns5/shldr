@@ -52,6 +52,9 @@ export interface AuthState {
   accountId: string;
   userId: string;
   nonce: string;
+  /** Set when the connect flow was started from the mobile app, so the callback
+   *  redirects back into the app instead of the web settings page. */
+  platform?: 'mobile';
 }
 
 export function getGmailAuthUrl(state: AuthState): string {
