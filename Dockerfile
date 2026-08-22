@@ -43,7 +43,7 @@ ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
 
 # Build Next.js
 ENV NODE_ENV=production
-RUN NODE_OPTIONS="--dns-result-order=ipv4first --no-warnings" npm run build
+RUN NODE_OPTIONS="--dns-result-order=ipv4first --no-warnings --max-old-space-size=4096" npm run build
 
 # ---------- runner: minimal production image ----------
 FROM node:20-alpine AS runner
