@@ -32,6 +32,8 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,10 +75,22 @@ export function LoginForm({
   const handleOAuthSignIn = (provider: string) => {
     setError("");
     setIsLoading(true);
+    const onboardingUrl = `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
     signIn.social({
       provider: provider as "google" | "microsoft",
-      callbackURL: redirectTo,
+      callbackURL: onboardingUrl,
     });
+  };
+
+  const redirectAfterLogin = async () => {
+    const accountsResponse = await fetch('/api/accounts');
+    if (!accountsResponse.ok) throw new Error('Unable to load accounts');
+    const accounts = await accountsResponse.json();
+    const destination = accounts.length > 0
+      ? redirectTo
+      : `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
+    router.push(destination);
+    router.refresh();
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,26 +122,44 @@ export function LoginForm({
           console.error("Login failed:", result.error);
           setIsLoading(false);
         } else {
-          router.push(redirectTo);
-          router.refresh();
+          await redirectAfterLogin();
         }
       } else {
+        const emailValue = formData.get("email") as string;
+        const nameValue = formData.get("name") as string;
         const result = await signUp.email({
-          email: formData.get("email") as string,
+          email: emailValue,
           password: formData.get("password") as string,
-          name: formData.get("name") as string,
+          name: nameValue,
         });
 
         if (result?.error) {
           const errorMessage = getErrorMessage(result.error);
           setError(errorMessage);
           console.error("Sign up failed:", result.error);
+          if (isExistingUserError(result.error)) {
+            const loginResult = await signIn.email({
+              email: emailValue,
+              password: formData.get("password") as string,
+            });
+            if (!loginResult?.error) {
+              await redirectAfterLogin();
+              return;
+            }
+            setError("");
+            setEmail(emailValue);
+            setIsLogin(true);
+            setPassword("");
+            setSuccessMessage("That email is already registered. Enter your password to log in.");
+          }
           setIsLoading(false);
           return;
         }
 
+        setEmail(emailValue);
+        setName(nameValue);
         setSuccessMessage(
-          "Account created successfully! Please check your email to verify your account before signing in."
+          "Account created successfully! Please verify your email, then log in to finish setting up your Shldr account."
         );
         setIsLogin(true);
         setPassword("");
@@ -139,6 +171,12 @@ export function LoginForm({
       console.error("Auth error:", error);
       setIsLoading(false);
     }
+  };
+
+  const isExistingUserError = (error: { message?: string; code?: string }) => {
+    const code = error.code || "";
+    const message = error.message || "";
+    return code === "USER_ALREADY_EXISTS" || /already exists|already registered/i.test(message);
   };
 
   const getErrorMessage = (error: { message?: string; code?: string }) => {
@@ -258,6 +296,8 @@ export function LoginForm({
                         type="text"
                         placeholder="John Doe"
                         className="h-12 placeholder:text-gray-500 border-gray-300"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         required
                       />
                     </div>
@@ -272,6 +312,8 @@ export function LoginForm({
                       type="email"
                       placeholder="me@example.com"
                       className="placeholder:text-gray-500 h-12 border-gray-300"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === " ") {
                           e.preventDefault();
