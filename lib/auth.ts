@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { expo } from '@better-auth/expo';
 import { db } from '@/db';
 import * as authSchema from '@/db/schema/auth';
 import { sendMail } from '@/lib/mailer';
@@ -52,6 +53,7 @@ export const auth = betterAuth({
   telemetry: {
     enabled: false,
   },
+  plugins: [expo()],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -62,7 +64,7 @@ export const auth = betterAuth({
       clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
     },
   },
-  trustedOrigins: [process.env.APP_URL!],
+  trustedOrigins: [process.env.APP_URL!, 'shldr://', 'exp://'],
 });
 
 function buildVerificationEmailHtml({ url, displayName }: { url: string; displayName: string }): string {

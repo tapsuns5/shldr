@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error');
 
   const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const redirectBase = `${appUrl.replace(/\/$/, '')}/settings/integrations`;
+  let redirectBase = `${appUrl.replace(/\/$/, '')}/settings/integrations`;
 
   if (error) {
     return NextResponse.redirect(`${redirectBase}?gmail=error&message=${encodeURIComponent(error)}`);
@@ -34,6 +34,9 @@ export async function GET(request: NextRequest) {
   }
 
   const { accountId, userId } = state;
+  if (state.platform === 'mobile') {
+    redirectBase = 'shldr://settings/integrations';
+  }
 
   const membership = await db.query.accountMembers.findFirst({
     where: and(eq(accountMembers.accountId, accountId), eq(accountMembers.userId, userId)),

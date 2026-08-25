@@ -24,11 +24,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  const platform = searchParams.get('platform');
   const url = getGmailAuthUrl({
     accountId,
     userId: session.user.id,
     nonce: crypto.randomUUID(),
+    ...(platform === 'mobile' && { platform: 'mobile' }),
   });
+
+  // The mobile client can't follow this redirect itself (its fetch client
+  // would just download Google's consent page) — it needs the target URL to
+  // open in an in-app browser instead, so it asks for JSON.
+  if (searchParams.get('json') === '1') {
+    return NextResponse.json({ url });
+  }
 
   return NextResponse.redirect(url);
 }

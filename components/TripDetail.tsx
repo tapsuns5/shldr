@@ -425,7 +425,7 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                   bgcolor: 'background.paper',
                   minHeight: 40,
                   position: 'sticky',
-                  top: { xs: 56, md: 64 },
+                  top: 0,
                   zIndex: 10,
                   borderBottom: 1,
                   borderColor: 'divider',

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, MenuItem, Typography } from '@mui/material';
+import { Box, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
 
 interface AddressMenuProps {
   address: string;
@@ -69,8 +69,18 @@ export default function AddressMenu({ address, children }: AddressMenuProps) {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       >
-        <MenuItem onClick={openGoogleMaps}>Open in Google Maps</MenuItem>
-        <MenuItem onClick={openAppleMaps}>Open in Apple Maps</MenuItem>
+        <MenuItem onClick={openGoogleMaps}>
+          <ListItemIcon>
+            <Box component="img" src="/google-maps.svg" alt="" sx={{ width: 20, height: 20, objectFit: 'contain' }} />
+          </ListItemIcon>
+          Open in Google Maps
+        </MenuItem>
+        <MenuItem onClick={openAppleMaps}>
+          <ListItemIcon>
+            <Box component="img" src="/apple-maps.svg" alt="" sx={{ width: 20, height: 20, objectFit: 'contain' }} />
+          </ListItemIcon>
+          Open in Apple Maps
+        </MenuItem>
       </Menu>
     </>
   );

@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { notifications } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { sendPushToUsers } from '@/lib/push';
 
 export type NotificationType =
   | 'trip_created'
@@ -34,6 +35,12 @@ export async function createNotification(input: CreateNotificationInput) {
     })
     .returning();
 
+  await sendPushToUsers([input.userId], {
+    title: input.title,
+    body: input.body,
+    data: { tripId: input.tripId, reservationId: input.reservationId, link: input.link },
+  });
+
   return notification;
 }
 
@@ -54,6 +61,16 @@ export async function createNotifications(inputs: CreateNotificationInput[]) {
       }))
     )
     .returning();
+
+  await Promise.all(
+    inputs.map((input) =>
+      sendPushToUsers([input.userId], {
+        title: input.title,
+        body: input.body,
+        data: { tripId: input.tripId, reservationId: input.reservationId, link: input.link },
+      })
+    )
+  );
 
   return created;
 }

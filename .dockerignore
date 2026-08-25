@@ -12,3 +12,10 @@ dump.rdb
 # Prevent the marketing app from being sent to the main-app build context
 marketing
 marketing/**
+
+# The mobile app and its shared packages are a separate pnpm workspace with
+# their own build/deploy path; keep them out of the web app's Docker context.
+mobile
+mobile/**
+packages
+packages/**
