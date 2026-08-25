@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 
 const PUBLIC_PATHS = [
   '/api/auth',
+  '/api/health',
   '/api/invite',
   '/api/webhooks',
   '/api/location-photo',
