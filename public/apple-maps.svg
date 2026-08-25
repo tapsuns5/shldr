@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 790 733" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;">
+    <g transform="matrix(1,0,0,1,63,-110)">
+        <clipPath id="_clip1">
+            <path d="M579,324L579,612C579,673.814 528.814,724 467,724L179,724C117.186,724 67,673.814 67,612L67,324C67,262.186 117.186,212 179,212L467,212C528.814,212 579,262.186 579,324Z"/>
+        </clipPath>
+        <g clip-path="url(#_clip1)">
+            <rect x="326" y="601" width="253" height="123" style="fill:rgb(255,204,0);"/>
+            <rect x="67" y="212" width="512" height="389" style="fill:url(#_Linear2);"/>
+            <rect x="67" y="400" width="132" height="324" style="fill:rgb(240,130,202);"/>
+            <g>
+                <clipPath id="_clip3">
+                    <rect x="381" y="212" width="198" height="205"/>
+                </clipPath>
+                <g clip-path="url(#_clip3)">
+                    <circle cx="585.5" cy="204.5" r="161.5" style="fill:none;stroke:white;stroke-width:86px;"/>
+                    <path d="M585.5,333.32C656.65,333.32 714.33,275.64 714.33,204.49C714.33,133.34 656.65,75.67 585.5,75.67C514.35,75.67 456.67,133.35 456.67,204.49C456.67,275.63 514.35,333.32 585.5,333.32ZM585.5,399C692.92,399 780,311.92 780,204.5C780,97.08 692.92,10 585.5,10C478.08,10 391,97.08 391,204.5C391,311.92 478.08,399 585.5,399Z" style="fill:rgb(210,209,214);"/>
+                </g>
+            </g>
+            <path d="M338.8,205L181.8,205L181.8,322.71C181.8,329 174.88,332.83 169.55,329.49L69.26,266.71L0,369.76L546.85,732.42L616.11,626.37L338.79,440.41L338.79,205.01L338.8,205Z" style="fill:rgb(242,241,246);fill-rule:nonzero;"/>
+            <rect x="207" y="197" width="108" height="271" style="fill:url(#_Linear4);fill-rule:nonzero;"/>
+            <rect x="185" y="468" width="153" height="256" style="fill:rgb(238,240,246);fill-rule:nonzero;"/>
+            <circle cx="260" cy="529" r="119" style="fill:url(#_Linear5);stroke:white;stroke-width:20px;"/>
+            <path d="M272.22,458.17C268.07,447.27 251.93,447.27 247.78,458.17L201.94,583.37C199.02,591.34 208.9,597.77 215.01,591.88L257.22,551.17C258.77,549.68 261.22,549.68 262.77,551.17L304.98,591.88C311.09,597.77 320.96,591.34 318.05,583.37L272.21,458.17L272.22,458.17Z" style="fill:white;fill-rule:nonzero;"/>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear2" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,389,-389,0,323,212)"><stop offset="0" style="stop-color:rgb(127,237,125);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(46,208,88);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear4" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,271,-271,0,261,197)"><stop offset="0" style="stop-color:rgb(12,145,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(0,119,247);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear5" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,258,-258,0,260,400)"><stop offset="0" style="stop-color:rgb(12,145,255);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(1,122,255);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>

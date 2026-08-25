@@ -24,11 +24,6 @@ export default function SettingsScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Settings" />
-      </Appbar.Header>
-
       <List.Section title="Account">
         <List.Item title={session?.user.name ?? 'Signed in'} description={session?.user.email} />
       </List.Section>

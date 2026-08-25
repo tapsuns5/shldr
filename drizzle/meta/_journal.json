@@ -120,6 +120,13 @@
       "when": 1787432070808,
       "tag": "0016_military_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1787491451814,
+      "tag": "0017_curious_risque",
+      "breakpoints": true
     }
   ]
 }

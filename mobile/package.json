@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@better-auth/expo": "^1.7.1",
+    "@expo/vector-icons": "^15.1.1",
     "@hookform/resolvers": "^5.9.1",
+    "@iconify-json/solar": "^1.2.9",
     "@maplibre/maplibre-react-native": "11.3.7",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
@@ -31,6 +33,8 @@
     "expo-constants": "~57.0.13",
     "expo-dev-client": "~57.0.14",
     "expo-document-picker": "^57.0.1",
+    "expo-font": "~57.0.1",
+    "expo-glass-effect": "57.0.1",
     "expo-linking": "~57.0.7",
     "expo-notifications": "^57.0.13",
     "expo-router": "~57.0.15",

@@ -11,6 +11,5 @@ const sharedPackagesRoot = path.resolve(projectRoot, '..', 'packages');
 const config = getDefaultConfig(projectRoot);
 
 config.watchFolders = [sharedPackagesRoot];
-config.resolver.unstable_enableSymlinks = true;
 
 module.exports = config;

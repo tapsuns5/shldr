@@ -263,7 +263,7 @@ export default function PublicTripPage() {
                   bgcolor: 'background.paper',
                   minHeight: 40,
                   position: 'sticky',
-                  top: { xs: 56, md: 64 },
+                  top: 0,
                   zIndex: 2,
                   borderBottom: 1,
                   borderColor: 'divider',

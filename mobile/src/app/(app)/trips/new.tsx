@@ -53,11 +53,6 @@ export default function NewTripScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="New trip" />
-      </Appbar.Header>
-
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.form}>
           <TextField label="Trip title" value={title} onChangeText={setTitle} style={styles.input} />

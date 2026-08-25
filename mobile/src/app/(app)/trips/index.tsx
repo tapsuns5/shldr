@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Appbar, FAB, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, FAB, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { filterTrips, type TripTab } from '@shldr/shared';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useTrips } from '@/hooks/use-trips';
@@ -28,12 +28,6 @@ export default function TripsScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.Content title="Trips" />
-        <Appbar.Action icon="map-outline" onPress={() => router.push('/maps')} />
-        <Appbar.Action icon="cog-outline" onPress={() => router.push('/settings')} />
-      </Appbar.Header>
-
       <View style={styles.tabs}>
         <SegmentedButtons value={tab} onValueChange={(v) => setTab(v as TripTab)} buttons={TABS} />
       </View>

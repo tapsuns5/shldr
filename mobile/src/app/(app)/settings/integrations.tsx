@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { ActivityIndicator, Appbar, HelperText, IconButton, List, Snackbar, useTheme } from 'react-native-paper';
+import { ActivityIndicator, HelperText, IconButton, List, Snackbar, useTheme } from 'react-native-paper';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { tripitFeedSchema } from '@shldr/shared';
@@ -21,7 +20,6 @@ import {
 
 export default function IntegrationsScreen() {
   const theme = useTheme();
-  const router = useRouter();
   const { data: accounts } = useAccounts();
   const accountId = accounts?.[0]?.id;
 
@@ -73,11 +71,6 @@ export default function IntegrationsScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Integrations" />
-      </Appbar.Header>
-
       <List.Section title="Gmail">
         <View style={styles.sectionBody}>
           <Typography variant="body2" style={{ color: theme.colors.onSurfaceVariant }}>

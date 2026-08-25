@@ -64,11 +64,6 @@ export default function TripMapScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Route" />
-      </Appbar.Header>
-
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator />

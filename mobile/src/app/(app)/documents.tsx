@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Appbar, List, Snackbar, useTheme } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
-import { Typography } from '@/components/ui';
+import { ActivityIndicator, Button, List, Snackbar, Text, useTheme } from 'react-native-paper';
+import { useAccounts } from '@/hooks/use-accounts';
+import { useTrips } from '@/hooks/use-trips';
 import { useDocuments, useUploadDocument, type APIDocument } from '@/hooks/use-documents';
 
 const TYPE_ICONS: Record<APIDocument['documentType'], string> = {
@@ -19,20 +19,21 @@ const TYPE_ICONS: Record<APIDocument['documentType'], string> = {
 
 export default function DocumentsScreen() {
   const theme = useTheme();
-  const router = useRouter();
-  const { tripId } = useLocalSearchParams<{ tripId: string }>();
-  const { data: documents, isLoading } = useDocuments(tripId);
+  const { data: accounts } = useAccounts();
+  const { data: trips } = useTrips(accounts?.[0]?.id);
+  const trip = trips?.[0];
+  const { data: documents, isLoading } = useDocuments(trip?.id);
   const upload = useUploadDocument();
   const [error, setError] = useState(false);
 
   const handlePick = async () => {
+    if (!trip) return;
     const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
-    if (result.canceled || !result.assets?.[0] || !tripId) return;
-
+    if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     try {
       await upload.mutateAsync({
-        tripId,
+        tripId: trip.id,
         documentType: 'other',
         file: { uri: asset.uri, name: asset.name, mimeType: asset.mimeType ?? 'application/octet-stream' },
       });
@@ -47,11 +48,16 @@ export default function DocumentsScreen() {
         <View style={styles.center}>
           <ActivityIndicator />
         </View>
+      ) : !trip ? (
+        <View style={styles.center}>
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>Create a trip to add documents.</Text>
+        </View>
       ) : !documents || documents.length === 0 ? (
         <View style={styles.center}>
-          <Typography variant="body2" style={{ color: theme.colors.onSurfaceVariant }}>
-            No documents yet. Tap upload to add a passport, ticket, or receipt.
-          </Typography>
+          <Text style={{ color: theme.colors.onSurfaceVariant }}>No documents yet.</Text>
+          <Button mode="contained" icon="upload" onPress={handlePick} style={styles.button}>
+            Upload document
+          </Button>
         </View>
       ) : (
         <FlashList
@@ -66,7 +72,6 @@ export default function DocumentsScreen() {
           )}
         />
       )}
-
       <Snackbar visible={error} onDismiss={() => setError(false)} duration={4000}>
         Could not upload that file. Try again.
       </Snackbar>
@@ -77,4 +82,5 @@ export default function DocumentsScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  button: { marginTop: 16 },
 });

@@ -5,8 +5,14 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src", "expo-env.d.ts"]
+  "include": [
+    "src",
+    "expo-env.d.ts",
+    ".expo/types/**/*.ts"
+  ]
 }

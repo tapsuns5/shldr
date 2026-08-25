@@ -1,16 +1,37 @@
+import { useState } from 'react';
 import { Image } from 'react-native';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { Text, Card, useTheme } from 'react-native-paper';
 import type { UITrip } from '@shldr/shared';
+import { API_URL } from '@/lib/config';
 
 export function TripCard({ trip, onPress }: { trip: UITrip; onPress: () => void }) {
   const theme = useTheme();
+  const [useCoverImage, setUseCoverImage] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const location = trip.destinations[0]?.location || trip.location;
+  const locationImage = location
+    ? `${API_URL}/api/location-photo?location=${encodeURIComponent(location)}`
+    : null;
+  const imageUri = imageFailed ? null : useCoverImage ? trip.image : locationImage || trip.image;
+  const handleImageError = () => {
+    if (!useCoverImage && locationImage && trip.image) {
+      setUseCoverImage(true);
+    } else {
+      setImageFailed(true);
+    }
+  };
 
   return (
     <Pressable onPress={onPress}>
       <Card mode="contained" style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-        {trip.image ? (
-          <Image source={{ uri: trip.image }} style={styles.image} />
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={handleImageError}
+          />
         ) : (
           <View style={[styles.image, styles.imageFallback, { backgroundColor: theme.colors.surfaceVariant }]}>
             <Text style={{ color: theme.colors.onSurfaceVariant }} variant="titleLarge">

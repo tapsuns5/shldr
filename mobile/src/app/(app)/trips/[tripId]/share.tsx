@@ -42,11 +42,6 @@ export default function ShareTripScreen() {
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header elevated>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Share trip" />
-      </Appbar.Header>
-
       <View style={styles.content}>
         <Typography variant="body2" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 16 }}>
           Anyone with this link can join the trip with the role you choose below.
