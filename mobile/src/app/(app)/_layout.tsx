@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Redirect, Tabs, usePathname } from 'expo-router';
-import { Animated, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, ActivityIndicator } from 'react-native-paper';
 import { GlassView } from 'expo-glass-effect';
@@ -29,75 +29,128 @@ const TAB_ROUTES = [
 function BottomTabBar({ state, navigation }: TabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { width: windowWidth } = useWindowDimensions();
-  const barWidth = Math.max(windowWidth - 24, 0);
+  const [barWidth, setBarWidth] = useState(0);
   const position = useRef(new Animated.Value(0)).current;
-  const visibleRoutes = state.routes.filter((route) => TAB_ROUTES.some((tab) => tab.name === route.name));
+  const dragStart = useRef(0);
+  const visibleRoutes = useMemo(
+    () => state.routes.filter((route) => TAB_ROUTES.some((tab) => tab.name === route.name)),
+    [state.routes],
+  );
   const activeIndex = visibleRoutes.findIndex((route) => route.key === state.routes[state.index]?.key);
+  const tabWidth = visibleRoutes.length ? barWidth / visibleRoutes.length : 0;
+  const maxPosition = Math.max(barWidth - tabWidth, 0);
   const supportsGlass = Platform.OS === 'ios' && Number(Platform.Version) >= 26;
 
-  useEffect(() => {
-    if (barWidth === 0 || activeIndex < 0) return;
+  const selectTab = useCallback((index: number) => {
+    const route = visibleRoutes[index];
+    if (!route || route.key === state.routes[state.index]?.key) return;
+    const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+    if (!event.defaultPrevented) navigation.navigate(route.name, route.params);
+  }, [navigation, state.index, state.routes, visibleRoutes]);
+
+  const settlePosition = useCallback((index: number) => {
     Animated.spring(position, {
-      toValue: activeIndex * (barWidth / visibleRoutes.length),
+      toValue: index * tabWidth,
       useNativeDriver: true,
-      stiffness: 280,
-      damping: 22,
-      mass: 0.8,
+      stiffness: 320,
+      damping: 26,
+      mass: 0.75,
     }).start();
-  }, [activeIndex, barWidth, position, visibleRoutes.length]);
+  }, [position, tabWidth]);
+
+  const panResponder = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_, gesture) => Math.abs(gesture.dx) > 5 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+    onPanResponderGrant: () => {
+      position.stopAnimation((value) => { dragStart.current = value; });
+    },
+    onPanResponderMove: (_, gesture) => {
+      position.setValue(Math.min(Math.max(dragStart.current + gesture.dx, 0), maxPosition));
+    },
+    onPanResponderRelease: (_, gesture) => {
+      const index = Math.min(
+        Math.max(Math.round((dragStart.current + gesture.dx) / Math.max(tabWidth, 1)), 0),
+        visibleRoutes.length - 1,
+      );
+      settlePosition(index);
+      selectTab(index);
+    },
+    onPanResponderTerminate: () => settlePosition(Math.max(activeIndex, 0)),
+  }), [activeIndex, maxPosition, position, selectTab, settlePosition, tabWidth, visibleRoutes.length]);
+
+  useEffect(() => {
+    if (tabWidth === 0 || activeIndex < 0) return;
+    settlePosition(activeIndex);
+  }, [activeIndex, settlePosition, tabWidth]);
 
   return (
-    <View style={[
-        styles.tabBar,
+    <View
+      pointerEvents="box-none"
+      style={[
+        styles.bottomArea,
         {
-          bottom: Math.max(insets.bottom, 8),
-          backgroundColor: supportsGlass ? 'transparent' : theme.colors.surface,
+          height: 72 + insets.bottom,
+          backgroundColor: theme.colors.background,
         },
       ]}
     >
-      <Animated.View
-        pointerEvents="none"
+      <View
+        {...panResponder.panHandlers}
+        onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
         style={[
-          styles.activeSurface,
+          styles.tabBar,
           {
-            width: visibleRoutes.length ? barWidth / visibleRoutes.length : 0,
-            transform: [{ translateX: position }],
+            bottom: Math.max(insets.bottom, 8),
+            backgroundColor: theme.dark ? '#171b19' : '#eef4ef',
+            borderColor: theme.dark ? '#3b413e' : '#d9dfdc',
           },
         ]}
       >
         <GlassView
+          pointerEvents="none"
           glassEffectStyle="regular"
-          tintColor={theme.dark ? '#1d3428' : '#d2e7d8'}
-          isInteractive={supportsGlass}
-          style={[
-            styles.glassSurface,
-            { backgroundColor: supportsGlass ? 'transparent' : theme.dark ? '#1d3428' : '#d2e7d8' },
-          ]}
+          tintColor={theme.dark ? 'rgba(23,27,25,0.92)' : 'rgba(238,244,239,0.92)'}
+          style={StyleSheet.absoluteFill}
         />
-      </Animated.View>
-      {visibleRoutes.map((route) => {
-        const tab = TAB_ROUTES.find((item) => item.name === route.name);
-        if (!tab) return null;
-        const focused = state.routes[state.index]?.key === route.key;
-        const color = focused ? theme.colors.primary : theme.colors.onSurfaceVariant;
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.activeSurface,
+            {
+              width: tabWidth,
+              transform: [{ translateX: position }],
+            },
+          ]}
+        >
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={theme.dark ? '#294438' : '#d2e7d8'}
+            isInteractive={supportsGlass}
+            style={[
+              styles.glassSurface,
+              { backgroundColor: supportsGlass ? 'transparent' : theme.dark ? '#294438' : '#d2e7d8' },
+            ]}
+          />
+        </Animated.View>
+        {visibleRoutes.map((route) => {
+          const tab = TAB_ROUTES.find((item) => item.name === route.name);
+          if (!tab) return null;
+          const focused = state.routes[state.index]?.key === route.key;
+          const color = focused ? theme.colors.primary : theme.colors.onSurfaceVariant;
 
-        return (
-          <Pressable
-            key={route.key}
-            accessibilityRole="tab"
-            accessibilityState={focused ? { selected: true } : {}}
-            onPress={() => {
-              const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-              if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
-            }}
-            style={styles.tab}
-          >
-            <SolarIcon name={tab.icon} size={24} color={color as string} />
-            <Text style={[styles.tabLabel, { color }]}>{tab.label}</Text>
-          </Pressable>
-        );
-      })}
+          return (
+            <Pressable
+              key={route.key}
+              accessibilityRole="tab"
+              accessibilityState={focused ? { selected: true } : {}}
+              onPress={() => selectTab(visibleRoutes.indexOf(route))}
+              style={styles.tab}
+            >
+              <SolarIcon name={tab.icon} size={24} color={color as string} />
+              <Text style={[styles.tabLabel, { color }]}>{tab.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -134,7 +187,11 @@ export default function AppLayout() {
       <View style={styles.tabContent}>
         <Tabs
           tabBar={(props) => <BottomTabBar {...(props as unknown as TabBarProps)} />}
-          screenOptions={{ headerShown: false }}
+          screenOptions={{
+            headerShown: false,
+            animation: 'fade',
+            sceneStyle: { backgroundColor: 'transparent' },
+          }}
         >
           <Tabs.Screen name="home" options={{ title: 'Home' }} />
           <Tabs.Screen name="trips/index" options={{ title: 'Trips' }} />
@@ -149,6 +206,12 @@ export default function AppLayout() {
 const styles = StyleSheet.create({
   app: { flex: 1 },
   tabContent: { flex: 1 },
+  bottomArea: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   tabBar: {
     position: 'absolute',
     left: 12,
@@ -158,11 +221,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexDirection: 'row',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#d9dfdc',
     paddingTop: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    elevation: 8,
   },
-  activeSurface: { position: 'absolute', top: 4, bottom: 4, left: 0, borderRadius: 26 },
-  glassSurface: { flex: 1, borderRadius: 26, overflow: 'hidden' },
+  activeSurface: { position: 'absolute', top: 4, bottom: 4, left: 0, borderRadius: 28 },
+  glassSurface: { flex: 1, borderRadius: 28, overflow: 'hidden' },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, zIndex: 1 },
   tabLabel: { fontSize: 11, fontWeight: '600' },
 });

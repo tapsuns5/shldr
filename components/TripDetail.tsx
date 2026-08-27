@@ -290,7 +290,7 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" sx={{ mb: 4, gap: { xs: 3, md: 0 }, width: '100%', maxWidth: '100%', minWidth: 0 }}>
         <Box sx={{ width: '100%', maxWidth: '100%', minWidth: 0, flex: 1 }}>
           <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 1, fontSize: { xs: '1.5rem', md: '2.125rem' }, wordBreak: 'break-word' }}>
-            {trip.title}, {trip.monthYear}
+            {trip.title}
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 1, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
             {trip.location}

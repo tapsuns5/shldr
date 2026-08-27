@@ -245,7 +245,7 @@ export default function ShareTripDialog({ open, trip, onClose }: ShareTripDialog
                 Share Trip
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {trip.title}, {trip.monthYear}
+                {trip.title}
               </Typography>
             </Box>
             <IconButton size="small" onClick={handleClose} sx={{ color: 'text.secondary' }}>

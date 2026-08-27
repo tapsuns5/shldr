@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Camera, GeoJSONSource, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
 import { ActivityIndicator, FAB, Text, useTheme } from 'react-native-paper';
 import { buildFlightRoutesGeoJson, MAP_STYLE_DARK, MAP_STYLE_LIGHT, type WishlistDestination } from '@shldr/shared';
@@ -11,6 +11,7 @@ import { WishlistListDialog } from '@/components/map/WishlistListDialog';
 import { WishlistItemDialog } from '@/components/map/WishlistItemDialog';
 import { boundsFromPoints } from '@/lib/map-bounds';
 import { SolarIcon } from '@/components/SolarIcon';
+import { useColorMode } from '@/lib/color-mode';
 
 type MapView = 'footprints' | 'wishlist';
 
@@ -51,12 +52,11 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 
 export default function TravelMapScreen() {
   const theme = useTheme();
-  const scheme = useColorScheme();
+  const { mode: scheme } = useColorMode();
   const { data: accounts } = useAccounts();
   const accountId = accounts?.[0]?.id;
   const { data, isLoading } = useAccountMapData(accountId);
   const [view, setView] = useState<MapView>('footprints');
-  const [sheetExpanded, setSheetExpanded] = useState(false);
   const [addVisible, setAddVisible] = useState(false);
   const [listVisible, setListVisible] = useState(false);
   const [selectedWishlist, setSelectedWishlist] = useState<WishlistDestination | null>(null);
@@ -71,11 +71,6 @@ export default function TravelMapScreen() {
     return boundsFromPoints(points, 2);
   }, [data, view]);
 
-  const toggleSheet = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setSheetExpanded((expanded) => !expanded);
-  };
-
   if (isLoading || !data || !accountId) {
     return <View style={[styles.flex, { backgroundColor: theme.colors.background }]}><View style={styles.center}><ActivityIndicator /></View></View>;
   }
@@ -89,7 +84,7 @@ export default function TravelMapScreen() {
         style={styles.flex}
         mapStyle={isDark ? MAP_STYLE_DARK : MAP_STYLE_LIGHT}
       >
-        <Camera key={view} initialViewState={bounds ? { bounds, padding: { top: 100, bottom: sheetExpanded ? 380 : 150, left: 40, right: 40 } } : undefined} />
+        <Camera key={view} initialViewState={bounds ? { bounds, padding: { top: 100, bottom: 180, left: 40, right: 40 } } : undefined} />
         {view === 'footprints' && flightGeoJson && flightGeoJson.features.length > 0 ? (
           <GeoJSONSource id="flight-arcs" data={flightGeoJson}>
             <Layer id="flight-arcs-line" type="line" style={{ lineColor: pinColor, lineWidth: 1.5, lineOpacity: 0.65 }} />
@@ -116,13 +111,12 @@ export default function TravelMapScreen() {
       ) : null}
 
       <View style={[styles.bottomSheet, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
-        <Pressable onPress={toggleSheet} style={styles.sheetHandleArea} accessibilityRole="button" accessibilityLabel={sheetExpanded ? 'Collapse map statistics' : 'Expand map statistics'}>
+        <View style={styles.sheetHandleArea}>
           <View style={[styles.sheetHandle, { backgroundColor: theme.colors.outline }]} />
           <View style={styles.sheetHeader}>
-            <Text variant="titleMedium" style={{ fontWeight: '700' }}>{view === 'wishlist' ? 'Wishlist' : 'Your footprints'}</Text>
-            <SolarIcon name={sheetExpanded ? 'alt-arrow-down-line-duotone' : 'alt-arrow-up-line-duotone'} size={20} color={theme.colors.onSurfaceVariant} />
+            <Text variant="titleMedium" style={styles.sheetTitle}>{view === 'wishlist' ? 'Wishlist' : 'Your footprints'}</Text>
           </View>
-        </Pressable>
+        </View>
         {view === 'wishlist' ? (
           <FAB
             icon="star-plus-outline"
@@ -131,7 +125,7 @@ export default function TravelMapScreen() {
             onPress={() => setAddVisible(true)}
           />
         ) : null}
-        <ScrollView horizontal={!sheetExpanded} showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.stats, sheetExpanded && styles.expandedStats]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stats}>
           <Stat label="Countries" value={data.stats.countriesCount} />
           <Stat label="Cities" value={data.stats.citiesCount} />
           <Stat label="Trips" value={data.stats.tripsCount} />
@@ -155,12 +149,12 @@ const styles = StyleSheet.create({
   viewToggle: { flexDirection: 'row', gap: 2, padding: 3, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, elevation: 4 },
   viewOption: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 9, paddingHorizontal: 15, borderRadius: 20 },
   listButton: { position: 'absolute', top: 72, left: 16, flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, elevation: 3 },
-  bottomSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 126, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: StyleSheet.hairlineWidth, elevation: 12, paddingBottom: 84 },
+  bottomSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 126, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: StyleSheet.hairlineWidth, elevation: 12, paddingBottom: 116 },
   sheetHandleArea: { paddingTop: 9, paddingBottom: 3 },
   sheetHandle: { alignSelf: 'center', width: 38, height: 4, borderRadius: 2, marginBottom: 5 },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingVertical: 5 },
+  sheetTitle: { fontWeight: '700' },
   stats: { gap: 2, paddingHorizontal: 12, paddingBottom: 11 },
-  expandedStats: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', rowGap: 3 },
   stat: { minWidth: 72, alignItems: 'center', paddingHorizontal: 8, paddingVertical: 5 },
   statValue: { fontWeight: '800', lineHeight: 28 },
   fab: { position: 'absolute', right: 20, top: -70, zIndex: 3 },

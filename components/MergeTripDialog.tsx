@@ -129,7 +129,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
               Selected trip to merge
             </Typography>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              {sourceTrip.title}, {sourceTrip.monthYear}
+              {sourceTrip.title}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               {sourceTrip.date} ({sourceTrip.duration})
@@ -185,7 +185,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
                       <ListItemText
                         primary={
                           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                            {trip.title}, {trip.monthYear}
+                            {trip.title}
                           </Typography>
                         }
                       />

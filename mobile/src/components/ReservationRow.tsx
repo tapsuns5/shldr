@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Linking, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 import { Text, useTheme } from 'react-native-paper';
 import { SolarIcon } from './SolarIcon';
 import dayjs from 'dayjs';
 import type { APIReservation, ReservationType } from '@shldr/shared';
 import { API_URL } from '@/lib/config';
+import { BottomSheet } from './BottomSheet';
 
 const ICONS: Record<ReservationType, string> = {
   flight: 'plain-line-duotone',
@@ -141,31 +142,39 @@ function getDetails(reservation: ReservationWithDetails): DetailLine[] {
 }
 
 function AddressMenu({ address, onDismiss }: { address: string; onDismiss: () => void }) {
-  const theme = useTheme();
-  const openMap = (provider: 'google' | 'apple') => {
-    const url = provider === 'google'
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-      : `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
+  const pendingUrl = useRef<string | null>(null);
+  const handleDismiss = () => {
+    const url = pendingUrl.current;
+    pendingUrl.current = null;
     onDismiss();
-    void Linking.openURL(url);
+    if (url) void Linking.openURL(url);
   };
 
   return (
-    <Modal transparent animationType="fade" onRequestClose={onDismiss}>
-      <Pressable style={styles.modalBackdrop} onPress={onDismiss}>
-        <View style={[styles.mapMenu, { backgroundColor: theme.colors.surface }]}>
-          <Text variant="titleMedium" style={styles.menuTitle}>Open address in…</Text>
-          <Pressable style={styles.menuItem} onPress={() => openMap('google')}>
-            <SvgUri uri={`${API_URL}/google-maps.svg`} width={26} height={26} />
-            <Text variant="bodyLarge">Google Maps</Text>
-          </Pressable>
-          <Pressable style={styles.menuItem} onPress={() => openMap('apple')}>
-            <SvgUri uri={`${API_URL}/apple-maps.svg`} width={26} height={26} />
-            <Text variant="bodyLarge">Apple Maps</Text>
-          </Pressable>
-        </View>
-      </Pressable>
-    </Modal>
+    <BottomSheet visible onDismiss={handleDismiss} detents={[0.29, 0.5]} initialDetentIndex={0}>
+      {(close) => {
+        const openMap = (provider: 'google' | 'apple') => {
+          pendingUrl.current = provider === 'google'
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+            : `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
+          close();
+        };
+
+        return (
+          <View style={styles.mapMenu}>
+            <Text variant="titleMedium" style={styles.menuTitle}>Open address in…</Text>
+            <Pressable style={styles.menuItem} onPress={() => openMap('google')}>
+              <SvgUri uri={`${API_URL}/google-maps.svg`} width={26} height={26} />
+              <Text variant="bodyLarge">Google Maps</Text>
+            </Pressable>
+            <Pressable style={styles.menuItem} onPress={() => openMap('apple')}>
+              <SvgUri uri={`${API_URL}/apple-maps.svg`} width={26} height={26} />
+              <Text variant="bodyLarge">Apple Maps</Text>
+            </Pressable>
+          </View>
+        );
+      }}
+    </BottomSheet>
   );
 }
 
@@ -236,8 +245,7 @@ const styles = StyleSheet.create({
   content: { flex: 1, minWidth: 0, paddingLeft: 7 },
   title: { fontWeight: '600', lineHeight: 23 },
   detail: { color: '#454545', lineHeight: 22 },
-  modalBackdrop: { flex: 1, backgroundColor: '#00000066', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  mapMenu: { width: '100%', maxWidth: 360, borderRadius: 18, paddingVertical: 10, elevation: 8 },
+  mapMenu: { paddingHorizontal: 8, paddingBottom: 10 },
   menuTitle: { fontWeight: '700', paddingHorizontal: 18, paddingVertical: 10 },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, paddingVertical: 13 },
 });

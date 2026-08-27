@@ -213,7 +213,7 @@ export default function MoveEventDialog({
                         <ListItemText
                           primary={
                             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                              {trip.title}, {trip.monthYear}
+                              {trip.title}
                             </Typography>
                           }
                           secondary={

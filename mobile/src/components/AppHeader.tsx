@@ -8,6 +8,7 @@ import { useColorMode } from '@/lib/color-mode';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useGmailAccounts, useConnectGmail, useTripitFeed } from '@/hooks/use-integrations';
 import { apiClient } from '@/lib/api-client';
+import { BottomSheet } from './BottomSheet';
 import { ShldrLogo } from './ShldrLogo';
 import { SolarIcon } from './SolarIcon';
 
@@ -98,6 +99,7 @@ export function AppHeader() {
     '/documents': 'Docs',
   };
   const screenTitle = screenTitles[pathname] ?? (pathname.includes('/day/') ? 'Trip day' : pathname.includes('/plan') ? 'Add a Plan' : pathname.includes('/map') ? 'Travel map' : pathname.includes('/share') ? 'Share trip' : pathname.includes('/trips/') ? 'Trip details' : 'SHLDR');
+  const isTripDetail = /^\/trips\/[^/]+(?:\/index)?\/?$/.test(pathname);
   const { width } = useWindowDimensions();
   const { data: session } = useSession();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -146,7 +148,8 @@ export function AppHeader() {
       <View
         style={[
           styles.header,
-          { height: 64 + insets.top, paddingTop: insets.top, backgroundColor: theme.colors.surface },
+          isTripDetail && styles.hiddenTripDetailHeader,
+          { height: 64 + insets.top, paddingTop: insets.top, backgroundColor: isTripDetail ? 'transparent' : theme.colors.surface },
         ]}
       >
         {isRootRoute ? (
@@ -176,24 +179,19 @@ export function AppHeader() {
         ) : (
           <>
             <IconButton
-              icon={() => <SolarIcon name="arrow-left-line-duotone" size={28} color={theme.colors.onSurface} />}
+              icon={() => <SolarIcon name="arrow-left-line-duotone" size={28} color={isTripDetail ? '#ffffff' : theme.colors.onSurface} />}
               onPress={() => router.back()}
               accessibilityLabel="Back"
+              style={isTripDetail ? [styles.tripDetailBackButton, { top: insets.top + 6, left: 8 }] : undefined}
             />
-            <Text variant="titleLarge" style={styles.screenTitle} numberOfLines={1}>{screenTitle}</Text>
+            {!isTripDetail && <Text variant="titleLarge" style={styles.screenTitle} numberOfLines={1}>{screenTitle}</Text>}
             <View style={styles.headerSpacer} />
           </>
         )}
       </View>
 
-      <Modal visible={accountOpen} transparent animationType="slide" onRequestClose={() => setAccountOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setAccountOpen(false)}>
-          <Pressable
-            style={[styles.accountSheet, { backgroundColor: theme.colors.surface, height: '88%' }]}
-            onPress={(event) => event.stopPropagation()}
-          >
-            <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
-              <View style={styles.sheetHandle} />
+      <BottomSheet visible={accountOpen} onDismiss={() => setAccountOpen(false)} detents={[0.58, 0.88]} initialDetentIndex={0}>
+        <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
               {sheetSection === 'menu' ? (
                 <>
                   <Text variant="headlineSmall" style={styles.sheetTitle}>Account</Text>
@@ -247,10 +245,8 @@ export function AppHeader() {
               ) : (
                 <PreferencesSheet onBack={() => setSheetSection('menu')} />
               )}
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        </ScrollView>
+      </BottomSheet>
 
       <Modal visible={notificationsOpen} transparent animationType="fade" onRequestClose={() => setNotificationsOpen(false)}>
         <Pressable style={styles.popoverBackdrop} onPress={() => setNotificationsOpen(false)}>
@@ -295,14 +291,13 @@ export function AppHeader() {
 
 const styles = StyleSheet.create({
   header: { height: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#d9dfdc', zIndex: 10 },
+  hiddenTripDetailHeader: { display: 'none' },
+  tripDetailBackButton: { position: 'absolute', backgroundColor: 'rgba(0,0,0,0.38)', borderRadius: 24, zIndex: 2 },
   screenTitle: { flex: 1, textAlign: 'center', fontWeight: '600' },
   headerSpacer: { width: 48 },
   actions: { flexDirection: 'row', alignItems: 'center' },
   badge: { position: 'absolute', top: 4, right: 3, backgroundColor: '#c62828' },
-  backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.28)' },
-  accountSheet: { borderTopLeftRadius: 28, borderTopRightRadius: 28 },
-  sheetContent: { padding: 24, paddingBottom: 40 },
-  sheetHandle: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: '#b7bfba', marginBottom: 24 },
+  sheetContent: { padding: 24, paddingTop: 8, paddingBottom: 40 },
   sheetBack: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
   accountProfile: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   accountFieldLabel: { marginTop: 22, marginBottom: 2 },

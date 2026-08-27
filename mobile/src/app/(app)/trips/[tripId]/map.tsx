@@ -42,7 +42,7 @@ export default function TripMapScreen() {
   const cameraRef = useRef<CameraRef>(null);
 
   const sortedLocations = useMemo(
-    () => (route?.locations ? [...route.locations].sort((a, b) => a.date.localeCompare(b.date)) : []),
+    () => (route?.locations ? [...route.locations].sort((a, b) => String(a.date ?? '').localeCompare(String(b.date ?? ''))) : []),
     [route]
   );
 

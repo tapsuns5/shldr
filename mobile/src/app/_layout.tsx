@@ -16,7 +16,14 @@ function ThemedApp() {
   return (
     <PaperProvider theme={theme}>
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade_from_bottom',
+          animationDuration: 240,
+          contentStyle: { backgroundColor: theme.colors.background },
+        }}
+      />
     </PaperProvider>
   );
 }

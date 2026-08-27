@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text } from 'react-native-paper';
 
 export function PinBadge({
@@ -6,11 +7,13 @@ export function PinBadge({
   color,
   textColor = '#ffffff',
   size = 26,
+  icon,
 }: {
   label: string;
   color: string;
   textColor?: string;
   size?: number;
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
 }) {
   return (
     <View
@@ -19,7 +22,7 @@ export function PinBadge({
         { width: size, height: size, borderRadius: size / 2, backgroundColor: color },
       ]}
     >
-      <Text style={[styles.label, { color: textColor, fontSize: size * 0.42 }]}>{label}</Text>
+      {icon ? <MaterialCommunityIcons name={icon} size={size * 0.48} color={textColor} /> : <Text style={[styles.label, { color: textColor, fontSize: size * 0.42 }]}>{label}</Text>}
     </View>
   );
 }
