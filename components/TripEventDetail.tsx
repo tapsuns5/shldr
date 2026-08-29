@@ -54,6 +54,7 @@ import {
   type APIReservation,
   tzidToAbbrev,
   reservationDayjs,
+  reservationHasTime,
 } from '@/hooks/use-reservations';
 
 interface TripEventDetailProps {
@@ -293,7 +294,10 @@ export default function TripEventDetail({
       const m = reservation.notes.match(/^Departs\s+(\d{1,2}:\d{2}\s*[AP]M)\s+([A-Z]{2,5})/im);
       if (m) return { time: m[1], tz: m[2] };
     }
-    return { time: startDt.format('h:mm A'), tz: tzidToAbbrev(reservation.providerPhone, startDt.toDate()) };
+    const hasTime = reservationHasTime(reservation);
+    return hasTime
+      ? { time: startDt.format('h:mm A'), tz: tzidToAbbrev(reservation.providerPhone, startDt.toDate()) }
+      : { time: '', tz: '' };
   })();
 
   const arrTime = endDt

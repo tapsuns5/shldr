@@ -1,0 +1,273 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:b81a:20b0:1ea1:c002:8234 with SMTP id zc26-n2csp1353777njc;
+        Sat, 29 Aug 2026 13:01:43 -0700 (PDT)
+X-Received: by 2002:a05:6a00:2888:b0:847:9315:fb8b with SMTP id d2e1a72fcca58-856281ac5dbmr25695645b3a.6.1788033703170;
+        Sat, 29 Aug 2026 13:01:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788033703; cv=none;
+        d=google.com; s=arc-20260327;
+        b=iLctKaxwCBg86LMIlW9B8iew8OlJ8PuuIEWftmpnG+QYAb/iIvp2b4WZEPMCDTuIvB
+         ysTwXISkNcuxvQDdJ8f8vTtXj9AOxImvtQs1Kyt7RReXRpMDV58L7b24rtAcrOBrsQob
+         /rGBgCtB7teoBYLvuL4Wp+5E125+sd0CFipYFnZn3P0wiY5aUyBMZsRDL8x0y3YiZLs5
+         iTIBcW5gB9FVpAclOEyxXNXsePdRU6i0CWrPViXpE5eXBM58As5t3c8AgOfF8ZlnQHV0
+         YMZY5FB8q2LaefSuLey6duk/g2/HnRho85sNl21U+xIvm9tdOoAi6/C5yOTML7m8B6Zs
+         Ao9g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=date:to:subject:references:mime-version:message-id:in-reply-to:from
+         :content-transfer-encoding:dkim-signature;
+        bh=HrLGGftRarIoqdrWjPtw5/XTKac7SM9NZIyfvRu4TB0=;
+        fh=e8OGrjd3cXnGRHxrJrKMVIN8rR75TckYo9tnEPZyqxU=;
+        b=IK0hcgP6g9+kh6Acr8wPUfubLKsqk0TADPYA9eUoU3WxALzTurqDZGDjr+TrEKcupE
+         rEdjV6whheSxYLGEsKqYcymoFlfIkOrgbsxBIhRtHVsFGyC6zbxj8fQEA4jJvPdyOEmw
+         Wj26bXpwrUs5JXwDD2bWwi9EQ4MWzRShe9wEWKn74Ca/5i7itgZRPdrlqTGvxLEz9mU3
+         HfJxFpGQMSA017IHqPMSCMsKuLFFOcSsJ8yiVyNCANwFGkWHgIRuASY3ZDuUhBKku2Y0
+         I4LdrrbWkZorkUUUYTB6s2SEZDWIeG8U0eJOg3soC2lPGHfQt5tZWAsLv+ByNhbbUgcA
+         +j+A==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=nh1mKJGU;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.212.45 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+Return-Path: <plans@shldrtravel.com>
+Received: from crocodile.elm.relay.mailchannels.net (crocodile.elm.relay.mailchannels.net. [23.83.212.45])
+        by mx.google.com with ESMTPS id d2e1a72fcca58-856a434f1b5si9751001b3a.127.2026.08.29.13.01.41
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2026 13:01:42 -0700 (PDT)
+Received-SPF: pass (google.com: domain of plans@shldrtravel.com designates 23.83.212.45 as permitted sender) client-ip=23.83.212.45;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=nh1mKJGU;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.212.45 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 5E56C7E1C67
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:41 +0000 (UTC)
+Received: from fr-int-smtpout14.hostinger.io (trex-green-7.trex.outbound.svc.cluster.local [100.96.99.9])
+	(Authenticated sender: hostingeremail)
+	by relay.mailchannels.net (Postfix) with ESMTPA id C3E5D7E1940
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:40 +0000 (UTC)
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MailChannels-Auth-Id: hostingeremail
+X-Lyrical-Rock: 3c73f23c662232bc_1788033701291_664545962
+X-MC-Loop-Signature: 1788033701291:3051343606
+X-MC-Ingress-Time: 1788033701290
+Received: from fr-int-smtpout14.hostinger.io (fr-int-smtpout14.hostinger.io
+ [148.222.54.43])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.96.99.9 (trex/8.0.2);
+	Sat, 29 Aug 2026 20:01:41 +0000
+Received: from localhost (117.138.230.35.bc.googleusercontent.com [IPv6:2600:1700:5122:1180:6547:a044:8016:18b9])
+	(Authenticated sender: plans@shldrtravel.com)
+	by smtp.hostinger.com (smtp.hostinger.com) with ESMTPSA id 4hXR3R0FFKz1xym
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shldrtravel.com;
+	s=hostingermail-a; t=1788033699;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=HrLGGftRarIoqdrWjPtw5/XTKac7SM9NZIyfvRu4TB0=;
+	b=nh1mKJGUdWWh90j02mmCPX/NEK9oDUKkEab8X6/J8Fjufs9PEA65pwZURFVMuRE3FT5icP
+	kmAC2rwWmbGP0/DBQsJM5Eg6pptvCH4MTrg3E3e89MTmMj61Rmc5Oryk6gGpAr21nzs/PH
+	xuIU9vuy4ejeTh9NWF5hInbn9M4C/aWvQA5qHFWUsHePwQAdQatB/b9PFwvhR6Uk9kRc5x
+	RPuMzWGoHO8K2WoU/WpWgFoifXlQM+iqedy8DIaWE/V9+s84XJXUSG7qOwHQvdvPRTkWP/
+	VOmKVjlYk5zv3f3NeCPyvaaug5dqkTbfHUrIyKebQUH0epjdndLMcO1M/tDz6w==
+X-Hostinger-Webhook-Enabled: yes
+X-Hostinger-Webhook-Enabled: yes
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+From: <plans@shldrtravel.com>
+In-Reply-To: <215DB007-B4D2-4003-A8BD-030FEA7E78DA@gmail.com>
+Message-Id: <1788033690202809177.1788033690@shldrtravel.com>
+Mime-Version: 1.0
+References: <d33ee62b1697d7815390ef6bb2bd102f@mg.zenchefrestaurants.com>
+ <215DB007-B4D2-4003-A8BD-030FEA7E78DA@gmail.com>
+Subject: Fwd: [Restaurant Les Armures] Reservation confirmation
+To: <tapsuns5@gmail.com>
+Date: Sat, 29 Aug 2026 20:01:38 +0000 (UTC)
+X-CM-Envelope: MS4xfEx7xAF5iXz8Mo+/zNbxRWh1fzjvyLsMRAf7qwGG7ZdUN9OpRtps/x1r/+GE32SP7nQKxUh/cxfViFMnbaWq3YRcRJHlDVEWtgbcUYIlRQVJDUWHJpSu lQdqsYUNOUNswldnID6OMuDjL4gaW82tprt3jc2XZyGX34qhdLFCGpGi1luN550pmfwLQOU7aBjz/60PbUb7Z4hU2gv2zoTgab9p29ZwO841Pe+yJ1IM4Vuy xSJHOvkr9jjOrRI+STcHuQ==
+X-CM-Analysis: v=2.4 cv=Gq4Q+V1C c=1 sm=1 tr=0 ts=6a933aa3 a=n+y87rYn6FZjKmxgPwRHzg==:617 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10 a=ZgN-DOtDAAAA:8 a=tvnwkZ9kAAAA:8 a=sGWdeUoJAAAA:8 a=pGLkceISAAAA:8 a=F9QCr_piAAAA:8 a=XTxuV68NumyUfNeUy5oA:9 a=D3gExQISVXAfpR0Z:21 a=QEXdDO2ut3YA:10 a=iK8irGHeKZfnluWTqyXq:22 a=WDSKfEXos4BhSNNpuDoN:22 a=n9gtGFsrDjN1l_WayF5q:22 a=vuDxos_9eFHXoVXJIEyh:22 a=-egpZyMQddwkmPDbLeIt:22 a=SPwAH5uIvtj3PHcppgQl:22 a=lHpdrhOuOOB_mGgzfyY4:22 a=Pa2yjujQMVOIyGqhr2qR:22 a=2YKifVB7tECBjmmIEuSv:22 a=5QeyuudGkhuoZP2aeShn:22
+X-AuthUser: plans@shldrtravel.com
+
+<div><br></div><div><br></div><div class=3D"hmail-signature-prefix">--</div=
+><div class=3D"hmail-signature" data-signature-uuid=3D"60d6233f-e23c-4ec6-9=
+cfc-e8b1e43098bc"></div><div><br></div><div class=3D"hmail-free-plan-footer=
+">Sent with <a href=3D"https://mail.hostinger.com/" target=3D"_blank" rel=
+=3D"noopener noreferrer">Hostinger Mail</a></div><br>
+      <div class=3D"hmail-quote-container">
+        <div class=3D"hmail-attr" data-qa=3D"message-reply-attribution">
+      ---------- Forwarded message ----------<br>
+      From: Emily Sharpe &lt;emilysharpe2@gmail.com&gt;<br>Date: Sat, Aug 2=
+9, 2026 2:10 PM<br>Subject: Fwd: [Restaurant Les Armures] Reservation confi=
+rmation<br>To: &lt;plans@shldrtravel.com&gt;
+      <br>
+    </div>
+        <br><br>
+        <div class=3D"hmail-quote"><br id=3D"lineBreakAtBeginningOfSignatur=
+e"><div dir=3D"ltr">Sent from my iPhone</div><div dir=3D"ltr"><br>Begin for=
+warded message:<br><br></div><blockquote type=3D"cite"><div dir=3D"ltr"><b>=
+From:</b> Restaurant Les Armures &lt;restaurant-les-armures+sender@mg.zench=
+efrestaurants.com&gt;<br><b>Date:</b> August 2, 2026 at 10:14:08=E2=80=AFAM=
+ EDT<br><b>To:</b> emilysharpe2@gmail.com<br><b>Subject:</b> <b>[Restaurant=
+ Les Armures] Reservation confirmation</b><br><b>Reply-To:</b> Restaurant L=
+es Armures &lt;b-de3ae521-a2e3-4396-a65c-d5cc8a94790b+sender@mg.zenchefrest=
+aurants.com&gt;<br><br></div></blockquote><blockquote type=3D"cite"><div di=
+r=3D"ltr">=EF=BB=BF             <div>   <div>  </div> <div>  <div>      </d=
+iv> </div>     </div> <table align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" style=3D"max-width:600px; border: 1px solid #dbd9da; ba=
+ckground: #fff; border-radius:8px; margin:70px auto 0 auto; padding: 45px; =
+line-height: 20px; font-family: Verdana, Helvetica, sans-serif; font-size: =
+14px; color:#3d3b3b;box-shadow: 0 0 14px 0 rgba(0, 0, 0, 0.08);"> <tbody> <=
+tr> <td> <p style=3D"font-family:Verdana;text-align:center;text-transform: =
+uppercase;font-weight: bold; color: #3d3b3b;padding-bottom:20px; font-size:=
+ 14px">Restaurant Les Armures</p> <p style=3D"font-family:Verdana;margin : =
+0; font-size: 14px"> Hello Emily Palmer, </p> <p style=3D"font-family:Verda=
+na;font-size: 14px; margin : 10px 0 0 0; line-height: 1.46;"> We are please=
+d to confirm your reservation for <b>Friday 25 September 2026</b> at <b>7:3=
+0 PM</b> (2 people) in the room : <strong>Salle Principale au Rez-de-chauss=
+=C3=A9e</strong>.       <br> <br></p>  <p style=3D"font-family:Verdana;font=
+-size: 14px; line-height:1.46;margin: 10px 0 0 0;"> We are looking forward =
+to your visit and remain at your disposal by phone at <b>+41228187171</b> f=
+or any inquiries. </p> <p style=3D"font-family:Verdana;font-size: 14px; lin=
+e-height:1.46;margin:10px 0 0 0;">If you wish to manage your reservation, c=
+lick on the following link: <a href=3D"https://email.mg.zenchefrestaurants.=
+com/c/eJxUkclqwzAQhp9GujnI2nXQoUtcQmkCCaGQi9EyikW9BNsptE9fkja0vQ4z8818vx-Gt=
+9wf6xwtU9JwJbjE0QoTIRAMtlRaSE0IV7ixXJTREwnKO56E00Il40winEHiwDXONjIGIKkvpVFR=
+6VIwQyBJ76mPJaEJcdIdF5_QhwbSCNPszqPr52kRhg7naAVX3EhZKtzaZp5PE2J3iFaIVqezb3O=
+4jV76Ea3-bEC0YkoTaRCtfr661CIwB4KWhaPACs6MLJwUoYgiBO0MV4Z4RKvg-gAtHi10uf2YGj=
+eegCJOjp3L7fW4X9S3rAsKT9BH51v472-2y_Xjfrfc1vebzfNq_VQ_bNbVavtytamM0eKwez3s8=
+Wyhj-cJxvqWQxj6lMcOv1v6FQAA__-n0n9Y" style=3D"color:#6A6A19" target=3D"_bla=
+nk" rel=3D"noreferrer nofollow noopener">Manage my reservation</a> </p> <p =
+style=3D"font-family:Verdana;line-height:1.46;font-size:14px;margin:20px 0 =
+20px 0;text-align:center;"><a href=3D"https://email.mg.zenchefrestaurants.c=
+om/c/eJxUkUtrGzEQgH-NdFsjjV6rgw59ZEsotSEhFHIxs9KsLbIvVrJL--uLXULJdfhm-PimX5=
+a3PJ-OOQXlrNfOaMtTMD5RFJyCdK2xrRDa8XNQKJV01sMw6OQlikG2BiHFiFG7JHkOSSkiC7203=
+iXXSqO8oMH2PfRJChiYFtNp94fmeKZho1LxsuFcyy4uE88pGO20t1Y6PoZzrWth6hODjkGH6_q-=
+d4Pvk8ygu0oG3XrpxxwZdL9wHKk2K5bCoEukkAzIBoFUo5W3DVoTm2RibNFr50XPoMvLDd6o0Hb=
+Fmpd5t77dLvAt0JTH3-WM20rAtDhNmMe763_3f-1aYT0vNCfsR_qYs4aH_deX54en4-fD4fvj_t=
+vxy2HfPT79uMd13rfm9fnn6wuvgeZ0KbQd398Sl3nI28SvAf4GAAD__2rDhQU" target=3D"_b=
+lank" rel=3D"noreferrer nofollow noopener"> <img height=3D"40px" alt=3D"Add=
+ to Apple Wallet" data-unique-identifier=3D"" hmail-src=3D"https://cdn.zenc=
+hef.com/api/images/wallet-pass/add-to-wallet-apple-en.png" src=3D"https://c=
+dn.zenchef.com/api/images/wallet-pass/add-to-wallet-apple-en.png"> </a> <br=
+> <a href=3D"https://email.mg.zenchefrestaurants.com/c/eJxUkUmr2zAUhX-NtHOQ=
+ryZroUWHuITSBBJCIRuj4ToW9YTlpLS__pE8wuNtL_ccPr7jp-lPGq9NipZrZYSWQtFopYkYGEV=
+b6kqqijGhaWcdgDYBA1fRC48ieCmAO6fbVrEYWpps5BxRgS-V0VFXpeSGYau8Bx9LBi0RbLhu_u=
+MYOmwXzKu7LW5c8yZMA03RSqGFUarUtLfdus6Z8C8EagK1m-dX7vH8vCQC9b0kUM8336dAoP7r-=
+h7XYnY5E6gjcocSysIB8kJwowqnZCiiDKFyRmjD_KNojMuUIl0sDqn_lzu3zAhEsOvgUv9E-0B9=
+V1UxZWjGMTrf42d7q93uv59P22Pz9XD4udv_aL4d9vXu-OvpUhtTycvp9-VMV4tjvGVcmtcKYRr=
+btAz0buEtAAD__2FHf1A" target=3D"_blank" rel=3D"noreferrer nofollow noopener=
+"> <img height=3D"40px" alt=3D"Add to Google Wallet" data-unique-identifier=
+=3D"" hmail-src=3D"https://cdn.zenchef.com/api/images/wallet-pass/add-to-wa=
+llet-google-en.png" src=3D"https://cdn.zenchef.com/api/images/wallet-pass/a=
+dd-to-wallet-google-en.png"> </a> </p> <hr style=3D"width: 40%;"> <br> <p s=
+tyle=3D"font-family:Verdana;margin: 10px 0 0 0;font-size: 14px;line-height:=
+1.46;">See you soon! </p>  <p style=3D"font-family: Verdana; font-size: 14p=
+x; line-height: 1.46; color: #3d3b3b;margin:10px 0 0 0;"> <b>Restaurant Les=
+ Armures</b> <br>Rue du Soleil-Levant <br>1204, Gen=C3=A8ve</p> </td> </tr>=
+ </tbody> </table> <table align=3D"center" border=3D"0" cellpadding=3D"0" c=
+ellspacing=3D"0" style=3D"max-width: 600px; margin: auto; font-family: Verd=
+ana, Helvetica, Geneva, sans-serif; font-size: 12px; color: #9B9B9B; paddin=
+g-top: 10px; text-align: center;"> <tbody> <tr> <td style=3D"padding-top:6p=
+x;padding-bottom:24px;"> <span>You can reply directly to this email if you =
+have any questions.</span>        </td> </tr> <tr> <td style=3D"padding-bot=
+tom: 24px;">            <table width=3D"100%" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" role=3D"presentation"> <tbody><tr> <td align=3D"center"=
+> <a href=3D"https://email.mg.zenchefrestaurants.com/c/eJxU0N1KwzAYgOGrac4c=
+aZrfgxz4s8oQN9gYwk5Kk-_LGmyT0naKu3phIuINvPC8Luf3mM5NBFspabgSXBKwwgB6StCWSgu=
+pKeWKdBYllkwzYzyWjGrhOAQtQgVOKc_AkGihqhAlc6U0CpQuRWUoBukcc1BSFgpOh_Pqisl3GC=
+acl_YytWmZVz4PJIIVXHEjZalIb7tlGeeiui9YXbD66sMq5oLVkD9Tn1u4a8eRTBaH2H_NXTuNy=
+ApOz0Mb-1vtr_6j01QaMmOC1vX4H7zY9fbpeFjvm4fd7mWzfW4ed9t6s3-98ZUxWpwOb6cjWSwm=
+uMw4Nb_jfE4hTgP5sOw7AAD__9zGZ2Y" style=3D"text-decoration: none; display: b=
+lock;" target=3D"_blank" rel=3D"noreferrer nofollow noopener"> <img alt=3D"=
+" width=3D"600" style=3D"display: block; border: 0; width: 100%; max-width:=
+ 600px; height: auto; border-radius: 8px;" data-unique-identifier=3D"" hmai=
+l-src=3D"https://d.zenchef.com/transactional-email/guest_app/guest-app-en.p=
+ng" src=3D"https://d.zenchef.com/transactional-email/guest_app/guest-app-en=
+.png"> </a> </td> </tr> </tbody></table>  </td> </tr> <tr> <td style=3D"hei=
+ght:35px;padding-left:205px;padding-right:205px;padding-bottom:20px"> <a hr=
+ef=3D"https://email.mg.zenchefrestaurants.com/c/eJxU0M1q6zAQBeCnsZZhLMkjaaH=
+FvW1SQmkCCaGQjbE8Y1vUP8FWCu3TF5K20PXMOfCdME1vcWzLSF4ZdNoUGgX5whHXINjnxhZoAb=
+QRnVcuUKMpB2V1JanGxqKyEKSFGhCdiJ6UYkYZcnSGjM0L5YAbDEEGykE2mYahXX3yWHfczLyk6=
+jpXY1pW9TSISL7QRjvE3Ijedyldlkz9y-Qmk5vvzO1x9jzE_mPpqvnCMtPQDlXs76ffzrvJAjqx=
+8EhV6PkvM_n17vF0XB_K__v983b3VD7sd5vt4eWGNs7Z4nx8PZ9E8jzSdeG5_JmrnsYmzoN49_I=
+rAAD__3TQY5o" target=3D"_blank" rel=3D"noreferrer nofollow noopener"><img a=
+lt=3D"Logo" height=3D"45" width=3D"45" data-unique-identifier=3D"" hmail-sr=
+c=3D"https://d.zenchef.com/logos/zenchef/2024/logo_zenchef_email_notificati=
+on.png" src=3D"https://d.zenchef.com/logos/zenchef/2024/logo_zenchef_email_=
+notification.png"></a> </td> </tr> <tr> <td style=3D"padding-bottom: 20px;"=
+> <p style=3D"margin-top:0;font-family: Georgia; font-weight: bold; font-si=
+ze: 11px; font-style: italic; line-height: 1.27; letter-spacing: 0.5px;"> <=
+a style=3D"margin-top:0;font-family: Georgia; font-weight: bold; font-size:=
+ 11px; font-style: italic; line-height: 1.27; letter-spacing: 0.5px; color:=
+ #9B9B9B; text-decoration: none;" href=3D"https://email.mg.zenchefrestauran=
+ts.com/c/eJxU0M1q6zAQBeCnsZZhLMkjaaHFvW1SQmkCCaGQjbE8Y1vUP8FWCu3TF5K20PXMOf=
+CdME1vcWzLSF4ZdNoUGgX5whHXINjnxhZoAbQRnVcuUKMpB2V1JanGxqKyEKSFGhCdiJ6UYkYZc=
+nSGjM0L5YAbDEEGykE2mYahXX3yWHfczLyk6jpXY1pW9TSISL7QRjvE3Ijedyldlkz9y-Qmk5vv=
+zO1x9jzE_mPpqvnCMtPQDlXs76ffzrvJAjqx8EhV6PkvM_n17vF0XB_K__v983b3VD7sd5vt4eW=
+GNs7Z4nx8PZ9E8jzSdeG5_JmrnsYmzoN49_IrAAD__3TQY5o" target=3D"_blank" rel=3D"=
+noreferrer nofollow noopener">Technology offered by Zenchef</a> </p> <p sty=
+le=3D"font-size:11px;font-family:Verdana;"><strong>To manage your preferenc=
+es and stop receiving communications for marketing purposes and/or review r=
+equests from the restaurant, <a style=3D"color:grey;" href=3D"https://email=
+.mg.zenchefrestaurants.com/c/eJxUkU9r3DwQxj-NdHOQR_8POrxvE5dQugsJoZDLIo1Ga1=
+FbXmxvof30ZdOGttdhZnie3y8ty9fazqeag7TGK6uV4TlonwkFp9Bbp40TQlk-BlW8lk5LL5Moi=
+ZRWAMWiE7lHIAReQ5aSyEDqjbfZul5LL6iYlCDlXkBhSsznux_UcKSy0rbH6xrbvt3hMvOag1ZW=
+eWN6y6cw7vtlY_I_BgOD4XJNU8X309s-g-GvDwwGaZ0wnsHwu9VtlklG0tB3EUh2SnrTRaOxyxr=
+RRa-sF4nB0Ja9lopxr0vrLisVWqkhbUwOI5P3xWGyCrOJBaXEXiidS0nFa50oZ-BroLlO37cxrh=
+cCpsR5jnV6a_Un4y_Kt4x8o5Zjmuhf8Ht4ONy_PD88nf4_Hj89Hj6ePhwPw-PT5zcN1nunX5-_v=
+L7wPVDL143W07tAXFqp68y_BfgZAAD__6h_kdI" target=3D"_blank" rel=3D"noreferrer=
+ nofollow noopener">click here</a></strong>.<br> <br> The restaurant from w=
+hich you have made your reservation or order collects and processes your pe=
+rsonal data for the purpose of managing and following up on your request an=
+d the responses to it, including communications sent to you by email or SMS=
+ related to your reservation (receipt acknowledgment of your request, reser=
+vation confirmation, etc.), possibly in conjunction with Zenchef, which pro=
+vides the restaurant with a tool for managing its reservations and orders.<=
+br> <br> Furthermore, the restaurant collects and processes your personal d=
+ata more generally for the purpose of managing and tracking its relationshi=
+p with you, particularly for carrying out marketing operations aimed at you=
+, on all media, and especially by phone, by email, or by SMS.<br> <br> Rega=
+rding the aforementioned processing, you have, under the conditions defined=
+ by the applicable provisions, the right to access your data, rectification=
+, erasure, and portability of your data, as well as the right to obtain a l=
+imitation of the processing of said data and a right to object to the proce=
+ssing of your data. It is specified that you have, in any case, the right t=
+o object to any marketing at any time without having to provide a reason or=
+ explanation, or also, if the processing of your data is based on obtaining=
+ your consent, the right to withdraw it. You also have the right to set dir=
+ectives regarding the fate of your personal data and how you wish your righ=
+ts to be exercised after your death. Finally, you have the possibility of f=
+iling a complaint with a competent control authority if you consider that t=
+he processing of your data does not comply with the applicable provisions.<=
+br> <br> To learn more about the processing of your personal data implement=
+ed by the restaurant as a joint controller with Zenchef and to exercise you=
+r rights regarding these processes, you can consult the <a style=3D"color:g=
+rey;" href=3D"https://email.mg.zenchefrestaurants.com/c/eJxUkElrwkAYhn9N5lb=
+5ZjJL5jCHLqZIqYIiBS9hli9maDYmUbG_vtQipfd34XncMHzG_ljFYHIlNVeCSxKM0AE9EDRUFU=
+IWAFyRxqicg4aADjitXS2o98JJ5gRQK70LJJqQ54iSOSq1CqqgIteAtXSOuUCB1RmH7rj4wt43W=
+CecZntKtp-nhR86EoMRXHEtJVWkNc08j1OWP2aszFh5uVzuvZ9wxsoxxbP114dxaKO_kmSwi-11=
+amwakWUcjp2N7W347-gXtACpyYR9sK7F_-yzWa5f9rvltnrabN5W69fqebMuV9v3mwmldSEOu4_=
+DnswG-3CaMFV3h37o65g6cjbsOwAA__8rWGwq" target=3D"_blank" rel=3D"noreferrer =
+nofollow noopener">Zenchef personal data protection policy</a>.<br> <br> To=
+ learn more about the processing of your personal data implemented by the r=
+estaurant as the sole controller and to exercise your rights regarding thes=
+e processes, you should approach the restaurant or consult its data protect=
+ion policy online on its website if applicable.</p> </td> </tr> </tbody> </=
+table> <img width=3D"1" height=3D"1" alt=3D"" data-unique-identifier=3D"" h=
+mail-src=3D"https://email.mg.zenchefrestaurants.com/o/eJxU0E9LAzEUBPBP0xxLk=
+k3eSw65qFWK2EJLEXpZ8uelDXazkt0K-umFioj3GZjfhHF8K_XUl-Q6BKtQK2DJaZsockZOoNFg=
+OFfIzg5VtIA52qRF56PQOXAZSZsIwBMgKy51HRHIIMBiQiN0ZzllCEGGJLjMC8WH0_KLajxTbjT=
+N_tp8nadlHAdWktMKlQUQyJqjoVw-p7Nv7yQXip8GXy633F_vZ7fhYNlENflwof-U2a02D4f9at=
+ffbbfP681Tf7_dPK53LzcYWmv0cf96PLDZUU3XiVr_e0kcay5tYB9OfgcAAP__dlNa3g" src=
+=3D"https://email.mg.zenchefrestaurants.com/o/eJxU0E9LAzEUBPBP0xxLkk3eSw65q=
+FWK2EJLEXpZ8uelDXazkt0K-umFioj3GZjfhHF8K_XUl-Q6BKtQK2DJaZsockZOoNFgOFfIzg5V=
+tIA52qRF56PQOXAZSZsIwBMgKy51HRHIIMBiQiN0ZzllCEGGJLjMC8WH0_KLajxTbjTN_tp8nad=
+lHAdWktMKlQUQyJqjoVw-p7Nv7yQXip8GXy633F_vZ7fhYNlENflwof-U2a02D4f9atffbbfP68=
+1Tf7_dPK53LzcYWmv0cf96PLDZUU3XiVr_e0kcay5tYB9OfgcAAP__dlNa3g">  </div></blo=
+ckquote><grammarly-desktop-integration data-grammarly-shadow-root=3D"true" =
+style=3D"visibility: visible !important;"></grammarly-desktop-integration><=
+/div>
+      </div>

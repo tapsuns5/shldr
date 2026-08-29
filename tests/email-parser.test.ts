@@ -37,13 +37,17 @@ async function assertFixture(
     confirmationNumber: string;
     date: { year: number; month: number; day: number; hour: number; minute: number };
     destinationCity?: string;
+    destinationCountry?: string;
+    hasTime?: boolean;
   },
 ) {
   const event = await parseFixture(fileName);
-  assert.equal(event.type, expected.type);
-  assert.equal(event.confirmationNumber, expected.confirmationNumber);
+  assert.equal(event.type, expected.type, `${fileName}: type mismatch`);
+  assert.equal(event.confirmationNumber ?? '', expected.confirmationNumber, `${fileName}: confirmationNumber mismatch`);
   assertLocalDate(event, expected.date);
-  if (expected.destinationCity) assert.equal(event.destinationCity, expected.destinationCity);
+  if (expected.destinationCity) assert.equal(event.destinationCity, expected.destinationCity, `${fileName}: destinationCity mismatch`);
+  if (expected.destinationCountry) assert.equal(event.destinationCountry, expected.destinationCountry, `${fileName}: destinationCountry mismatch`);
+  if (expected.hasTime !== undefined) assert.equal(event.hasTime, expected.hasTime, `${fileName}: hasTime mismatch`);
 }
 
 async function run() {
@@ -94,6 +98,46 @@ async function run() {
     bodyText: 'Activity confirmation of your reservation for &quot;&quot;SARDINIA BOAT TOUR&quot;&quot; below.\nData: 2026-09-21 10:00',
   }).events[0];
   assert.equal(encodedTitle.title, 'SARDINIA BOAT TOUR');
+
+  // ── New fixtures: type detection, time extraction, location ──────────
+
+  // Auberge de Savièse — restaurant booking via Resos (Geneva)
+  await assertFixture('Booking confirmation (2 people, Sat, 26 Sep 2026 19_30).eml', {
+    type: 'restaurant',
+    confirmationNumber: '',
+    date: { year: 2026, month: 9, day: 26, hour: 19, minute: 30 },
+    destinationCity: 'Genève',
+    destinationCountry: 'Switzerland',
+    hasTime: true,
+  });
+
+  // La Pelosa beach reservation (Sardinia) — no time in email
+  await assertFixture('Conferma prenotazione spiaggia n. 60790.eml', {
+    type: 'activity',
+    confirmationNumber: '',
+    date: { year: 2026, month: 9, day: 19, hour: 0, minute: 0 },
+    destinationCountry: 'Italy',
+    hasTime: false,
+  });
+
+  // Capichera wine tasting (Sardinia) — Italian "in data ... alle 15:00"
+  await assertFixture('Your appointment information.eml', {
+    type: 'activity',
+    confirmationNumber: '',
+    date: { year: 2026, month: 9, day: 23, hour: 15, minute: 0 },
+    destinationCountry: 'Italy',
+    hasTime: true,
+  });
+
+  // Restaurant Les Armures (Geneva) — "Friday 25 September 2026 at 7:30 PM"
+  await assertFixture('[Restaurant Les Armures] Reservation confirmation.eml', {
+    type: 'restaurant',
+    confirmationNumber: '',
+    date: { year: 2026, month: 9, day: 25, hour: 19, minute: 30 },
+    destinationCity: 'Genève',
+    destinationCountry: 'Switzerland',
+    hasTime: true,
+  });
 
   console.log('Email parser fixtures passed');
 }

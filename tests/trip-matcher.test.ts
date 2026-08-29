@@ -48,7 +48,9 @@ async function run() {
   const sameDateDifferentLocation = await parseFixture('same-date-unmatched-trip-detail.eml');
   assert.equal(sameDateDifferentLocation.type, 'activity');
   assert.equal(sameDateDifferentLocation.destinationCity, 'Rome');
-  assert.equal(selectTripCandidate(sameDateDifferentLocation, [referencedTrip]), null);
+  // Rome event falls within the Sardinia trip dates and both are in Italy,
+  // so the country+date fallback should match it to the only candidate.
+  assert.equal(selectTripCandidate(sameDateDifferentLocation, [referencedTrip])?.id, referencedTrip.id);
   assert.equal(isDetailEvent(sameDateDifferentLocation), true);
 
   const uncategorizedTrip: TripCandidate = {
@@ -58,11 +60,8 @@ async function run() {
     destinationCity: 'Rome',
     isUncategorized: true,
   };
+  // Uncategorized trips must never be matched, even with country+date fallback.
   assert.equal(selectTripCandidate(sameDateDifferentLocation, [uncategorizedTrip]), null);
-  assert.equal(
-    !selectTripCandidate(sameDateDifferentLocation, [referencedTrip]) && isDetailEvent(sameDateDifferentLocation),
-    true,
-  );
 
   const futureTokyoActivity = await parseFixture('unassigned-tokyo-activity.eml');
   assert.equal(futureTokyoActivity.type, 'activity');

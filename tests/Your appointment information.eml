@@ -1,0 +1,197 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:b81a:20b0:1ea1:c002:8234 with SMTP id zc26-n2csp1353937njc;
+        Sat, 29 Aug 2026 13:01:53 -0700 (PDT)
+X-Received: by 2002:a17:903:b83:b0:2d8:d4d0:792e with SMTP id d9443c01a7336-2d8d4d079b2mr129789595ad.18.1788033712770;
+        Sat, 29 Aug 2026 13:01:52 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788033712; cv=none;
+        d=google.com; s=arc-20260327;
+        b=dSMVUVZjH/V56ss4BmVYhzRq2QU99xggvD+1uTjJbSv4wF91N/1KrQleQn3SPhn/g/
+         UpizsiYVeT4C/J5Aa3GGqZRDD4fFq24/4fcaghB2dw33VoKiVKrkI+G/dFzQ0zMGcJg9
+         p0L1aX145lOjmU0CkvFYD9iM2udbxkijXlYbGdpq01zTeGxAk9sUk0b1sETCSohrc43W
+         38Ryga1OQdQtGGTLSxEwtOYYPC9ce131CFEr/2PxiHlofeK1O5bphiEvzWZ+bM03HMyC
+         bJKfyrQXW0LR1HeukUwZC+B1JUc9NN0ZfdWKCchCIu5d+tucmGvCoZsW5yTWC06A/xH8
+         0OTw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=date:to:subject:references:mime-version:message-id:in-reply-to:from
+         :content-transfer-encoding:dkim-signature;
+        bh=9SggnaLd6A+CaTnfZ95hkhRDCFBNbWsNGgQ+GLaNcMs=;
+        fh=e8OGrjd3cXnGRHxrJrKMVIN8rR75TckYo9tnEPZyqxU=;
+        b=nlHbf3W1dmfjOi78GDONWkBDoIkieleP0BUt2JV6u9JQnQhQPlm1J6I/afonaLt2/A
+         Ujkyh8v+OnpkBA3inIyliz/I1/LD576iVdsFBFnTtYAiunE3hcgfmgWgGEdf2E9is57F
+         9fabo4kzlL5e0+47JOgqf1v0wGbcftgrTeV/nzb/SxwCBbZ/BJHDQ2Zp30MZFVh6kjHA
+         EzHMvJlQNKOEs7fYXuBAEsuK2gqabyYek8vSL8kX5WyOtDqRSoJQPoqLrBR1+m9rQaAp
+         vb0eCLSAZake3TPeo+GBHZoP24un86sKGBc2/8Fmp5i0Id/9IukPWDtq1iMInr/biwNZ
+         Ofjw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=BpKN80tD;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.81 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+Return-Path: <plans@shldrtravel.com>
+Received: from hedgehog.birch.relay.mailchannels.net (hedgehog.birch.relay.mailchannels.net. [23.83.209.81])
+        by mx.google.com with ESMTPS id d9443c01a7336-2d7595110c4si104042095ad.39.2026.08.29.13.01.51
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2026 13:01:51 -0700 (PDT)
+Received-SPF: pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.81 as permitted sender) client-ip=23.83.209.81;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=BpKN80tD;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.81 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 0488E461942
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:51 +0000 (UTC)
+Received: from de-fra-smtpout6.hostinger.io (trex-blue-0.trex.outbound.svc.cluster.local [100.97.100.56])
+	(Authenticated sender: hostingeremail)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 84E7C461BC0
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:50 +0000 (UTC)
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MailChannels-Auth-Id: hostingeremail
+X-Eyes-Obese: 30975d535b103e50_1788033710923_1681755902
+X-MC-Loop-Signature: 1788033710923:64772771
+X-MC-Ingress-Time: 1788033710922
+Received: from de-fra-smtpout6.hostinger.io (de-fra-smtpout6.hostinger.io
+ [148.222.55.17])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.97.100.56 (trex/8.0.2);
+	Sat, 29 Aug 2026 20:01:50 +0000
+Received: from localhost (34.86.89.34.bc.googleusercontent.com [IPv6:2600:1700:5122:1180:6547:a044:8016:18b9])
+	(Authenticated sender: plans@shldrtravel.com)
+	by smtp.hostinger.com (smtp.hostinger.com) with ESMTPSA id 4hXR3c4KYjz45c7
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shldrtravel.com;
+	s=hostingermail-a; t=1788033708;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=9SggnaLd6A+CaTnfZ95hkhRDCFBNbWsNGgQ+GLaNcMs=;
+	b=BpKN80tDnYP1VLnTsaoHnuQcOFRTn9BC8QJdINabr2NGFN4DZ6/rK9SHphvCqbP5mk9d3I
+	JIh7NRNZ3e4+UhhW9gCEA7fkt9e33weRAzwE8K2ijOJ2vJ9hjMRqB8YyXPpu+qEy9dO1Xx
+	HJKodTWpt+9RCGFKQLo5K/3tCLGxYsiRnmZrR5cxp+uBfeLki6cShGWER1ogPkM/fd/x1k
+	5bVr2QwkGCJA/QFBhZI/85w1BLHal0zRd1A1CS+NznHdNBwpeOEP0+WEF3lelMzSUnsl+V
+	IrFeWxHmcvcyA3erI/qZdy9D5O8yL2mZ4FVogcocjhLQH+uTh+q9RWXtnw1p/g==
+X-Hostinger-Webhook-Enabled: yes
+X-Hostinger-Webhook-Enabled: yes
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+From: <plans@shldrtravel.com>
+In-Reply-To: <A6428FCF-04EC-48C9-B85C-6F4DC1062136@gmail.com>
+Message-Id: <1788033699957419611.1788033699@shldrtravel.com>
+Mime-Version: 1.0
+References: <EWzCicWnyl24Tt6ouYzF0Y4nQbvXn7KAic4Zv549q7E@www.capichera.it>
+ <A6428FCF-04EC-48C9-B85C-6F4DC1062136@gmail.com>
+Subject: Fwd: Your appointment information
+To: <tapsuns5@gmail.com>
+Date: Sat, 29 Aug 2026 20:01:48 +0000 (UTC)
+X-CM-Analysis: v=2.4 cv=ALriHGRn c=1 sm=1 tr=0 ts=6a933aac a=n+y87rYn6FZjKmxgPwRHzg==:617 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10 a=sWKEhP36mHoA:10 a=ZgN-DOtDAAAA:8 a=WzTnPz8uAAAA:8 a=sM5l8SqkAAAA:20 a=pGLkceISAAAA:8 a=F9QCr_piAAAA:8 a=wO6SkK4FIMgt4y9KklwA:9 a=ero2IC-_y4mFw3oP:21 a=lqcHg5cX4UMA:10 a=QEXdDO2ut3YA:10 a=aNfFxwTsdaMA:10 a=fWB1DqfpAXkA:10 a=3h1KPYNsC7kaLmpY_y6f:22 a=I1c7b6hXY5V9TaxD04U-:22 a=5QeyuudGkhuoZP2aeShn:22 a=ZT_8zCgGubuJgGonBfBE:22
+X-CM-Envelope: MS4xfHEPXiCjdOERz7yMfZauyX7tJAAL4Jtw4FaBSwnS1jdcsS7s3I9I6TpLpO+26cuGx3jZ4yqCieH1/p/lnijzE69+TYqmDJ/2jPCxEhG03LWwkhfaa01x UhfF3mMmY8+pP9t7dTD6Q2uct1DeP4aY3vH3K6U0E/JTyQTdXHumgXyk12XoRSi9XmehH9fWbTdQRqXuKXcJg/g/rNw7nk+Z3G2FpHFw53DOKqvgjeOfQist A22L7npXAtPVYzBoshtilQ==
+X-AuthUser: plans@shldrtravel.com
+
+<div><br></div><div><br></div><div class=3D"hmail-signature-prefix">--</div=
+><div class=3D"hmail-signature" data-signature-uuid=3D"60d6233f-e23c-4ec6-9=
+cfc-e8b1e43098bc"></div><div><br></div><div class=3D"hmail-free-plan-footer=
+">Sent with <a href=3D"https://mail.hostinger.com/" target=3D"_blank" rel=
+=3D"noopener noreferrer">Hostinger Mail</a></div><br>
+      <div class=3D"hmail-quote-container">
+        <div class=3D"hmail-attr" data-qa=3D"message-reply-attribution">
+      ---------- Forwarded message ----------<br>
+      From: Emily Sharpe &lt;emilysharpe2@gmail.com&gt;<br>Date: Sat, Aug 2=
+9, 2026 2:09 PM<br>Subject: Fwd: Your appointment information<br>To: &lt;pl=
+ans@shldrtravel.com&gt;
+      <br>
+    </div>
+        <br><br>
+        <div class=3D"hmail-quote"><br id=3D"lineBreakAtBeginningOfSignatur=
+e"><div dir=3D"ltr">Sent from my iPhone</div><div dir=3D"ltr"><br>Begin for=
+warded message:<br><br></div><blockquote type=3D"cite"><div dir=3D"ltr"><b>=
+From:</b> Capichera &lt;admin@capichera.it&gt;<br><b>Date:</b> August 28, 2=
+026 at 10:49:15=E2=80=AFAM EDT<br><b>To:</b> emilysharpe2@gmail.com<br><b>S=
+ubject:</b> <b>Your appointment information</b><br><br></div></blockquote><=
+blockquote type=3D"cite"><div dir=3D"ltr">=EF=BB=BF<p>Gentile Emily Palmer,=
+</p> <p>La ringraziamo per averci scelto. Con la presente confermiamo la Su=
+a prenotazione.</p> <p>Siamo lieti di accoglierla in data 23/09/2026 alle 1=
+5:00.</p> <p>In questa visita La accompagneremo con una Golfcart in un tour=
+ fra i vigneti per scoprire la nostra tenuta, durante il quale Le racconter=
+emo la storia e i segreti. Per la degustazione La faremo accomodare in una =
+zona panoramica, dove cinque calici, raccontati e illustrati dal nostro som=
+melier, comporranno insieme a cinque abbinamenti un quadro sensoriale di sa=
+pori legati profondamente ai prodotti della nostra terra..</p> <p><b>Costi<=
+/b><br> DEGUSTAZIONE CLASSICA: =E2=82=AC120,00 a persona<br> <i>Pagamento i=
+n loco al termine del servizio.</i></p> <p><span class=3D"s3"><b>Tariffe sp=
+eciali:<br> </b></span><span class=3D"s3">Non bevitori: =E2=82=AC 35,00<br>=
+ </span><span class=3D"s3">Junior (3=E2=80=9317 anni): =E2=82=AC 25,00</spa=
+n></p> <p class=3D"p5"><span class=3D"s5"><b>Allergie ed esigenze alimentar=
+i</b></span><b><br> </b>La preghiamo di comunicarci in anticipo eventuali a=
+llergie o esigenze alimentari particolari.</p> <p class=3D"p6"><b>Ingresso<=
+/b></p> <ul class=3D"ul1"> <li class=3D"li4"><span class=3D"s3">Al citofono=
+ del cancello, annunciarsi con il <b>cognome della prenotazione</b>.</span>=
+</li> <li class=3D"li4"><span class=3D"s3">Parcheggiare nell=E2=80=99area i=
+ndicata dal cartello =E2=80=9CP=E2=80=9D.</span></li> <li class=3D"li4"><sp=
+an class=3D"s3"><b>Attendere nel parcheggio</b> l=E2=80=99arrivo della Golf=
+cart.</span></li> <li class=3D"li7"><span class=3D"s3">Le chiediamo gentilm=
+ente di <b>rispettare l=E2=80=99orario esatto</b> della prenotazione.</span=
+></li> </ul> <p class=3D"p6"><b>Policy di cancellazione<br> </b>Qualora des=
+iderasse cancellare la Sua prenotazione potr=C3=A0 farlo comodamente<br> <a=
+ href=3D"https://www.capichera.it/wp-admin/admin-ajax.php?action=3Dbookly_c=
+ancel_appointment&amp;token=3Ddef71921e8baeb25fda04cc933e49494" target=3D"_=
+blank" rel=3D"noreferrer nofollow noopener">by clicking on this link</a><br=
+> La cancellazione =C3=A8 gratuita fino a <b>48 ore prima</b> della visita.=
+ Oltre tale termine o in caso di <b>no-show</b>, verr=C3=A0 richiesto il sa=
+ldo dell=E2=80=99intero importo.</p> <p class=3D"p8">Le comunichiamo che, d=
+al luned=C3=AC al venerd=C3=AC dalle h 8:30 alle h 17:30, potr=C3=A0 venirc=
+i a trovare senza appuntamento nella nostra enoteca, dove potr=C3=A0 acquis=
+tare i nostri vini.</p> <p class=3D"p9"><b>Posizione<br> </b>Google Maps: <=
+a href=3D"https://share.google/t275aPdbWBFzceV34" target=3D"_blank" rel=3D"=
+noreferrer nofollow noopener"><span class=3D"s7">https://share.google/t275a=
+PdbWBFzceV34</span></a><br> Coordinate GPS: 41.039808, 9.383783</p> <p clas=
+s=3D"p9"><b>Contact<br> </b>Tel. +39 338 6904253 (anche WhatsApp)<br> E-mai=
+l: <a href=3D"mailto:visit@capichera.it" rel=3D"noreferrer nofollow noopene=
+r"><span class=3D"s6">visit@capichera.it</span></a></p> <p class=3D"p5">Non=
+ vediamo l=E2=80=99ora di accoglierLa presto a Capichera.</p> <p class=3D"p=
+7"><span class=3D"s3">Kind regards.</span></p> <hr> <p>Dear Emily Palmer,</=
+p> <p>Thank you for choosing us.</p> <p>We hope you enjoy your experience w=
+ith us on 23/09/2026 at 15:00.</p> <p>In questa visita La accompagneremo co=
+n una Golfcart in un tour fra i vigneti per scoprire la nostra tenuta, dura=
+nte il quale Le racconteremo la storia e i segreti. Per la degustazione La =
+faremo accomodare in una zona panoramica, dove cinque calici, raccontati e =
+illustrati dal nostro sommelier, comporranno insieme a cinque abbinamenti u=
+n quadro sensoriale di sapori legati profondamente ai prodotti della nostra=
+ terra..</p> <p><b>Costs</b><br> DEGUSTAZIONE CLASSICA: =E2=82=AC120,00 per=
+ person<br> <i>Payment on site at the end of the service</i></p> <p><span c=
+lass=3D"s3"><b>Special rates:<br> </b></span>Non-drinkers: =E2=82=AC 35.00<=
+br> Junior (ages 3=E2=80=9317): =E2=82=AC 25.00</p> <p class=3D"p6"><span c=
+lass=3D"s4"><b>Allergies &amp; Dietary Requirements</b></span><br> Please i=
+nform us in advance of any allergies or special dietary requirements.</p> <=
+p class=3D"p7"><b>Entrance</b></p> <ul class=3D"ul1"> <li class=3D"li3"><sp=
+an class=3D"s3">At the entrance gate intercom, please announce yourself usi=
+ng the <b>surname on the reservation</b> </span></li> <li class=3D"li3"><sp=
+an class=3D"s3">Park in the area marked with a =E2=80=9CP=E2=80=9D sign </s=
+pan></li> <li class=3D"li3"><span class=3D"s3"><b>Wait in the parking</b> a=
+rea for the golf cart </span></li> <li class=3D"li3"><span class=3D"s3">Kin=
+dly ensure <b>punctual arrival</b> at your scheduled booking time </span></=
+li> </ul> <p class=3D"p7"><b>Cancellation Policy<br> </b>If you wish to can=
+cel your reservation, <a href=3D"https://www.capichera.it/wp-admin/admin-aj=
+ax.php?action=3Dbookly_cancel_appointment&amp;token=3Ddef71921e8baeb25fda04=
+cc933e49494" target=3D"_blank" rel=3D"noreferrer nofollow noopener">clickin=
+g on this link</a></p> <p class=3D"p9">Free cancellation is possible up to =
+<b>48 hours</b> before the visit. After this deadline or in case of <b>no-s=
+how</b>, the full amount will be charged.</p> <p class=3D"p6">Please note t=
+hat our wine shop is open from Monday to Friday, from 08:30 to 17:30. You a=
+re welcome to visit without an appointment and purchase our wines.</p> <p c=
+lass=3D"p7"><b>Location<br> </b><span class=3D"s6">Google Maps: <a href=3D"=
+https://share.google/t275aPdbWBFzceV34" target=3D"_blank" rel=3D"noreferrer=
+ nofollow noopener"><span class=3D"s5">https://share.google/t275aPdbWBFzceV=
+34</span></a><br> </span>GPS coordinates: 41.039808, 9.383783</p> <p class=
+=3D"p7"><b>Contacts<br> </b>Tel. +39 338 6904253 (also on WhatsApp)<br> <sp=
+an class=3D"s6">E-mail: <a href=3D"mailto:visit@capichera.it" rel=3D"norefe=
+rrer nofollow noopener"><span class=3D"s5">visit@capichera.it</span></a></s=
+pan></p> <p class=3D"p6">We look forward to welcoming you soon at Capichera=
+.</p> <p class=3D"p2"><span class=3D"s3">Kind regards,</span></p>  </div></=
+blockquote><grammarly-desktop-integration data-grammarly-shadow-root=3D"tru=
+e" style=3D"visibility: visible !important;"></grammarly-desktop-integratio=
+n></div>
+      </div>

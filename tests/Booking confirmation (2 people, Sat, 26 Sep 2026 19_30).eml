@@ -1,0 +1,303 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:b81a:20b0:1ea1:c002:8234 with SMTP id zc26-n2csp1353594njc;
+        Sat, 29 Aug 2026 13:01:31 -0700 (PDT)
+X-Received: by 2002:a05:6a00:14c1:b0:848:8619:c149 with SMTP id d2e1a72fcca58-8562868db75mr24623544b3a.2.1788033691243;
+        Sat, 29 Aug 2026 13:01:31 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788033691; cv=none;
+        d=google.com; s=arc-20260327;
+        b=fI5XxLkld+ROnlPUzPJu05R7NawQvTngBzGpasp2NyQIkHZ/UD42JzaiQR3Z/5dJA3
+         XNrrtsxwEsW/oX2Y1bvRBts0FNEHU9a7a/piL/ZqmSKTVt9njp9LmIUS9KZ0oHey5lEI
+         VCi0ikWAs2gbFFUaET5PcAEhuF3KY/cxKt6AoPA88uF+3Ae9spjz4il64S60yEyqpnex
+         +Efi2qE+3VhUJvfAxeFdONm5PmseyaF02+FJu8zXAwtjNafaBbbXa/gGCZtch4JlIkPK
+         QoXl2e6878UAFxEV82cnsPFKa9tAPh1AeW7tHdXyePuGO3ghwXDiabQ0PCnKWnzJxT4s
+         Ashg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=date:to:subject:references:mime-version:message-id:in-reply-to:from
+         :dkim-signature;
+        bh=tG/GtPm+fG9BIQWA0pbdOVYN2m0crOxYoFRlJUwy+6M=;
+        fh=e8OGrjd3cXnGRHxrJrKMVIN8rR75TckYo9tnEPZyqxU=;
+        b=OOsuEiGzeOGxdaECiLyO2pYZ5CRgrG4yFbKQE1NlO/8JLGlN1W0tURUiX7kqY9rgLg
+         PmGItNeTYA6M1taYfWQdYtGkXddLRh32ragT4S2msZCUN1B1eAaYaGTl0507TYSKzrBj
+         DK6SzOscwiRbZVlATOz9ID0bZZKZc/2xC/aDxEMNO6tPnK0oIa9ZCO3ZZu1uFYvok038
+         4DNGYgU2v2fuKuePDN3Vt0y3YdJTcJxJhlCpBvFBbTUH9r+rTCnwujwo5/kb240oJZ6x
+         NMLDQxfTsNtBhbGr5WPYpBPeKh8n1inhSgEnMrBfZyAujE/fr/A9oZoFnsQ5kjAHY+Ua
+         Rc5Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=nlVkCqgh;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.55 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+Return-Path: <plans@shldrtravel.com>
+Received: from eastern.birch.relay.mailchannels.net (eastern.birch.relay.mailchannels.net. [23.83.209.55])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-cc1f36aca15si11651025a12.198.2026.08.29.13.01.29
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2026 13:01:29 -0700 (PDT)
+Received-SPF: pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.55 as permitted sender) client-ip=23.83.209.55;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=nlVkCqgh;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.209.55 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 40C653E0226
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:29 +0000 (UTC)
+Received: from fr-int-smtpout29.hostinger.io (100-97-3-9.trex-nlb.outbound.svc.cluster.local [100.97.3.9])
+	(Authenticated sender: hostingeremail)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 924B83E13B9
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:28 +0000 (UTC)
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MailChannels-Auth-Id: hostingeremail
+X-Chief-Tasty: 10254f5c62a9a2a1_1788033689135_2669161160
+X-MC-Loop-Signature: 1788033689135:1044795682
+X-MC-Ingress-Time: 1788033689135
+Received: from fr-int-smtpout29.hostinger.io (fr-int-smtpout29.hostinger.io
+ [148.222.54.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.97.3.9 (trex/8.0.2);
+	Sat, 29 Aug 2026 20:01:29 +0000
+Received: from localhost (34.86.89.34.bc.googleusercontent.com [IPv6:2600:1700:5122:1180:6547:a044:8016:18b9])
+	(Authenticated sender: plans@shldrtravel.com)
+	by smtp.hostinger.com (smtp.hostinger.com) with ESMTPSA id 4hXR3B42W4z2xhZ
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shldrtravel.com;
+	s=hostingermail-a; t=1788033686;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=tG/GtPm+fG9BIQWA0pbdOVYN2m0crOxYoFRlJUwy+6M=;
+	b=nlVkCqghWHI3gOrb/lmEpWlbHww9mA5ZJcZAvmUs/3qSUJLyyTowgxpSImCdOKzmBpqxWJ
+	Q5C4seEb9r/i5jNU/7z0qbiEFwqPSqNgBweNCHCHgBfPUia37k15SzrbyQIc/nqdFJQa2s
+	A2JkDX+BC1oeBb4rRlWl5myKL11ctwPzO3s5/5+rXpgs+lktN0h7o4vMDyHLbB5TaThN2N
+	BwyrxrYyBO1w+x9XFwfNA6DDSkTopY0zQB0NDmpsK4VR/W11wtkt+76CqSxG81pvN6etuL
+	+dudnAPVTmw7zEgRIVDPh3oR6R6w1P98+UsL7qyZ8hqb07EMsapssun94U35qA==
+X-Hostinger-Webhook-Enabled: yes
+X-Hostinger-Webhook-Enabled: yes
+Content-Type: multipart/mixed;
+ boundary=enmime-dd626637-0046-4fb7-9287-f680effd5662
+From: <plans@shldrtravel.com>
+In-Reply-To: <58F9A192-751B-45C5-B84C-A87C7972DC8D@gmail.com>
+Message-Id: <1788033678107398644.1788033678@shldrtravel.com>
+Mime-Version: 1.0
+References: <20260803081645.a43571397002ac9c@mg.resos.com>
+ <58F9A192-751B-45C5-B84C-A87C7972DC8D@gmail.com>
+Subject: Fwd: Booking confirmation (2 people, Sat, 26 Sep 2026 19:30)
+To: <tapsuns5@gmail.com>
+Date: Sat, 29 Aug 2026 20:01:26 +0000 (UTC)
+X-CM-Envelope: MS4xfNbskqj4Yxas5UkNc8JCKLe909PoSYj4JfeTOKQilONATro0BsOkscJlhAQHWNk+9AwP3mjeN+5JCjuOyitZbQ2eheswRAUt992k9uAOPL2n7g8EECSu A5ZkZIzJFPVZvh2t+GpkxYPO35SU4h9xBIkX0W4Ahl+Fq3kwp0q1E2l7lQ8n32d09BksAIFHWlv7WnmqzUMn6fQqTnoYI8z2jsNFA+yUZDulJnFTG1R2SlNo hZnhJ4snvyhQwFttiSIYUw==
+X-CM-Analysis: v=2.4 cv=GMJaEfNK c=1 sm=1 tr=0 ts=6a933a96 a=n+y87rYn6FZjKmxgPwRHzg==:617 a=xqWC_Br6kY4A:10 a=ZgN-DOtDAAAA:8 a=iLP0R6YXAAAA:8 a=pGLkceISAAAA:8 a=1XWaLZrsAAAA:8 a=dBoJtnxFAAAA:8 a=3j4BkbkPAAAA:8 a=BkpHzsgbAAAA:8 a=5f6GsFL5AAAA:8 a=2CCOy3qYAAAA:8 a=F9QCr_piAAAA:8 a=dC-xSTmeAAAA:8 a=hbwN4J6F3d-4OBaim5kA:9 a=np7V05fwGHTHHmz9:21 a=lqcHg5cX4UMA:10 a=PRpDppDLrCsA:10 a=QEXdDO2ut3YA:10 a=zpryfUWiEEgA:10 a=MIgeJl3M-XcA:10 a=ZBXPdQJbXUqb9JH5sJQA:9 a=pt9G7I5XmLUTiVRDx3fboKQV4P0=:19 a=Ww3EAYOm5v4A:10 a=SDDh7jOcJrrdlENTBtPX:22 a=8XmNfHsPqIwGAVbnX91q:22 a=5QeyuudGkhuoZP2aeShn:22 a=Uge5THDu0VNIxfVLIy9V:22
+X-AuthUser: plans@shldrtravel.com
+
+--enmime-dd626637-0046-4fb7-9287-f680effd5662
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+
+<div><br></div><div><br></div><div class=3D"hmail-signature-prefix">--</div=
+><div class=3D"hmail-signature" data-signature-uuid=3D"60d6233f-e23c-4ec6-9=
+cfc-e8b1e43098bc"></div><div><br></div><div class=3D"hmail-free-plan-footer=
+">Sent with <a href=3D"https://mail.hostinger.com/" target=3D"_blank" rel=
+=3D"noopener noreferrer">Hostinger Mail</a></div><br>
+      <div class=3D"hmail-quote-container">
+        <div class=3D"hmail-attr" data-qa=3D"message-reply-attribution">
+      ---------- Forwarded message ----------<br>
+      From: Emily Sharpe &lt;emilysharpe2@gmail.com&gt;<br>Date: Sat, Aug 2=
+9, 2026 2:11 PM<br>Subject: Fwd: Booking confirmation (2 people, Sat, 26 Se=
+p 2026 19:30)<br>To: &lt;plans@shldrtravel.com&gt;
+      <br>
+    </div>
+        <br><br>
+        <div class=3D"hmail-quote"><br id=3D"lineBreakAtBeginningOfSignatur=
+e"><div dir=3D"ltr">Sent from my iPhone</div><div dir=3D"ltr"><br>Begin for=
+warded message:<br><br></div><blockquote type=3D"cite"><div dir=3D"ltr"><b>=
+From:</b> Auberge de Savi=C3=A8se &lt;postmaster@mg.resos.com&gt;<br><b>Dat=
+e:</b> August 3, 2026 at 4:16:45=E2=80=AFAM EDT<br><b>To:</b> emilysharpe2@=
+gmail.com<br><b>Subject:</b> <b>Booking confirmation (2 people, Sat, 26 Sep=
+ 2026 19:30)</b><br><b>Reply-To:</b> info@aubergedesaviese.ch<br><br></div>=
+</blockquote><blockquote type=3D"cite"><div dir=3D"ltr">=EF=BB=BF      <sty=
+le>a.btn-link-secondary { display: inline-block; margin-top: 8px; opacity: =
+0.5; color: inherit; }
+.link-margin { margin: 0px 8px; }
+body { padding: 0px !important; }
+.container { padding: 0px !important; width: 100% !important; }</style>    =
+<table class=3D"body-wrap" cellpadding=3D"0" cellspacing=3D"0" style=3D"mar=
+gin: 0; font-family: Merriweather; box-sizing: border-box; border-spacing: =
+0; width: 100%;" width=3D"100%"> <tbody><tr style=3D"margin: 0; font-family=
+: Merriweather; box-sizing: border-box;"> <td class=3D"header" style=3D"mar=
+gin: 0; font-family: Merriweather; box-sizing: border-box; width: 100%; hei=
+ght: 150px; padding: 0; position: relative; flex-grow: 1; background-color:=
+ #BE0000; background-size: cover; background-repeat: no-repeat; background-=
+position: center center; background-image: linear-gradient(to bottom, rgba(=
+0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%), url('https://resos.imgix.net/g3=
+smbYuF3ezKK8Ptd/auberge-de-saviese-1669705983-image-siKRMKAQYXz9R7NQx.jpg?t=
+ype=3Dpicture&amp;fit=3Dcrop&amp;crop=3Dedges&amp;w=3D800&amp;h=3D1000'); c=
+olor: #fff; font-size: 30px; font-weight: bold; line-height: 1; text-align:=
+ center; vertical-align: middle;" width=3D"100%" height=3D"150" bgcolor=3D"=
+#BE0000" align=3D"center" valign=3D"middle"> Auberge de Savi=C3=A8se </td> =
+</tr> <tr style=3D"margin: 0; font-family: Merriweather; box-sizing: border=
+-box;"> <td class=3D"container" align=3D"center" width=3D"600" style=3D"fon=
+t-family: Merriweather; box-sizing: border-box; vertical-align: top; displa=
+y: block; max-width: 600px; margin: 0 auto; clear: both;" valign=3D"top"> <=
+table class=3D"main" width=3D"100%" cellpadding=3D"0" cellspacing=3D"0" sty=
+le=3D"margin: 0; font-family: Merriweather; box-sizing: border-box; border-=
+radius: 4px; margin-bottom: 8px; max-width: 600px;"> <tbody><tr style=3D"ma=
+rgin: 0; font-family: Merriweather; box-sizing: border-box;"> <td class=3D"=
+content-wrap main-text" style=3D"margin: 0; font-family: Merriweather; box-=
+sizing: border-box; vertical-align: top; padding: 16px; padding-top: 32px; =
+font-size: 18px;" valign=3D"top"> <h1 style=3D"font-family: Merriweather; b=
+ox-sizing: border-box; margin: 0 0 16px 0; line-height: 1.2em; font-weight:=
+ 500; font-size: 24px;">Booking confirmation</h1>  We have accepted your bo=
+oking request and look forward to serving you.<br style=3D"margin: 0; font-=
+family: Merriweather; box-sizing: border-box;"><br style=3D"margin: 0; font=
+-family: Merriweather; box-sizing: border-box;">Please <a href=3D"https://a=
+uberge-de-saviese-geneve.resos.com/booking/xwZsCMFnYD76i5fpD" style=3D"marg=
+in: 0; font-family: Merriweather; box-sizing: border-box; text-decoration: =
+underline; color: #000000de;" target=3D"_blank" rel=3D"noreferrer nofollow =
+noopener">view your booking</a> to contact us or if you need to cancel.  </=
+td> </tr>           <tr style=3D"margin: 0; font-family: Merriweather; box-=
+sizing: border-box;"> <td class=3D"content-wrap" style=3D"margin: 0; font-f=
+amily: Merriweather; box-sizing: border-box; vertical-align: top; padding: =
+16px;" valign=3D"top"> <table class=3D"paper" cellpadding=3D"0" cellspacing=
+=3D"16" width=3D"100%" style=3D"margin: 0; font-family: Merriweather; box-s=
+izing: border-box; border-radius: 4px; background-color: #FBFAE8;" bgcolor=
+=3D"#FBFAE8"> <tbody><tr style=3D"margin: 0; font-family: Merriweather; box=
+-sizing: border-box;"> <td style=3D"margin: 0; font-family: Merriweather; b=
+ox-sizing: border-box; vertical-align: top;" valign=3D"top"> <table class=
+=3D"info-table" cellpadding=3D"0" cellspacing=3D"0" width=3D"100%" style=3D=
+"margin: 0; font-family: Merriweather; box-sizing: border-box;">  <tbody><t=
+r style=3D"margin: 0; font-family: Merriweather; box-sizing: border-box;"> =
+<td class=3D"muted" width=3D"40%" style=3D"margin: 0; font-family: Merriwea=
+ther; box-sizing: border-box; opacity: 0.7; vertical-align: middle;" valign=
+=3D"middle"> Date </td> <td style=3D"margin: 0; font-family: Merriweather; =
+box-sizing: border-box; vertical-align: middle;" valign=3D"middle"> Saturda=
+y, 26 September 2026 </td> </tr> <tr style=3D"margin: 0; font-family: Merri=
+weather; box-sizing: border-box;"> <td class=3D"muted" width=3D"40%" style=
+=3D"margin: 0; font-family: Merriweather; box-sizing: border-box; opacity: =
+0.7; vertical-align: middle;" valign=3D"middle"> Time </td> <td style=3D"ma=
+rgin: 0; font-family: Merriweather; box-sizing: border-box; vertical-align:=
+ middle;" valign=3D"middle"> 19:30  </td> </tr> <tr style=3D"margin: 0; fon=
+t-family: Merriweather; box-sizing: border-box;"> <td class=3D"muted" width=
+=3D"40%" style=3D"margin: 0; font-family: Merriweather; box-sizing: border-=
+box; opacity: 0.7; vertical-align: middle;" valign=3D"middle"> People </td>=
+ <td style=3D"margin: 0; font-family: Merriweather; box-sizing: border-box;=
+ vertical-align: middle;" valign=3D"middle"> 2 </td> </tr> <tr class=3D"spa=
+cer" style=3D"margin: 0; font-family: Merriweather; box-sizing: border-box;=
+ height: 24px;"> <td colspan=3D"2" style=3D"margin: 0; font-family: Merriwe=
+ather; box-sizing: border-box; vertical-align: middle;" valign=3D"middle"> =
+</td> </tr> <tr style=3D"margin: 0; font-family: Merriweather; box-sizing: =
+border-box;"> <td class=3D"muted" width=3D"40%" style=3D"margin: 0; font-fa=
+mily: Merriweather; box-sizing: border-box; opacity: 0.7; vertical-align: m=
+iddle;" valign=3D"middle"> Name </td> <td style=3D"margin: 0; font-family: =
+Merriweather; box-sizing: border-box; vertical-align: middle;" valign=3D"mi=
+ddle"> Emily Palmer </td> </tr> <tr style=3D"margin: 0; font-family: Merriw=
+eather; box-sizing: border-box;"> <td class=3D"muted" width=3D"40%" style=
+=3D"margin: 0; font-family: Merriweather; box-sizing: border-box; opacity: =
+0.7; vertical-align: middle;" valign=3D"middle"> Email </td> <td style=3D"m=
+argin: 0; font-family: Merriweather; box-sizing: border-box; vertical-align=
+: middle;" valign=3D"middle"> <a href=3D"mailto:emilysharpe2@gmail.com" cla=
+ss=3D"no-underline" style=3D"margin: 0; font-family: Merriweather; box-sizi=
+ng: border-box; color: #000000de; text-decoration: none;" rel=3D"noreferrer=
+ nofollow noopener">emilysharpe2@gmail.com</a> </td> </tr>  <tr class=3D"sp=
+acer" style=3D"margin: 0; font-family: Merriweather; box-sizing: border-box=
+; height: 24px;"> <td colspan=3D"2" style=3D"margin: 0; font-family: Merriw=
+eather; box-sizing: border-box; vertical-align: middle;" valign=3D"middle">=
+ </td> </tr> <tr style=3D"margin: 0; font-family: Merriweather; box-sizing:=
+ border-box;"> <td colspan=3D"2" width=3D"100%" align=3D"center" style=3D"m=
+argin: 0; font-family: Merriweather; box-sizing: border-box; vertical-align=
+: middle;" valign=3D"middle"> <table cellpadding=3D"10" cellspacing=3D"0" s=
+tyle=3D"margin: 0; font-family: Merriweather; box-sizing: border-box;"> <tb=
+ody><tr style=3D"margin: 0; font-family: Merriweather; box-sizing: border-b=
+ox;"> <td class=3D"btn btn-primary" style=3D"margin: 0; font-family: Merriw=
+eather; box-sizing: border-box; border: none; border-width: 0px; border-rad=
+ius: 4px; font-weight: bold; text-align: center; padding: 0; height: 45px; =
+background-color: #BE0000; vertical-align: middle;" height=3D"45" valign=3D=
+"middle" align=3D"center" bgcolor=3D"#BE0000"> <a href=3D"https://auberge-d=
+e-saviese-geneve.resos.com/booking/xwZsCMFnYD76i5fpD" style=3D"margin: 0; f=
+ont-family: Merriweather; box-sizing: border-box; display: block; height: u=
+nset; line-height: 25px; text-decoration: none; border: none; padding: 10px=
+ 20px; color: #fff;" target=3D"_blank" rel=3D"noreferrer nofollow noopener"=
+> View booking </a> </td> </tr> </tbody></table> </td> </tr> </tbody></tabl=
+e> </td> </tr> </tbody></table> </td> </tr>  <tr style=3D"margin: 0; font-f=
+amily: Merriweather; box-sizing: border-box;"> <td class=3D"content-wrap" s=
+tyle=3D"margin: 0; font-family: Merriweather; box-sizing: border-box; verti=
+cal-align: top; padding: 16px;" valign=3D"top"> Best regards<br style=3D"ma=
+rgin: 0; font-family: Merriweather; box-sizing: border-box;">Auberge de Sav=
+i=C3=A8se </td> </tr> </tbody></table> </td> </tr> <tr style=3D"margin: 0; =
+font-family: Merriweather; box-sizing: border-box;"> <td class=3D"footer al=
+igncenter" style=3D"margin: 0; font-family: Merriweather; box-sizing: borde=
+r-box; vertical-align: top; width: 100%; padding: 24px 0 0 0; opacity: 0.8;=
+ text-align: center;" width=3D"100%" valign=3D"top" align=3D"center"> <tabl=
+e cellspacing=3D"24" width=3D"100%" style=3D"margin: 0; font-family: Merriw=
+eather; box-sizing: border-box;">  <tbody><tr style=3D"margin: 0; font-fami=
+ly: Merriweather; box-sizing: border-box;"> <td style=3D"margin: 0; font-fa=
+mily: Merriweather; box-sizing: border-box; vertical-align: top; text-align=
+: center;" valign=3D"top" align=3D"center"> <strong style=3D"margin: 0; fon=
+t-family: Merriweather; box-sizing: border-box;">Auberge de Savi=C3=A8se</s=
+trong><br style=3D"margin: 0; font-family: Merriweather; box-sizing: border=
+-box;">Rue des P=C3=A2quis 20<br style=3D"margin: 0; font-family: Merriweat=
+her; box-sizing: border-box;">1201 Gen=C3=A8ve </td> </tr>  <tr style=3D"ma=
+rgin: 0; font-family: Merriweather; box-sizing: border-box;"> <td style=3D"=
+margin: 0; font-family: Merriweather; box-sizing: border-box; vertical-alig=
+n: top; text-align: center;" valign=3D"top" align=3D"center"> <a href=3D"ht=
+tps://maps.google.com/?cid=3D5630785570174784968" class=3D"link-margin" sty=
+le=3D"font-family: Merriweather; box-sizing: border-box; text-decoration: u=
+nderline; color: #000000de; margin: 0 8px;" target=3D"_blank" rel=3D"norefe=
+rrer nofollow noopener">Show on map</a> <a href=3D"tel:+41227328330" class=
+=3D"link-margin" style=3D"font-family: Merriweather; box-sizing: border-box=
+; text-decoration: underline; color: #000000de; margin: 0 8px;" rel=3D"nore=
+ferrer nofollow noopener"><span class=3D"muted" style=3D"margin: 0; font-fa=
+mily: Merriweather; box-sizing: border-box; opacity: 0.7;">+41 </span> 22 7=
+32 83 30</a> <a href=3D"mailto:info@aubergedesaviese.ch?subject=3DRe: Booki=
+ng confirmation (2 people, Sat, 26 Sep 2026 19:30)" class=3D"link-margin" s=
+tyle=3D"font-family: Merriweather; box-sizing: border-box; text-decoration:=
+ underline; color: #000000de; margin: 0 8px;" rel=3D"noreferrer nofollow no=
+opener">info@aubergedesaviese.ch</a> </td> </tr> <tr style=3D"margin: 0; fo=
+nt-family: Merriweather; box-sizing: border-box;"> <td style=3D"margin: 0; =
+font-family: Merriweather; box-sizing: border-box; vertical-align: top; tex=
+t-align: center;" valign=3D"top" align=3D"center"> <a href=3D"https://www.a=
+ubergedesaviese.com/" class=3D"link-margin" style=3D"font-family: Merriweat=
+her; box-sizing: border-box; text-decoration: underline; color: #000000de; =
+margin: 0 8px;" target=3D"_blank" rel=3D"noreferrer nofollow noopener">Webs=
+ite</a> <a href=3D"https://www.facebook.com/aubergedesaviese" class=3D"link=
+-margin" style=3D"font-family: Merriweather; box-sizing: border-box; text-d=
+ecoration: underline; color: #000000de; margin: 0 8px;" target=3D"_blank" r=
+el=3D"noreferrer nofollow noopener">Facebook</a> <a href=3D"https://www.ins=
+tagram.com/aubergedesaviese/" class=3D"link-margin" style=3D"font-family: M=
+erriweather; box-sizing: border-box; text-decoration: underline; color: #00=
+0000de; margin: 0 8px;" target=3D"_blank" rel=3D"noreferrer nofollow noopen=
+er">Instagram</a> <a href=3D"https://www.yelp.com/biz/auberge-de-savi%C3%A8=
+se-gen%C3%A8ve" class=3D"link-margin" style=3D"font-family: Merriweather; b=
+ox-sizing: border-box; text-decoration: underline; color: #000000de; margin=
+: 0 8px;" target=3D"_blank" rel=3D"noreferrer nofollow noopener">Yelp</a> <=
+a href=3D"https://www.tripadvisor.com/Restaurant_Review-g188057-d1722238-Re=
+views-Auberge_de_Saviese-Geneva.html" class=3D"link-margin" style=3D"font-f=
+amily: Merriweather; box-sizing: border-box; text-decoration: underline; co=
+lor: #000000de; margin: 0 8px;" target=3D"_blank" rel=3D"noreferrer nofollo=
+w noopener">TripAdvisor</a> </td> </tr>  <tr style=3D"margin: 0; font-famil=
+y: Merriweather; box-sizing: border-box;"> <td class=3D"muted" style=3D"mar=
+gin: 0; font-family: Merriweather; box-sizing: border-box; vertical-align: =
+top; opacity: 0.7; text-align: center;" valign=3D"top" align=3D"center"> Th=
+is booking is managed using <a href=3D"https://resos.com" style=3D"margin: =
+0; font-family: Merriweather; box-sizing: border-box; text-decoration: unde=
+rline; color: #000000de;" target=3D"_blank" rel=3D"noreferrer nofollow noop=
+ener">Resos</a> </td> </tr> </tbody></table> </td> </tr> </tbody></table>  =
+ </div></blockquote><grammarly-desktop-integration data-grammarly-shadow-ro=
+ot=3D"true" style=3D"visibility: visible !important;"></grammarly-desktop-i=
+ntegration></div>
+      </div>
+--enmime-dd626637-0046-4fb7-9287-f680effd5662
+Content-Disposition: attachment; filename=booking-xwZsCMFnYD76i5fpD.ics
+Content-Transfer-Encoding: base64
+Content-Type: text/calendar; charset=utf-8;
+ name=booking-xwZsCMFnYD76i5fpD.ics
+
+QkVHSU46VkNBTEVOREFSCk1FVEhPRDpQVUJMSVNIClZFUlNJT046Mi4wClBST0RJRDotLy9CU0Mv
+L1Jlc29zLy9OT05TR01MIHYxLjAvL0VOCkJFR0lOOlZFVkVOVApVSUQ6eHdac0NNRm5ZRDc2aTVm
+cERAcmVzb3MuY29tClNVTU1BUlk6QXViZXJnZSBkZSBTYXZpw6hzZQpMT0NBVElPTjpSdWUgZGVz
+IFDDonF1aXMgMjAsIDEyMDEgR2Vuw6h2ZQpEVFNUQVJUOjIwMjYwOTI2VDE3MzAwMFoKRFRFTkQ6
+MjAyNjA5MjZUMTkwMDAwWgpEVFNUQU1QOjIwMjYwODAyVDEzNTg1OVoKT1JHQU5JWkVSO0NOPUF1
+YmVyZ2UgZGUgU2F2acOoc2U6TUFJTFRPOmluZm9AYXViZXJnZWRlc2F2aWVzZS5jaApFTkQ6VkVW
+RU5UCkVORDpWQ0FMRU5EQVI=
+
+--enmime-dd626637-0046-4fb7-9287-f680effd5662--

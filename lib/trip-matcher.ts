@@ -182,6 +182,29 @@ export function selectTripCandidate(
     if (dateMatch && locationMatch) return candidate;
   }
 
+  // Fallback for detail events: if no location match but country matches and
+  // only one candidate overlaps dates, assign to that candidate.
+  if (isDetailEvent(event) && dateMatches.length === 1) {
+    const soleCandidate = dateMatches[0];
+    const eventCountry = normalizeCountry(event.destinationCountry);
+    const candidateLocations = [
+      soleCandidate.destinationCity,
+      ...(soleCandidate.tripDestinations ?? []).flatMap((destination) => [
+        destination.city,
+        destination.state,
+        [destination.city, destination.state, destination.country].filter(Boolean).join(', '),
+      ]),
+    ];
+    const candidateCountries = [
+      soleCandidate.destinationCountry,
+      ...candidateLocations.map(inferCountryFromLocation),
+      ...(soleCandidate.tripDestinations ?? []).map((destination) => destination.country),
+    ].map(normalizeCountry).filter(Boolean);
+    if (eventCountry && candidateCountries.includes(eventCountry)) {
+      return soleCandidate;
+    }
+  }
+
   return !isDetailEvent(event) && dateMatches.length === 1 ? dateMatches[0] : null;
 }
 

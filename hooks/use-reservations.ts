@@ -24,6 +24,19 @@ export function reservationDayjs(
     : dayjs(value);
 }
 
+/**
+ * Determine whether a reservation has an explicit time (vs. defaulting to
+ * midnight).  For email_import, midnight UTC means no time was found in the
+ * email.  For other sources, midnight in the viewer's timezone is unlikely
+ * but we treat it as having no time too.
+ */
+export function reservationHasTime(
+  reservation: { source?: string | null; startDateTime: string },
+): boolean {
+  const d = reservationDayjs(reservation, reservation.startDateTime);
+  return d.hour() !== 0 || d.minute() !== 0;
+}
+
 export interface APIReservation {
   id: string;
   tripId: string;
@@ -347,8 +360,10 @@ export function reservationsToPlanDays(
     // Non-flight items don't reset prevFlight — a hotel between two legs is fine
 
     // For hotels: no time shown (like TripIt). For flights: use local time from notes if available.
-    let displayTime = start.format('h:mm A');
-    let displayTz = tzidToAbbrev(reservation.providerPhone, start.toDate());
+    // For events without an explicit time (midnight): show no time.
+    const hasTime = reservationHasTime(reservation);
+    let displayTime = hasTime ? start.format('h:mm A') : '';
+    let displayTz = hasTime ? tzidToAbbrev(reservation.providerPhone, start.toDate()) : '';
 
     if (reservation.type === 'hotel') {
       displayTime = '';

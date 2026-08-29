@@ -1,0 +1,182 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:b81a:20b0:1ea1:c002:8234 with SMTP id zc26-n2csp1353420njc;
+        Sat, 29 Aug 2026 13:01:23 -0700 (PDT)
+X-Received: by 2002:a17:903:32c2:b0:2d0:cc92:f7ae with SMTP id d9443c01a7336-2d74dbe3ef4mr246601465ad.3.1788033682973;
+        Sat, 29 Aug 2026 13:01:22 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788033682; cv=none;
+        d=google.com; s=arc-20260327;
+        b=hunQJeZf9v02H2ngAnnNz9gWlHsKgLj2qzEseQtIeJXizDM/NaJBBtbYMOSxZj3iwV
+         sccCbUhN7P/89hnQ8RL8oXvr3CM1OQfWaAo+0bWJAfcnPJ1Cdi5Q9QHRh2PUVYUbN3Nl
+         PiFlaaQVEXVeUWe3cYgiUj2cwsPlwGJInTQcAC0dzXVSIRPXkqoljJhRHgEbi7Yq4eDo
+         Hhr4VjtWy55I3Zo5MA3E3hd6ZoCySwSCW/iy6ERJeaJJOVEGhORfuPNjHk89759XfhiW
+         iKwfijmY0A/cuk2Pr7l56ImfU4Z9b2z4tsr9vIf2U3Bt8oWc8zSVqMSGGbGSEHgS4iiO
+         UGkA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=date:to:subject:references:mime-version:message-id:in-reply-to:from
+         :content-transfer-encoding:dkim-signature;
+        bh=trvV2OWVlAJ78s7FESVUXKWvxvkOlgtQengJGwwdIVA=;
+        fh=e8OGrjd3cXnGRHxrJrKMVIN8rR75TckYo9tnEPZyqxU=;
+        b=O4WKlpXp12pJrVX+ZoIQQhyqYnkRuLgtb4YJiDmF0nEkOFuTBTNxMwBoUm1KMpQHuJ
+         Bm+5B9Yt4q3P0G0ZFcz/0PmZ3uQQBdvSiDQK/QwNCRGMUGbKN2WY5QUk/QYhbvHq+n5c
+         naJFP9a13T2/ZjTR/BxLIzb6Ddwj+2rmoe5WPQWu/T5ekh5ST1x2zxGKbgQw0nyb13XQ
+         vx7QoqMeDNeqHhYaAtWTRA6Ob+e7c+EHfURuOh37S6byrRMm0RJpmL2SLbaj2mipvFyG
+         9SdLo3C8KG84R3SKX324TpY/pHgzxZdrzLG5liwQIh6NBfphyEwxfkzvke3AVW1EQX0D
+         aLRg==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=IliFJD90;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.222.40 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+Return-Path: <plans@shldrtravel.com>
+Received: from cornsilk.ash.relay.mailchannels.net (cornsilk.ash.relay.mailchannels.net. [23.83.222.40])
+        by mx.google.com with ESMTPS id d9443c01a7336-2d7598d4140si104693605ad.137.2026.08.29.13.01.21
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2026 13:01:21 -0700 (PDT)
+Received-SPF: pass (google.com: domain of plans@shldrtravel.com designates 23.83.222.40 as permitted sender) client-ip=23.83.222.40;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@shldrtravel.com header.s=hostingermail-a header.b=IliFJD90;
+       spf=pass (google.com: domain of plans@shldrtravel.com designates 23.83.222.40 as permitted sender) smtp.mailfrom=plans@shldrtravel.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=shldrtravel.com
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 6D9D44C1D11
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:20 +0000 (UTC)
+Received: from de-fra-smtpout8.hostinger.io (trex-green-1.trex.outbound.svc.cluster.local [100.96.15.65])
+	(Authenticated sender: hostingeremail)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 965D84C1DB0
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:15 +0000 (UTC)
+X-Sender-Id: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: hostingeremail|x-authuser|plans@shldrtravel.com
+X-MailChannels-Auth-Id: hostingeremail
+X-Lettuce-Oafish: 218b4c826720a0ff_1788033680138_1111638673
+X-MC-Loop-Signature: 1788033680138:639783195
+X-MC-Ingress-Time: 1788033680138
+Received: from de-fra-smtpout8.hostinger.io (de-fra-smtpout8.hostinger.io
+ [148.222.55.13])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.96.15.65 (trex/8.0.2);
+	Sat, 29 Aug 2026 20:01:20 +0000
+Received: from localhost (34.86.89.34.bc.googleusercontent.com [IPv6:2600:1700:5122:1180:6547:a044:8016:18b9])
+	(Authenticated sender: plans@shldrtravel.com)
+	by smtp.hostinger.com (smtp.hostinger.com) with ESMTPSA id 4hXR2x5DYFz3wvm
+	for <tapsuns5@gmail.com>; Sat, 29 Aug 2026 20:01:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shldrtravel.com;
+	s=hostingermail-a; t=1788033673;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=trvV2OWVlAJ78s7FESVUXKWvxvkOlgtQengJGwwdIVA=;
+	b=IliFJD90Rh1hswEIaCqjseJhaXe7nMfVK4K1zSDUuz3S6drsiK0Fg6i3y2y2r8+WN3P6Kb
+	Vjs2Idp4OtVH1LUQf9JP/gcGH6k18rLdG2Sj/J7Ky7kYPAgYY29TrmBZhgPwHLMKpCCb8W
+	TSHFHsevVPTS4fztX0hCluHX0M6jAz6AItinMuN0SFqIIMxYxrAWmwdPqq4QZabjP+gJFJ
+	PsRse6bDdL4LQfmk8WJ5IYiLMVnDIqLjC1wX9bVhon29HMRiczav5eiz4iu/wcVKXY9b2I
+	XSe2z8N+gDjHDGTwpRgCCWHBhXUwhmy+CCHvwmmppei4wbG7IqyYJ0SnNOU6Fw==
+X-Hostinger-Webhook-Enabled: yes
+X-Hostinger-Webhook-Enabled: yes
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+From: <plans@shldrtravel.com>
+In-Reply-To: <80B9324F-CF6A-41DF-B987-2CE06271C5FA@gmail.com>
+Message-Id: <1788033664217064404.1788033664@shldrtravel.com>
+Mime-Version: 1.0
+References: <5112cc8980a4385f71d73d35e9164f58@stintinospiagge.it>
+ <80B9324F-CF6A-41DF-B987-2CE06271C5FA@gmail.com>
+Subject: Fwd: Conferma prenotazione spiaggia n. 60790
+To: <tapsuns5@gmail.com>
+Date: Sat, 29 Aug 2026 20:01:13 +0000 (UTC)
+X-CM-Envelope: MS4xfODR/IY+1Gy2lWbprWpL8+YxPrKTr1uF+8N52IDZKIdNGaO8H/zQDdSNxYC8RePYbs5CAVVywS6LoyBzM/lPTDvGlIbXrUXRWatt9wfIRWC0JOFMv3n1 pq2pKPYITw1o9m4tRWSBil43x3nKkZZOoBRkn9aVL5ZYa8ZCUEzxiDf6KpQD47RYCxni4288zKF+NHjyPDWxQ48QT9xiOEQxh7qNBJG44kIfXrDHe8uV9EtU 0Rur3/1eMAOwRn5qTFFKUQ==
+X-CM-Analysis: v=2.4 cv=fr2OZ04f c=1 sm=1 tr=0 ts=6a933a89 a=n+y87rYn6FZjKmxgPwRHzg==:617 a=xqWC_Br6kY4A:10 a=IkcTkHD0fZMA:10 a=ZgN-DOtDAAAA:8 a=-HJwH1y9AAAA:8 a=Qyj9NxX1AAAA:8 a=pGLkceISAAAA:8 a=F9QCr_piAAAA:8 a=6nFccLDwwI1eJx2_B7gA:9 a=do9cF1ZaA5Qd_brt:21 a=QEXdDO2ut3YA:10 a=jjxgvnocCX0A:10 a=xha5XVv8otAmwIV9NdAo:22 a=hUM4-XZAOkZ9c_DGZwl0:22 a=5QeyuudGkhuoZP2aeShn:22
+X-AuthUser: plans@shldrtravel.com
+
+<div><br></div><div><br></div><div class=3D"hmail-signature-prefix">--</div=
+><div class=3D"hmail-signature" data-signature-uuid=3D"60d6233f-e23c-4ec6-9=
+cfc-e8b1e43098bc"></div><div><br></div><div class=3D"hmail-free-plan-footer=
+">Sent with <a href=3D"https://mail.hostinger.com/" target=3D"_blank" rel=
+=3D"noopener noreferrer">Hostinger Mail</a></div><br>
+      <div class=3D"hmail-quote-container">
+        <div class=3D"hmail-attr" data-qa=3D"message-reply-attribution">
+      ---------- Forwarded message ----------<br>
+      From: Emily Sharpe &lt;emilysharpe2@gmail.com&gt;<br>Date: Sat, Aug 2=
+9, 2026 2:11 PM<br>Subject: Fwd: Conferma prenotazione spiaggia n. 60790<br=
+>To: &lt;plans@shldrtravel.com&gt;
+      <br>
+    </div>
+        <br><br>
+        <div class=3D"hmail-quote"><br id=3D"lineBreakAtBeginningOfSignatur=
+e"><div dir=3D"ltr">Sent from my iPhone</div><div dir=3D"ltr"><br>Begin for=
+warded message:<br><br></div><blockquote type=3D"cite"><div dir=3D"ltr"><b>=
+From:</b> LaPelosa &lt;noreply@stintinospiagge.it&gt;<br><b>Date:</b> July =
+25, 2026 at 11:23:59=E2=80=AFAM EDT<br><b>To:</b> emilysharpe2@gmail.com<br=
+><b>Subject:</b> <b>Conferma prenotazione spiaggia n. 60790</b><br><br></di=
+v></blockquote><blockquote type=3D"cite"><div dir=3D"ltr">=EF=BB=BF       <=
+table role=3D"presentation" width=3D"100%" cellspacing=3D"0" cellpadding=3D=
+"0" style=3D"background:#f3f7fb; padding:30px 0;"> <tbody><tr> <td align=3D=
+"center"> <table role=3D"presentation" width=3D"620" cellspacing=3D"0" cell=
+padding=3D"0" style=3D"background:#ffffff; border-radius:18px; overflow:hid=
+den; max-width:620px; width:94%;"> <tbody><tr> <td style=3D"background:#256=
+3eb; color:#ffffff; padding:28px 30px;"> <h1 style=3D"margin:0; font-size:2=
+6px;">Prenotazione confermata</h1> <p style=3D"margin:8px 0 0; opacity:.95;=
+">Prenotazione n. 60790</p> </td> </tr> <tr> <td style=3D"padding:28px 30px=
+;"> <p style=3D"font-size:16px; line-height:1.5; margin-top:0;"> La tua pre=
+notazione per <strong>La Pelosa</strong> =C3=A8 stata confermata. </p>  <ta=
+ble role=3D"presentation" width=3D"100%" cellspacing=3D"0" cellpadding=3D"0=
+" style=3D"border-collapse:collapse; margin:20px 0;"> <tbody><tr> <td style=
+=3D"padding:10px 0; border-bottom:1px solid #e5e7eb; color:#6b7280;">Spiagg=
+ia</td> <td style=3D"padding:10px 0; border-bottom:1px solid #e5e7eb; text-=
+align:right; font-weight:bold;">La Pelosa</td> </tr>  <tr> <td style=3D"pad=
+ding:10px 0; border-bottom:1px solid #e5e7eb; color:#6b7280;">Quota</td> <t=
+d style=3D"padding:10px 0; border-bottom:1px solid #e5e7eb; text-align:righ=
+t; font-weight:bold;">Unlimited</td> </tr>  <tr> <td style=3D"padding:10px =
+0; border-bottom:1px solid #e5e7eb; color:#6b7280;">Periodo</td> <td style=
+=3D"padding:10px 0; border-bottom:1px solid #e5e7eb; text-align:right; font=
+-weight:bold;"> 19/09/2026 </td> </tr>  <tr> <td style=3D"padding:10px 0; b=
+order-bottom:1px solid #e5e7eb; color:#6b7280;">Persone</td> <td style=3D"p=
+adding:10px 0; border-bottom:1px solid #e5e7eb; text-align:right; font-weig=
+ht:bold;">2</td> </tr>    <tr> <td style=3D"padding:10px 0; border-bottom:1=
+px solid #e5e7eb; color:#6b7280;">Importo pagato</td> <td style=3D"padding:=
+10px 0; border-bottom:1px solid #e5e7eb; text-align:right; font-weight:bold=
+;">=E2=82=AC 7,00</td> </tr> </tbody></table>  <div style=3D"text-align:cen=
+ter; background:#f9fafb; border-radius:16px; padding:22px; margin:24px 0; b=
+order:1px solid #e5e7eb;"> <p style=3D"margin:0 0 12px; font-weight:bold; f=
+ont-size:17px;">QR code accesso</p> <p style=3D"margin:0 0 14px; color:#4b5=
+563; font-size:14px; line-height:1.5;"> Puoi aprire o scaricare il QR code =
+dai pulsanti qui sotto. </p> <p style=3D"margin:18px 0 0;"> <a href=3D"http=
+s://mandrillapp.com/track/click/31487801/app.stintinospiagge.it?p=3DeyJzIjo=
+ieVZyRWR1YV9DZC1zUkV4Y2JJZjctYVlGSVdNIiwidiI6MiwicCI6IntcInVcIjozMTQ4NzgwMS=
+xcInZcIjoyLFwidXJsXCI6XCJodHRwczpcXFwvXFxcL2FwcC5zdGludGlub3NwaWFnZ2UuaXRcX=
+FwvcHJlbm90YXppb25lXFxcL2ExYWU5MjQyLTRkZTktNDc0ZS04ZGM5LTIxZGI2MDExMDgyNVxc=
+XC9xci5zdmc_ZG93bmxvYWQ9MVwiLFwiaWRcIjpcImU2MjcxZWU1NDNkNjQ3YmRiZTc5NjkwM2M=
+4NDhlMmQwXCIsXCJ1cmxfaWRzXCI6W1wiY2QwYjUxZjY2ZDI4YjczNWY3NDc0NjQyMTgxY2E5YT=
+M4ZGRiMmJmYVwiXSxcIm1zZ190c1wiOjE3ODQ5OTMwMzh9In0" style=3D"background:#16a=
+34a; color:#ffffff; padding:13px 18px; border-radius:12px; text-decoration:=
+none; font-weight:bold; display:inline-block; margin:4px;" target=3D"_blank=
+" rel=3D"noreferrer nofollow noopener"> Scarica QR code </a> <a href=3D"htt=
+ps://mandrillapp.com/track/click/31487801/app.stintinospiagge.it?p=3DeyJzIj=
+oiZTczUWhKMHM2Wi1QRzB2U2E5eTJUR1V0Y0cwIiwidiI6MiwicCI6IntcInVcIjozMTQ4NzgwM=
+SxcInZcIjoyLFwidXJsXCI6XCJodHRwczpcXFwvXFxcL2FwcC5zdGludGlub3NwaWFnZ2UuaXRc=
+XFwvcHJlbm90YXppb25lXFxcL2ExYWU5MjQyLTRkZTktNDc0ZS04ZGM5LTIxZGI2MDExMDgyNVw=
+iLFwiaWRcIjpcImU2MjcxZWU1NDNkNjQ3YmRiZTc5NjkwM2M4NDhlMmQwXCIsXCJ1cmxfaWRzXC=
+I6W1wiNjkwNGE3NGU4MmY1NGUwMzMxNGRkZTFlNGEzZDhhMDAwZTFlYzM5ZVwiXSxcIm1zZ190c=
+1wiOjE3ODQ5OTMwMzh9In0" style=3D"background:#2563eb; color:#ffffff; padding=
+:13px 18px; border-radius:12px; text-decoration:none; font-weight:bold; dis=
+play:inline-block; margin:4px;" target=3D"_blank" rel=3D"noreferrer nofollo=
+w noopener"> Apri riepilogo </a> </p> <p style=3D"font-family:monospace; fo=
+nt-size:12px; word-break:break-all; color:#374151; margin:16px 0 0;"> Codic=
+e QR: a1ae9242-4de9-474e-8dc9-21db60110825 </p> </div>  <p style=3D"font-si=
+ze:14px; color:#6b7280; line-height:1.5;"> Porta con te questa email o il Q=
+R code scaricato. Gli operatori registreranno automaticamente l'ingresso al=
+la lettura del QR. </p>  <p style=3D"font-size:12px; color:#9ca3af; line-he=
+ight:1.5; margin-top:28px;"> Se i pulsanti non funzionano, copia e incolla =
+nel browser questo link:<br> <span style=3D"word-break:break-all;">https://=
+app.stintinospiagge.it/prenotazione/a1ae9242-4de9-474e-8dc9-21db60110825</s=
+pan> </p> </td> </tr> </tbody></table> </td> </tr> </tbody></table> <img he=
+ight=3D"1" width=3D"1" alt=3D"" data-unique-identifier=3D"" hmail-src=3D"ht=
+tps://mandrillapp.com/track/open.php?u=3D31487801&amp;id=3De6271ee543d647bd=
+be796903c848e2d0" src=3D"https://mandrillapp.com/track/open.php?u=3D3148780=
+1&amp;id=3De6271ee543d647bdbe796903c848e2d0">  </div></blockquote><grammarl=
+y-desktop-integration data-grammarly-shadow-root=3D"true" style=3D"visibili=
+ty: visible !important;"></grammarly-desktop-integration></div>
+      </div>

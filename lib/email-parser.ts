@@ -39,6 +39,8 @@ export interface ParsedEmailEvent {
   /** Flight number, flights only */
   flightNumber: string | null;
   notes: string | null;
+  /** Whether the start time was explicitly found (vs. defaulting to midnight) */
+  hasTime: boolean;
 }
 
 export interface EmailParseResult {
@@ -63,6 +65,8 @@ export function deserializeEvents(json: string): ParsedEmailEvent[] {
   for (const e of events) {
     if (typeof e.startDateTime === 'string') e.startDateTime = new Date(e.startDateTime);
     if (typeof e.endDateTime === 'string') e.endDateTime = new Date(e.endDateTime);
+    // Backward compat: old events may not have hasTime
+    if (e.hasTime === undefined) e.hasTime = true;
   }
   return events;
 }
@@ -203,7 +207,16 @@ function detectType(subject: string, body: string): ReservationType {
     /\b[A-Z]{2,3}\s*\d{3,4}\b/.test(subject)
   ) return 'flight';
 
-  if (/\b(hotel|hôtel|albergo|accommodation|lodging|alojamiento|hospedagem|unterkunft)\b|check.?in|check.?out|reservation.*room|room.*reservation/.test(content))
+  // Restaurant — check before hotel so "reservation ... in the room" doesn't
+  // falsely trigger hotel detection.
+  if (
+    /\b(restaurant|restaurante|ristorante|dining|opentable)\b|open table|reservation.*table|table.*reservation|table\s+for\s+\d|mesa\s+para|tavolo\s+per|table\s+pour/.test(content) ||
+    /\bbooking\b.*\b(people|guest|person|party)\b/.test(content) ||
+    /\b(booking\s+confirmation|booking\s+request)\b.*\b\d+\s*(people|person|guest)\b/.test(content)
+  )
+    return 'restaurant';
+
+  if (/\b(hotel|hôtel|albergo|accommodation|lodging|alojamiento|hospedagem|unterkunft)\b|check.?in|check.?out|room\s+(?:reservation|booking)|reservation.*room\s+(?:reservation|booking)/.test(content))
     return 'hotel';
 
   if (/\b(car rental|rent.?a.?car|vehicle rental|alquiler de coche|alquiler de auto|location de voiture|noleggio auto|autovermietung)\b|pickup.*rental|rental.*pickup/.test(content))
@@ -215,10 +228,11 @@ function detectType(subject: string, body: string): ReservationType {
   if (/\b(cruise|crucero|croisière|croisiere|crociera|kreuzfahrt|cruzeiro)\b/.test(content))
     return 'cruise';
 
-  if (/\b(restaurant|restaurante|ristorante|dining|opentable)\b|open table|reservation.*table|table.*reservation|table\s+for\s+\d|mesa\s+para|tavolo\s+per|table\s+pour/.test(content))
-    return 'restaurant';
-
-  if (/\b(activity|actividad|activité|activite|attività|attivita|aktivität|aktivitat|tour|excursion|escursione|ausflug)\b|ticket.*event|event.*ticket/.test(content))
+  if (
+    /\b(activity|actividad|activité|activite|attività|attivita|aktivität|aktivitat|tour|excursion|escursione|ausflug)\b|ticket.*event|event.*ticket/.test(content) ||
+    /\b(spiaggia|beach|ombrellone|lettino|prenotazione\s+spiaggia)\b/.test(content) ||
+    /\b(appointment|appuntamento|degustazione|tasting|wine\s+tour|cellar|vineyard|vigneti)\b/.test(content)
+  )
     return 'activity';
 
   if (/\b(transfer|transport|transportation|shuttle|traslado|navetta|navette|transporte)\b/.test(content))
@@ -313,9 +327,11 @@ function extractFlightDetails(body: string, subject: string): {
 function extractDates(body: string, type: ReservationType): {
   startDateTime: Date | null;
   endDateTime: Date | null;
+  hasTime: boolean;
 } {
   let startDateTime: Date | null = null;
   let endDateTime: Date | null = null;
+  let hasTime = false;
   const normalizedBody = body.toLowerCase();
   const lastSubject = Math.max(
     normalizedBody.lastIndexOf('subject:'),
@@ -348,10 +364,12 @@ function extractDates(body: string, type: ReservationType): {
     );
   } else {
     labeledPatterns.push(
-      [/(?:date|fecha|data|datum|jour|starts?|begins?|inicio|début|debut|inizio|beginn)[:\s]+([^\n]{5,50})/i, 'start'],
+      [/(?:date|fecha|data|datum|jour|periodo|starts?|begins?|inicio|début|debut|inizio|beginn)[:\s]+([^\n]{5,50})/i, 'start'],
       [/(?:ends?|through|until|fin|final|hasta|jusqu(?:'|’)à|fine|ende|término|termino)[:\s]+([^\n]{5,50})/i, 'end'],
       [/(?:on|el|le|il|am|em|para|pour|per)\s+(?:[\p{L}]+,?\s+)?([\p{L}.]+\s+\d{1,2},?\s+\d{4}(?:\s+(?:at|à|alle|a\s+las|um|às)\s+\d{1,2}[:h.]\d{2}\s*(?:[AP]M)?)?)/iu, 'start'],
       [/(?:on|el|le|il|am|em|para|pour|per)\s+(?:[\p{L}]+,?\s+)?(\d{1,2}\.?\s+(?:de\s+)?[\p{L}.]+\s+(?:de\s+)?\d{4}(?:\s+(?:at|à|alle|a\s+las|um|às)\s+\d{1,2}[:h.]\d{2}\s*(?:[AP]M)?)?)/iu, 'start'],
+      // Italian: "in data 23/09/2026 alle 15:00"
+      [/(?:in\s+data)\s+(\d{1,2}[\/.]\d{1,2}[\/.]\d{4})\s+(?:alle\s+)?(\d{1,2}[:h.]\d{2})\s*([AP]M)?/i, 'start'],
     );
   }
 
@@ -360,17 +378,29 @@ function extractDates(body: string, type: ReservationType): {
     if (!m) continue;
     const d = parseEmailDate(m[1].trim());
     if (!d) continue;
-    if (role === 'start' && !startDateTime) startDateTime = d;
+    if (role === 'start' && !startDateTime) {
+      startDateTime = d;
+      // Check if the matched string contained a time portion
+      if (m[0].match(/\d{1,2}[:h.]\d{2}\s*(?:[AP]M)?/i)) hasTime = true;
+    }
     if (role === 'end' && !endDateTime) endDateTime = d;
   }
 
   if (startDateTime && startDateTime.getUTCHours() === 0 && startDateTime.getUTCMinutes() === 0) {
-    const time = reservationContent.match(/(?:time|ora|heure|hora|uhrzeit)\s*(?::|\n)+\s*(\d{1,2})[:h.](\d{2})\s*([AP]M)?/i);
+    // Time label fallback: "Time: 19:30", "Ora: 15:00", "at 7:30 PM", "alle 15:00"
+    const time = reservationContent.match(
+      /(?:time|ora|heure|hora|uhrzeit)\s*(?::|\n)+\s*(\d{1,2})[:h.](\d{2})\s*([AP]M)?/i,
+    ) || reservationContent.match(
+      /\bat\s+(\d{1,2})[:h.](\d{2})\s*([AP]M)?\b/i,
+    ) || reservationContent.match(
+      /\balle\s+(\d{1,2})[:h.](\d{2})\s*([AP]M)?\b/i,
+    );
     if (time) {
       let hour = Number(time[1]);
       if (time[3]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
       if (time[3]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
       startDateTime.setUTCHours(hour, Number(time[2]), 0, 0);
+      hasTime = true;
     }
   }
 
@@ -380,6 +410,26 @@ function extractDates(body: string, type: ReservationType): {
     if (genericDate) startDateTime = parseEmailDate(genericDate[1]);
   }
 
+  // Run time fallback again after generic date fallback in case the date was
+  // found without a time (e.g. "Friday 25 September 2026 at 7:30 PM" where the
+  // date was matched by the generic pattern but the time wasn't captured).
+  if (startDateTime && startDateTime.getUTCHours() === 0 && startDateTime.getUTCMinutes() === 0 && !hasTime) {
+    const time = reservationContent.match(
+      /(?:time|ora|heure|hora|uhrzeit)\s*(?::|\n)+\s*(\d{1,2})[:h.](\d{2})\s*([AP]M)?/i,
+    ) || reservationContent.match(
+      /\bat\s+(\d{1,2})[:h.](\d{2})\s*([AP]M)?\b/i,
+    ) || reservationContent.match(
+      /\balle\s+(\d{1,2})[:h.](\d{2})\s*([AP]M)?\b/i,
+    );
+    if (time) {
+      let hour = Number(time[1]);
+      if (time[3]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
+      if (time[3]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
+      startDateTime.setUTCHours(hour, Number(time[2]), 0, 0);
+      hasTime = true;
+    }
+  }
+
   // Fallback for end: grab second date-like string
   if (!endDateTime) {
     const allDates = reservationContent.matchAll(/(\d{1,2}\.\d{1,2}\.\d{4})/g);
@@ -387,7 +437,7 @@ function extractDates(body: string, type: ReservationType): {
     if (matches.length >= 2) endDateTime = matches[1];
   }
 
-  return { startDateTime, endDateTime };
+  return { startDateTime, endDateTime, hasTime };
 }
 
 function extractAddress(body: string): string | null {
@@ -398,7 +448,7 @@ function extractAddress(body: string): string | null {
   return structured?.[1]?.trim() || null;
 }
 
-function extractLocation(body: string, type: ReservationType): string | null {
+function extractLocation(body: string, type: ReservationType, providerName: string | null): string | null {
   const meetingPoint = body.match(/(?:location del luogo dell'offerta\s*\/\s*nome del punto di incontro|meeting point|punto di incontro|point de rencontre|punto de encuentro|treffpunkt)\s*\n+\s*([^\n]{2,120})/i);
   if (meetingPoint) return meetingPoint[1].trim();
 
@@ -421,14 +471,37 @@ function extractLocation(body: string, type: ReservationType): string | null {
     if (m) return m[1].trim();
   }
 
+  // Structured address: "Street 123, 12345 City, ST" (US-style with state code)
   const structuredAddress = body.match(/([^\n]{3,100},\s*\d{1,5},\s*[\p{L} .'-]{2,60},\s*[A-Z]{2}\s+\d{4,6},\s*(?:[A-Z]{2}|[\p{L}]{4,20}))/u);
   if (structuredAddress) return structuredAddress[1].trim();
 
-  const labeled = body.match(/(?:location|venue|address|place|ubicación|ubicacion|dirección|direccion|lieu|adresse|luogo|indirizzo|ort|adresse|localização|localizacao|endereço|endereco)\s*(?::|\n)+\s*([^\n]{5,120})/i);
-  if (labeled) return labeled[1].trim();
+  // European postal address: "Rue des Pâquis 20, 1201 Genève"
+  // or "Rue du Soleil-Levant, 1204, Genève"
+  // Require a street prefix (rue, via, calle, etc.) to avoid matching dates.
+  const europeanAddress = body.match(
+    /(?:rue|via|calle|avenida|av\.?|straße|strasse|road|street|st\.?|piazza|plaza|place|square|boulevard|bd\.?|corso|viale)\s+[\p{L}'’.\s-]{2,50}\d{0,5},?\s*\n?\s*(\d{4,6}),?\s*([A-ZÀ-Ý][\p{L}'’.-]{2,40})/iu,
+  );
+  if (europeanAddress) return europeanAddress[0].trim();
+
+  // Multi-line address: "Rue du Soleil-Levant\n1204, Genève"
+  const multiLineAddress = body.match(
+    /(?:rue|via|calle|avenida|av\.?|straße|strasse|road|street|st\.?|piazza|plaza|place|square|boulevard|bd\.?|corso|viale)\s+[\p{L}'’.\s-]{2,50}\d{0,5}\s*\n\s*(\d{4,6}),?\s*([A-ZÀ-Ý][\p{L}'’.-]{2,40})/iu,
+  );
+  if (multiLineAddress) return `${multiLineAddress[0].split('\n')[0].trim()}, ${multiLineAddress[1]} ${multiLineAddress[2].trim()}`;
+
+  const labeled = body.match(/(?:location|venue|address|place|posizione|ubicación|ubicacion|dirección|direccion|lieu|adresse|luogo|indirizzo|ort|adresse|localização|localizacao|endereço|endereco)\s*(?::|\n)+\s*([^\n]{5,120})/i);
+  if (labeled) {
+    const val = labeled[1].trim();
+    // Skip URLs and Google Maps links — not useful for trip matching
+    if (!/^https?:\/\//i.test(val) && !/google\s*maps/i.test(val) && !/share\.google/i.test(val)) return val;
+  }
 
   const postalAddress = body.match(/([A-ZÀ-Ý][\p{L}'’.-]+(?:\s+[A-ZÀ-Ý][\p{L}'’.-]+)*),\s+(?:Provincia di\s+[^\n,]+|[A-Z]{2,3}|[\p{L}'’.-]+(?:\s+[\p{L}'’.-]+)*)\s+\d{4,6}/u);
   if (postalAddress) return postalAddress[0].trim();
+
+  // Fallback: use provider name as location (better than nothing for trip matching)
+  if (providerName) return providerName;
+
   return null;
 }
 
@@ -454,15 +527,25 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
   }
 
   if (location && ['restaurant', 'activity', 'transport', 'other'].includes(type)) {
-    const addressCity = location.match(/,\s*([A-ZÀ-Ý][\p{L}' .-]+),\s*[A-Z]{2}\s+\d{4,6}(?:,|$)/u);
-    if (addressCity) return addressCity[1].trim();
+    // Skip URL-based locations — they're not useful for city extraction
+    if (/^https?:\/\//i.test(location) || /google\.com\/maps/i.test(location)) {
+      // Fall through to provider name / generic extraction below
+    } else {
+      // US-style: "Street, City, ST 12345"
+      const addressCity = location.match(/,\s*([A-ZÀ-Ý][\p{L}' .-]+),\s*[A-Z]{2}\s+\d{4,6}(?:,|$)/u);
+      if (addressCity) return addressCity[1].trim();
 
-    const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
-    if (parts.length > 1 && /^(?:\d|via\b|rue\b|calle\b|avenida\b|av\.?\b|straße\b|strasse\b|road\b|street\b|st\.?\b|piazza\b|plaza\b|place\b|square\b)/i.test(parts[0])) {
-      const lastPart = parts.at(-1) ?? '';
-      const hasCountrySuffix = /^(?:[A-Z]{2}|italy|italia|france|spain|germany|switzerland|japan|portugal|greece)$/i.test(lastPart);
-      const cityPart = hasCountrySuffix && parts.length > 2 ? parts.at(-2) : lastPart;
-      return cityPart?.replace(/^\d{4,6}\s+|\s+\d{3,6}(?:-\d{3,4})?$/g, '').trim() || parts[0];
+      // European: "1201 Genève" or "1204, Genève" — city after postal code
+      const europeanCity = location.match(/\d{4,6},?\s+([A-ZÀ-Ý][\p{L}'’.-]{2,40})/u);
+      if (europeanCity) return europeanCity[1].trim();
+
+      const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
+      if (parts.length > 1 && /^(?:\d|via\b|rue\b|calle\b|avenida\b|av\.?\b|straße\b|strasse\b|road\b|street\b|st\.?\b|piazza\b|plaza\b|place\b|square\b)/i.test(parts[0])) {
+        const lastPart = parts.at(-1) ?? '';
+        const hasCountrySuffix = /^(?:[A-Z]{2}|italy|italia|france|spain|germany|switzerland|japan|portugal|greece)$/i.test(lastPart);
+        const cityPart = hasCountrySuffix && parts.length > 2 ? parts.at(-2) : lastPart;
+        return cityPart?.replace(/^\d{4,6}\s+|\s+\d{3,6}(?:-\d{3,4})?$/g, '').trim() || parts[0];
+      }
     }
   }
 
@@ -470,7 +553,11 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
   const m = body.match(/(?:destination)[:\s]+([A-Za-z ,]{3,40})/i);
   if (m) return m[1].split(',')[0].trim();
 
-  return location ? location.split(',')[0].trim() : null;
+  // Final fallback: first part of location, but skip URLs
+  if (location && !/^https?:\/\//i.test(location) && !/google\.com\/maps/i.test(location)) {
+    return location.split(',')[0].trim();
+  }
+  return null;
 }
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -487,11 +574,38 @@ const COUNTRY_ALIASES: Record<string, string> = {
   'united states': 'United States', usa: 'United States',
 };
 
+const CITY_TO_COUNTRY: Record<string, string> = {
+  // Switzerland
+  'genève': 'Switzerland', geneva: 'Switzerland', zürich: 'Switzerland', zurich: 'Switzerland',
+  basel: 'Switzerland', bern: 'Switzerland', lausanne: 'Switzerland', lugano: 'Switzerland',
+  // Italy
+  rome: 'Italy', roma: 'Italy', milan: 'Italy', milano: 'Italy', olbia: 'Italy',
+  cagliari: 'Italy', palermo: 'Italy', naples: 'Italy', napoli: 'Italy', florence: 'Italy',
+  firenze: 'Italy', venice: 'Italy', venezia: 'Italy', bologna: 'Italy', turin: 'Italy',
+  torino: 'Italy', genoa: 'Italy', genova: 'Italy', palau: 'Italy', stintino: 'Italy',
+  alghero: 'Italy', sardinia: 'Italy', sardegna: 'Italy',
+  'la pelosa': 'Italy', lapelosa: 'Italy', capichera: 'Italy',
+  // France
+  paris: 'France', lyon: 'France', marseille: 'France', nice: 'France', bordeaux: 'France',
+  // Spain
+  madrid: 'Spain', barcelona: 'Spain', sevilla: 'Spain', valencia: 'Spain',
+  // Germany
+  berlin: 'Germany', munich: 'Germany', münchen: 'Germany', hamburg: 'Germany',
+  frankfurt: 'Germany', cologne: 'Germany', köln: 'Germany',
+};
+
 function extractDestinationCountry(body: string, location: string | null): string | null {
   const address = body.match(/(?:address|dirección|direccion|adresse|indirizzo|endereço|endereco)\s*(?::|\n)+\s*([^\n]{3,160})/i)?.[1];
   const source = `${address ?? ''} ${location ?? ''}`.toLowerCase();
   for (const [alias, country] of Object.entries(COUNTRY_ALIASES)) {
     if (new RegExp(`(?:^|[^\\p{L}])${alias}(?:$|[^\\p{L}])`, 'iu').test(source)) return country;
+  }
+  // Fallback: infer country from city name
+  if (location) {
+    const cityLower = location.toLowerCase().trim();
+    for (const [city, country] of Object.entries(CITY_TO_COUNTRY)) {
+      if (cityLower.includes(city)) return country;
+    }
   }
   return null;
 }
@@ -537,11 +651,11 @@ export function parseConfirmationEmail(opts: {
   const providerName = extractProviderName(subject, body, type);
   console.log('[email-parser] Provider name:', providerName);
 
-  const { startDateTime, endDateTime } = extractDates(body, type);
-  console.log('[email-parser] Dates:', { startDateTime, endDateTime });
+  const { startDateTime, endDateTime, hasTime } = extractDates(body, type);
+  console.log('[email-parser] Dates:', { startDateTime, endDateTime, hasTime });
 
   const address = extractAddress(body);
-  const location = extractLocation(body, type) ?? address;
+  const location = extractLocation(body, type, providerName) ?? address;
   console.log('[email-parser] Location:', location);
 
   const destinationCity = extractDestinationCity(body, type, location);
@@ -593,6 +707,7 @@ export function parseConfirmationEmail(opts: {
     airlineCode,
     flightNumber,
     notes,
+    hasTime,
   };
 
   const dates = [startDateTime, endDateTime].filter(Boolean) as Date[];

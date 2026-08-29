@@ -53,7 +53,7 @@ async function main() {
     userId: USER_ID,
     messageId: parsed.messageId || `eml-${Date.now()}`,
     subject: parsed.subject || 'No subject',
-    bodyText: parsed.text || '',
+    bodyText: parsed.text || (typeof parsed.html === 'string' ? parsed.html : ' '),
     bodyHtml: parsed.html || undefined,
   };
 
@@ -64,7 +64,10 @@ async function main() {
     'Content-Type': 'application/json',
   };
   if (WEBHOOK_SECRET) {
+    // Send as both x-webhook-secret and Authorization Bearer to support
+    // either webhook verification mode.
     headers['x-webhook-secret'] = WEBHOOK_SECRET;
+    headers['Authorization'] = `Bearer ${WEBHOOK_SECRET}`;
   }
 
   const res = await fetch(WEBHOOK_URL, {

@@ -77,6 +77,10 @@ function getDisplayTime(reservation: APIReservation): { time: string; timezone: 
   const date = isNaiveUtc ? dayjs.utc(reservation.startDateTime) : dayjs(reservation.startDateTime);
   if (!date.isValid() || reservation.type === 'hotel') return { time: '', timezone: '' };
 
+  // Hide time when no explicit time was found (midnight)
+  const hasTime = date.hour() !== 0 || date.minute() !== 0;
+  if (!hasTime) return { time: '', timezone: '' };
+
   if (reservation.type === 'flight' && reservation.notes) {
     const departure = reservation.notes.match(/^Departs\s+(\d{1,2}:\d{2}\s*[AP]M)\s+([A-Z]{2,5}|[+-]\d{2}(?::\d{2})?)/im);
     if (departure) return { time: departure[1], timezone: departure[2] };
