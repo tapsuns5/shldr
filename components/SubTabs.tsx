@@ -48,9 +48,9 @@ export default function SubTabs({ value, onChange, accountId, onTripCreated }: S
           },
         }}
       >
-        <ToggleButton value={0} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Upcoming Trips</ToggleButton>
-        <ToggleButton value={1} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Active Trips</ToggleButton>
-        <ToggleButton value={2} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Past Trips</ToggleButton>
+        <ToggleButton value={0} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Upcoming</ToggleButton>
+        <ToggleButton value={1} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Active</ToggleButton>
+        <ToggleButton value={2} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Past</ToggleButton>
         <ToggleButton value={3} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>Uncategorized</ToggleButton>
       </ToggleButtonGroup>
       <Button

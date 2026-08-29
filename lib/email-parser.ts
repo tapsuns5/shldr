@@ -28,6 +28,8 @@ export interface ParsedEmailEvent {
   location: string | null;
   /** Destination city/location, used for trip matching */
   destinationCity: string | null;
+  destinationCountry: string | null;
+  address: string | null;
   /** IATA departure airport code, flights only */
   departureAirport: string | null;
   /** IATA arrival airport code, flights only */
@@ -146,6 +148,8 @@ function normalizeBody(body: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&nbsp;/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;|&#39;|&#x27;/gi, "'")
     .replace(/&euro;/g, '€')
     .replace(/&pound;/g, '£')
     .replace(/&rsquo;/g, "'")
@@ -234,6 +238,11 @@ function extractProviderName(subject: string, body: string, type: ReservationTyp
     const m = body.match(/(?:rental company|vendor)[:\s]+([A-Z][A-Za-z ]{2,30})/i)
       || subject.match(/(?:from|by)\s+([A-Z][A-Za-z ]{2,20}(?:Car Rental|Rent A Car)?)/i);
     if (m) return m[1].trim();
+  }
+
+  if (type === 'restaurant') {
+    const restaurant = subject.match(/(?:reservation|booking)\s+(?:at|with|for)\s+(.+)$/i);
+    if (restaurant) return restaurant[1].trim();
   }
 
   const forwardedFrom = [...body.matchAll(/(?:^|\n)\s*From:\s*([^<\n]{2,80})/gim)].at(-1);
@@ -327,6 +336,16 @@ function extractDates(body: string, type: ReservationType): {
     if (role === 'end' && !endDateTime) endDateTime = d;
   }
 
+  if (startDateTime && startDateTime.getHours() === 0 && startDateTime.getMinutes() === 0) {
+    const time = reservationContent.match(/(?:time|ora|heure|hora|uhrzeit)\s*(?::|\n)+\s*(\d{1,2})[:h.](\d{2})\s*([AP]M)?/i);
+    if (time) {
+      let hour = Number(time[1]);
+      if (time[3]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
+      if (time[3]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
+      startDateTime.setHours(hour, Number(time[2]), 0, 0);
+    }
+  }
+
   // Fallback: grab first date-like string in the reservation content as start
   if (!startDateTime) {
     const genericDate = reservationContent.match(/(\d{1,2}\.?\s+(?:de\s+)?[\p{L}.]{3,12}\s+(?:de\s+)?\d{4}|[\p{L}.]{3,12}\s+\d{1,2},?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4})/u);
@@ -341,6 +360,14 @@ function extractDates(body: string, type: ReservationType): {
   }
 
   return { startDateTime, endDateTime };
+}
+
+function extractAddress(body: string): string | null {
+  const labeled = body.match(/(?:address|dirección|direccion|adresse|indirizzo|endereço|endereco)\s*(?::|\n)+\s*([^\n]{5,160})/i);
+  if (labeled) return labeled[1].trim();
+
+  const structured = body.match(/([^\n]{3,100},\s*\d{1,5},\s*[\p{L} .'-]{2,60},\s*[A-Z]{2}\s+\d{4,6},\s*(?:[A-Z]{2}|[\p{L}]{4,20}))/u);
+  return structured?.[1]?.trim() || null;
 }
 
 function extractLocation(body: string, type: ReservationType): string | null {
@@ -366,7 +393,10 @@ function extractLocation(body: string, type: ReservationType): string | null {
     if (m) return m[1].trim();
   }
 
-  const labeled = body.match(/(?:location|venue|address|place|ubicación|ubicacion|dirección|direccion|lieu|adresse|luogo|indirizzo|ort|adresse|localização|localizacao|endereço|endereco)[:\s]+([^\n]{5,120})/i);
+  const structuredAddress = body.match(/([^\n]{3,100},\s*\d{1,5},\s*[\p{L} .'-]{2,60},\s*[A-Z]{2}\s+\d{4,6},\s*(?:[A-Z]{2}|[\p{L}]{4,20}))/u);
+  if (structuredAddress) return structuredAddress[1].trim();
+
+  const labeled = body.match(/(?:location|venue|address|place|ubicación|ubicacion|dirección|direccion|lieu|adresse|luogo|indirizzo|ort|adresse|localização|localizacao|endereço|endereco)\s*(?::|\n)+\s*([^\n]{5,120})/i);
   if (labeled) return labeled[1].trim();
 
   const postalAddress = body.match(/([A-ZÀ-Ý][\p{L}'’.-]+(?:\s+[A-ZÀ-Ý][\p{L}'’.-]+)*),\s+(?:Provincia di\s+[^\n,]+|[A-Z]{2,3}|[\p{L}'’.-]+(?:\s+[\p{L}'’.-]+)*)\s+\d{4,6}/u);
@@ -396,9 +426,15 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
   }
 
   if (location && ['restaurant', 'activity', 'transport', 'other'].includes(type)) {
+    const addressCity = location.match(/,\s*([A-ZÀ-Ý][\p{L}' .-]+),\s*[A-Z]{2}\s+\d{4,6}(?:,|$)/u);
+    if (addressCity) return addressCity[1].trim();
+
     const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
     if (parts.length > 1 && /^(?:\d|via\b|rue\b|calle\b|avenida\b|av\.?\b|straße\b|strasse\b|road\b|street\b|st\.?\b|piazza\b|plaza\b|place\b|square\b)/i.test(parts[0])) {
-      return parts.at(-1)?.replace(/^\d{4,6}\s+/, '').trim() || parts[0];
+      const lastPart = parts.at(-1) ?? '';
+      const hasCountrySuffix = /^(?:[A-Z]{2}|italy|italia|france|spain|germany|switzerland|japan|portugal|greece)$/i.test(lastPart);
+      const cityPart = hasCountrySuffix && parts.length > 2 ? parts.at(-2) : lastPart;
+      return cityPart?.replace(/^\d{4,6}\s+|\s+\d{3,6}(?:-\d{3,4})?$/g, '').trim() || parts[0];
     }
   }
 
@@ -407,6 +443,29 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
   if (m) return m[1].split(',')[0].trim();
 
   return location ? location.split(',')[0].trim() : null;
+}
+
+const COUNTRY_ALIASES: Record<string, string> = {
+  it: 'Italy', italy: 'Italy', italia: 'Italy', italie: 'Italy', italien: 'Italy', itália: 'Italy',
+  switzerland: 'Switzerland', suisse: 'Switzerland', svizzera: 'Switzerland', schweiz: 'Switzerland', suiza: 'Switzerland',
+  france: 'France', francia: 'France', frankreich: 'France', frança: 'France',
+  spain: 'Spain', españa: 'Spain', espana: 'Spain', espagne: 'Spain', spanien: 'Spain', spagna: 'Spain',
+  germany: 'Germany', deutschland: 'Germany', allemagne: 'Germany', germania: 'Germany', alemania: 'Germany',
+  portugal: 'Portugal',
+  greece: 'Greece', grecia: 'Greece', grèce: 'Greece', griechenland: 'Greece',
+  netherlands: 'Netherlands', nederland: 'Netherlands', niederlande: 'Netherlands',
+  japan: 'Japan', japon: 'Japan', japón: 'Japan', giappone: 'Japan',
+  'united kingdom': 'United Kingdom', uk: 'United Kingdom', england: 'United Kingdom',
+  'united states': 'United States', usa: 'United States',
+};
+
+function extractDestinationCountry(body: string, location: string | null): string | null {
+  const address = body.match(/(?:address|dirección|direccion|adresse|indirizzo|endereço|endereco)\s*(?::|\n)+\s*([^\n]{3,160})/i)?.[1];
+  const source = `${address ?? ''} ${location ?? ''}`.toLowerCase();
+  for (const [alias, country] of Object.entries(COUNTRY_ALIASES)) {
+    if (new RegExp(`(?:^|[^\\p{L}])${alias}(?:$|[^\\p{L}])`, 'iu').test(source)) return country;
+  }
+  return null;
 }
 
 function extractCarDetails(body: string, location: string | null): string | null {
@@ -453,17 +512,22 @@ export function parseConfirmationEmail(opts: {
   const { startDateTime, endDateTime } = extractDates(body, type);
   console.log('[email-parser] Dates:', { startDateTime, endDateTime });
 
-  const location = extractLocation(body, type);
+  const address = extractAddress(body);
+  const location = extractLocation(body, type) ?? address;
   console.log('[email-parser] Location:', location);
 
   const destinationCity = extractDestinationCity(body, type, location);
+  const destinationCountry = extractDestinationCountry(body, address ?? location);
   console.log('[email-parser] Destination city:', destinationCity);
+  console.log('[email-parser] Destination country:', destinationCountry);
 
   let airlineCode: string | null = null;
   let flightNumber: string | null = null;
   let departureAirport: string | null = null;
   let arrivalAirport: string | null = null;
   let title = subject.replace(/^(fwd?:|re:)\s*/i, '').trim();
+  const subjectVenue = title.match(/(?:reservation|booking)\s+(?:at|with|for)\s+(.+)$/i);
+  if (subjectVenue) title = subjectVenue[1].trim();
   const namedReservation = body.match(/(?:reservation|prenotazione|booking)\s+(?:for|per|pour|para|de)\s+["“”']{0,2}([^\n"]{4,120}?)["“”']{0,2}\s+(?:below|di seguito|ci-dessous|a continuación)/i);
   if (namedReservation) title = namedReservation[1].trim();
 
@@ -494,6 +558,8 @@ export function parseConfirmationEmail(opts: {
     endDateTime,
     location,
     destinationCity,
+    destinationCountry,
+    address,
     departureAirport,
     arrivalAirport,
     airlineCode,

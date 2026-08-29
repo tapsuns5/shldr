@@ -5,16 +5,18 @@ import {
   Container,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'motion/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import SubTabs from '../../components/SubTabs';
 import TripCards from '../../components/TripCards';
+import UncategorizedEventCards from '../../components/UncategorizedEventCards';
 import { useTrips, filterTrips, formatTrip, type APITrip, type UITrip } from '../../hooks/use-trips';
 import type { LocationDisplayMode } from '../../lib/location-image';
 
 
 export default function TripsPage() {
   const router = useRouter();
-  const [tabValue, setTabValue] = useState(0);
+  const searchParams = useSearchParams();
+  const [tabValue, setTabValue] = useState(() => searchParams.get('tab') === 'uncategorized' ? 3 : 0);
   const [accountId, setAccountId] = useState<string>('');
   const [displayMode, setDisplayMode] = useState<LocationDisplayMode>('map');
   const { trips, loading, error, setTrips } = useTrips(accountId);
@@ -48,6 +50,10 @@ export default function TripsPage() {
   };
 
   const filteredTrips = useMemo(() => filterTrips(trips, tabValue), [trips, tabValue]);
+  const uncategorizedTrip = useMemo(
+    () => trips.find((trip) => trip.isUncategorized) ?? null,
+    [trips],
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 3 } }}>
@@ -60,7 +66,11 @@ export default function TripsPage() {
         >
           <SubTabs value={tabValue} onChange={(_, v) => setTabValue(v)} accountId={accountId} onTripCreated={handleTripCreated} />
 
-          <TripCards loading={loading} error={error} trips={filteredTrips} onTripClick={handleTripClick} onTripDeleted={handleTripDeleted} onTripUpdated={handleTripUpdated} displayMode={displayMode} />
+          {tabValue === 3 ? (
+            <UncategorizedEventCards trip={uncategorizedTrip} tripsLoading={loading} />
+          ) : (
+            <TripCards loading={loading} error={error} trips={filteredTrips} onTripClick={handleTripClick} onTripDeleted={handleTripDeleted} onTripUpdated={handleTripUpdated} displayMode={displayMode} />
+          )}
         </motion.div>
       </AnimatePresence>
     </Container>

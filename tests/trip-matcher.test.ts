@@ -7,10 +7,16 @@ import { isDetailEvent, selectTripCandidate, type TripCandidate } from '../lib/t
 
 const referencedTrip: TripCandidate = {
   id: 'b843e663-6734-4512-a1ac-8eed66eee9ca',
-  title: 'Sardinia',
-  startDate: '2026-09-16',
-  endDate: '2026-09-25',
-  destinationCity: 'Olbia',
+  title: 'IT',
+  startDate: '2026-09-15',
+  endDate: '2026-09-28',
+  destinationCity: 'Via Antares 1 Santa Teresa di Gallura SS 07028 IT',
+  destinationCountry: '',
+  tripDestinations: [
+    { city: 'Via Antares 1 Santa Teresa di Gallura SS 07028 IT', country: '' },
+    { city: 'Costa Smeralda Arzachena Italy', country: '07021' },
+    { city: '1201 GENEVA', country: 'Switzerland' },
+  ],
   status: 'confirmed',
 };
 
@@ -27,12 +33,17 @@ async function parseFixture(fileName: string): Promise<ParsedEmailEvent> {
 async function run() {
   const matchingDetail = await parseFixture('matching-trip-detail.eml');
   assert.equal(matchingDetail.type, 'restaurant');
-  assert.equal(matchingDetail.destinationCity, 'Olbia');
+  assert.equal(matchingDetail.destinationCity, 'Costa Smeralda');
   assert.equal(selectTripCandidate(matchingDetail, [referencedTrip])?.id, referencedTrip.id);
 
   const sardiniaActivity = await parseFixture('Reservation confirmation.eml');
   assert.equal(sardiniaActivity.providerName, 'Blue Island Sardinia');
   assert.equal(selectTripCandidate(sardiniaActivity, [referencedTrip])?.id, referencedTrip.id);
+
+  const luStazzu = await parseFixture('🍴Your reservation at Ristorante Lu Stazzu.eml');
+  assert.equal(luStazzu.destinationCity, 'OLBIA');
+  assert.equal(luStazzu.destinationCountry, 'Italy');
+  assert.equal(selectTripCandidate(luStazzu, [referencedTrip])?.id, referencedTrip.id);
 
   const sameDateDifferentLocation = await parseFixture('same-date-unmatched-trip-detail.eml');
   assert.equal(sameDateDifferentLocation.type, 'activity');
@@ -52,6 +63,12 @@ async function run() {
     !selectTripCandidate(sameDateDifferentLocation, [referencedTrip]) && isDetailEvent(sameDateDifferentLocation),
     true,
   );
+
+  const futureTokyoActivity = await parseFixture('unassigned-tokyo-activity.eml');
+  assert.equal(futureTokyoActivity.type, 'activity');
+  assert.equal(futureTokyoActivity.confirmationNumber, 'TOKYO-2027');
+  assert.equal(selectTripCandidate(futureTokyoActivity, [referencedTrip]), null);
+  assert.equal(isDetailEvent(futureTokyoActivity), true);
 
   console.log('Trip matching and Uncategorized fallback tests passed');
 }

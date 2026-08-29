@@ -16,6 +16,8 @@ export default function TripEventDetailPage() {
   const tripId = params.tripId as string;
   const reservationId = params.reservationId as string;
   const initialMode = searchParams.get('mode') === 'edit' ? 'edit' : 'view';
+  const fromUncategorized = searchParams.get('from') === 'uncategorized';
+  const backHref = fromUncategorized ? '/trips?tab=uncategorized' : `/tripdetails/${tripId}`;
 
   const [tripTitle, setTripTitle] = useState('Trip');
   const [reservation, setReservation] = useState<APIReservation | null>(null);
@@ -77,7 +79,9 @@ export default function TripEventDetailPage() {
           tripTitle={tripTitle}
           reservation={reservation}
           initialMode={initialMode}
-          onDeleted={() => router.push(`/tripdetails/${tripId}`)}
+          backHref={backHref}
+          backLabel={fromUncategorized ? 'Uncategorized' : undefined}
+          onDeleted={() => router.push(backHref)}
           onUpdated={(updated) => setReservation(updated)}
         />
       )}

@@ -58,6 +58,38 @@ function locationsCloselyMatch(a: string | null | undefined, b: string | null | 
   return normalizedA === normalizedB || normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA);
 }
 
+function regionalAddressScore(a: string | null | undefined, b: string | null | undefined): number {
+  if (!a || !b) return 0;
+  const postalPrefixesA = new Set([...a.matchAll(/\b(\d{3})\d{1,3}\b/g)].map((match) => match[1]));
+  const postalPrefixesB = [...b.matchAll(/\b(\d{3})\d{1,3}\b/g)].map((match) => match[1]);
+  if (postalPrefixesB.some((prefix) => postalPrefixesA.has(prefix))) return 3;
+
+  const regionsA = new Set([...a.matchAll(/(?:^|[\s,])([A-Z]{2})(?=$|[\s,])/g)].map((match) => match[1]));
+  const regionsB = [...b.matchAll(/(?:^|[\s,])([A-Z]{2})(?=$|[\s,])/g)].map((match) => match[1]);
+  return regionsB.some((region) => regionsA.has(region)) ? 1 : 0;
+}
+
+function normalizeCountry(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const normalized = value.toLowerCase().replace(/[^a-z]/g, '');
+  const aliases: Record<string, string> = {
+    it: 'italy', italy: 'italy', italia: 'italy', italie: 'italy', italien: 'italy',
+    ch: 'switzerland', switzerland: 'switzerland', suisse: 'switzerland', svizzera: 'switzerland', schweiz: 'switzerland',
+    fr: 'france', france: 'france', francia: 'france',
+    de: 'germany', germany: 'germany', deutschland: 'germany', germania: 'germany',
+    es: 'spain', spain: 'spain', espana: 'spain', spagna: 'spain',
+    us: 'unitedstates', usa: 'unitedstates', unitedstates: 'unitedstates',
+    uk: 'unitedkingdom', gb: 'unitedkingdom', unitedkingdom: 'unitedkingdom',
+  };
+  return aliases[normalized] ?? normalized;
+}
+
+function inferCountryFromLocation(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const match = value.match(/\b(IT|Italy|Italia|CH|Switzerland|Svizzera|FR|France|DE|Germany|ES|Spain|US|USA|UK|GB)\b/i);
+  return normalizeCountry(match?.[1]);
+}
+
 /** Return true if the event date range overlaps with or is adjacent to the trip window. */
 function datesOverlap(
   eventStart: Date | null,
@@ -98,6 +130,8 @@ export interface TripCandidate {
   startDate: string;
   endDate: string;
   destinationCity: string | null;
+  destinationCountry?: string | null;
+  tripDestinations?: Array<{ city: string; state?: string | null; country: string }>;
   status: string;
   isUncategorized?: boolean;
 }
@@ -115,15 +149,34 @@ export function selectTripCandidate(
     if (candidate.status === 'cancelled' || candidate.isUncategorized) continue;
 
     const dateMatch = datesOverlap(event.startDateTime, event.endDateTime, candidate.startDate, candidate.endDate);
+    const candidateLocations = [
+      candidate.destinationCity,
+      ...(candidate.tripDestinations ?? []).flatMap((destination) => [
+        destination.city,
+        destination.state,
+        [destination.city, destination.state, destination.country].filter(Boolean).join(', '),
+      ]),
+    ];
+    const eventCountry = normalizeCountry(event.destinationCountry);
+    const candidateCountries = [
+      candidate.destinationCountry,
+      ...candidateLocations.map(inferCountryFromLocation),
+      ...(candidate.tripDestinations ?? []).map((destination) => destination.country),
+    ].map(normalizeCountry).filter(Boolean);
+    const localityMatch = candidateLocations.some((location) =>
+      locationsCloselyMatch(event.destinationCity, location) || locationsCloselyMatch(event.location, location),
+    );
+    const providerMatch = locationsOverlap(event.providerName, candidate.title);
+    const countryMatch = !!eventCountry && candidateCountries.includes(eventCountry);
+    const eventAddress = event.address ?? event.location;
+    const addressMatch = candidateLocations.some((location) => locationsOverlap(eventAddress, location));
+    const regionScore = Math.max(...candidateLocations.map((location) => regionalAddressScore(eventAddress, location)), 0);
     const locationMatch = isDetailEvent(event)
-      ? locationsCloselyMatch(event.destinationCity, candidate.destinationCity) ||
-        locationsCloselyMatch(event.location, candidate.destinationCity) ||
-        locationsCloselyMatch(event.destinationCity, candidate.title) ||
-        locationsCloselyMatch(event.providerName, candidate.destinationCity) ||
-        locationsCloselyMatch(event.providerName, candidate.title)
-      : locationsOverlap(event.destinationCity, candidate.destinationCity) ||
-        locationsOverlap(event.location, candidate.destinationCity) ||
-        locationsOverlap(event.destinationCity, candidate.title);
+      ? (localityMatch ? 4 : 0) + (providerMatch ? 3 : 0) + (countryMatch ? 2 : 0) +
+          (addressMatch ? 1 : 0) + regionScore >= 3
+      : candidateLocations.some((location) =>
+          locationsOverlap(event.destinationCity, location) || locationsOverlap(event.location, location)
+        ) || locationsOverlap(event.destinationCity, candidate.title);
 
     if (dateMatch) dateMatches.push(candidate);
     if (dateMatch && locationMatch) return candidate;
@@ -153,7 +206,7 @@ async function getOrCreateUncategorizedTrip(opts: {
     })
     .onConflictDoUpdate({
       target: [trips.accountId, trips.externalUid],
-      set: { updatedAt: new Date() },
+      set: { isUncategorized: true, updatedAt: new Date() },
     })
     .returning();
 
@@ -200,6 +253,7 @@ export async function matchOrCreateTrip(opts: {
   // ── 1. Load all non-cancelled trips for this account ──────────────────────
   const candidates = await db.query.trips.findMany({
     where: and(eq(trips.accountId, accountId)),
+    with: { tripDestinations: true },
   });
 
   console.log('[trip-matcher] Found candidate trips:', candidates.length);
@@ -244,6 +298,7 @@ export async function matchOrCreateTrip(opts: {
       startDate,
       endDate: endDate >= startDate ? endDate : startDate,
       destinationCity: event.destinationCity ?? event.location ?? undefined,
+      destinationCountry: event.destinationCountry ?? undefined,
       status: 'confirmed',
       externalSource: 'email_import',
       createdBy: userId,

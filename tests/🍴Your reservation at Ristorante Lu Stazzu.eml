@@ -1,0 +1,430 @@
+Delivered-To: tapsuns5@gmail.com
+Received: by 2002:a17:505:b81a:20b0:1ea1:c002:8234 with SMTP id zc26-n2csp1225940njc;
+        Sat, 29 Aug 2026 10:13:15 -0700 (PDT)
+X-Received: by 2002:a05:690c:a781:b0:7db:a109:f12f with SMTP id 00721157ae682-85d65ee840emr57775077b3.1.1788023595569;
+        Sat, 29 Aug 2026 10:13:15 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788023595; cv=none;
+        d=google.com; s=arc-20260327;
+        b=lgXDCkOV8XZvQWYkPmB3kz4kIYeU+bQ9+Hu1FOsrhibgD0lfO5zjjT6d/VjkiRRevI
+         L4Vgm6RlgdPTXrQEDgtvORwnW+Mr7aFTTnczsqCzpW7qrJUCDBkXJYy8uxzFjSPPalFy
+         /ONcjepVxo1Y2S9J8SGoeNpfHafhPrXyailo9saAebv5c2EYFKpHwoO+6qvXyr6gT+ZT
+         zSm79DvTvH4tIbgjU3fNcNTUk0yGX1UIcfqOALQkS8DHj1pUbw1SI3xmrqt8YYyAjpUP
+         iY7OofF4N+9ggsRc/wTaUjvNLkJ2I3RQojrJNBiP5gjzRszPAtFVKTWalXSlV3fLEcMi
+         CNwg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=to:references:message-id:subject:date:mime-version:from
+         :content-transfer-encoding:dkim-signature;
+        bh=n2vtbXtnfvwRNlkMZ2V/hPjiO9ZMv4jwa+gg8TXEoNs=;
+        fh=LBYOvtfyODobw24ZV5HqRqSvWX0rYqNz08XyaWIXx+M=;
+        b=Gjn7J759+GrIoH9XcHU1NStvmv34hdqZ/zyQcl8YuEyUsljiRNViSKnYPgorL2UI8B
+         phRUCLTayND9DOWBmJFLmLOPN2KFT9BThdDQJLm5ZZc1sdIQ6crfYQcXw2VnekgB0BdT
+         06zhDoNgV7l+xGAT3h8EI6Zb6df/0UaawW0FwII2GRPlTAbvHaZip+pqakdujHnmYczx
+         b4Tz4lwQwjQSGtSiXhfaBPC38ED9RSgBxx3Do4BzPi4+JPPDMrDKy+CsIMLpOqljOzFB
+         zsK5d4SI55QSqOqqcBg89EkbjxgG4UiyhGVWsWpl28a+XdBnaFznB7gOqREw/E5eZBRz
+         tMZQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20251104 header.b=QZ+EvnZU;
+       spf=pass (google.com: domain of emilysharpe2@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emilysharpe2@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
+Return-Path: <emilysharpe2@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id 00721157ae682-85e58c37e74sor28156897b3.0.2026.08.29.10.13.15
+        for <tapsuns5@gmail.com>
+        (Google Transport Security);
+        Sat, 29 Aug 2026 10:13:15 -0700 (PDT)
+Received-SPF: pass (google.com: domain of emilysharpe2@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20251104 header.b=QZ+EvnZU;
+       spf=pass (google.com: domain of emilysharpe2@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emilysharpe2@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1788023595; x=1788628395; dara=google.com;
+        h=to:references:message-id:subject:date:mime-version:from
+         :content-transfer-encoding:content-type:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=n2vtbXtnfvwRNlkMZ2V/hPjiO9ZMv4jwa+gg8TXEoNs=;
+        b=QZ+EvnZU9xwuWrBWx+mntfbKmioqTzQoi1jGnQ9vwsZ9/m1dKNt/e8oIiCXpE/4Ln5
+         6LykUyqahkyJYZ+sfRGehW8QA/964lyogk26yss8xZDOMcuIaugoOSuwEaO8rGr4HBoj
+         R1Y/tyKr/vaVFa+8aeSfMOQ61qdlEl2S6uXUj+Zw3+tWhGmSndrTacOCmMi5WJBQg/iS
+         4FMxe1PHY6XQTZZ4BJEqQLYMQiIeaQcN2FO/r5m3l67ihSvii6UoB6ePzNSHtrebJpTY
+         vyACetUfLpylxQiZOWKw2cnbcAASpGWh1v07KArnKENTW40HCa+LcQXEkXyBrYo8oLUP
+         tLfA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788023595; x=1788628395;
+        h=to:references:message-id:subject:date:mime-version:from
+         :content-transfer-encoding:content-type:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=n2vtbXtnfvwRNlkMZ2V/hPjiO9ZMv4jwa+gg8TXEoNs=;
+        b=IVUtapRcS1SnJNI674R3y9vnW+KgozhaBTr0veFlyIavJgxMwoLPcckwkVZ3KB0Jf8
+         6lBJrLaYdXv2XlyVYt82jTh6rJsDaOXFp+uxJQiocwWuVe8aQ0nWnAj8d9BLpeMohAiN
+         +lEF75NZ86Dbv24AvqqeBnNugCznL5ppj0PkSjpoIHYiVXU7mG/kr4fThnklCQPkw9kB
+         hd2mi9AKXVvBCJO6kqLf2CypFq5qyxHWVZgE5U2ez/yneH0rRCT8BrBhuXkm3JRr9ATD
+         WH4soo3835Hw6Vw7AB8S43OnwUml2tW+RPq8bCsqzcSdCpvZBbm6GUFYacSu4XutUZ4R
+         0j4Q==
+X-Gm-Message-State: AFuF++nxbHo5OPOerCSFZ10WtGi7BxCUBiSwamgmRL0Yggq4E1OLRUsI
+	GR4MnGVSawwug8yZ9cAPMQAfY9lGIu/p89XEaO+EE2CJaxbYvd9pb/Gt0Hw0Pw==
+X-Gm-Gg: AYBFou07I4P9eNvBPjcRuiWWH63NPwq7RSacxxQjMc1vez7qhJtC/hsgsynPfEjcxQe
+	tDYdhHNp2/JrhdiNju/ynWeoINAeT8l5f3QnTuEs1C4W2a4TYy/Kxb/hc6uPSQN8vMUvH+EVqyM
+	j+JQ7ZBMduBfVIWtymaT2NXBaD3emVoAXuntj9vsL/82WlWE2MLKeVcQgxl+uFEBwOTVQ40BDSb
+	ReoOSUt2Xvr/v1ew+qxLjHeaEb73+XDlUOJQ23ojVzAOZ357a4gDv+uZ52XmvvBInCrJdEx7/Xh
+	iz4VE5nuvzCW4GNYCZga5VsfI9wHjFlJHpJU5yIKX88kEveXS/uywuzvlFO3loqizPXUEaO3CqQ
+	K1X/weH/TFeg++gc2k6j8rrJ6UwMbyVOKaSnrZ88V1HhTRV+TJk4Zdo76F2ggVa0RlJYjg1JNeH
+	gIm0Wu09BL8CIbilzByJtP7Y3b+9LmraBTxBw4ukJN93yhcpwf7I7F+bmdX153hyUI6aKD/Q++0
+	Obrm2Ef9L7/jwILXS80A2dP
+X-Received: by 2002:a05:690c:d87:b0:854:819:64c9 with SMTP id 00721157ae682-85d6c4fd215mr58472517b3.30.1788023595085;
+        Sat, 29 Aug 2026 10:13:15 -0700 (PDT)
+Return-Path: <emilysharpe2@gmail.com>
+Received: from smtpclient.apple ([2600:1700:5122:1180:eca6:3001:fa99:9486])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-85e66f9a5d8sm23557847b3.41.2026.08.29.10.13.14
+        for <tapsuns5@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 29 Aug 2026 10:13:14 -0700 (PDT)
+Content-Type: multipart/alternative; boundary=Apple-Mail-938D2F3C-7506-4F50-8C71-186B889D2967
+Content-Transfer-Encoding: 7bit
+From: Emily Sharpe <emilysharpe2@gmail.com>
+Mime-Version: 1.0 (1.0)
+Date: Sat, 29 Aug 2026 13:13:03 -0400
+Subject: =?utf-8?Q?Fwd:_=F0=9F=8D=B4Your_reservation_at_Ristorante_Lu_Sta?=
+ =?utf-8?Q?zzu?=
+Message-Id: <20C3FF92-2A4D-473E-BD25-7CD1B9C1936B@gmail.com>
+References: <A8D03D18-556A-4C79-AA80-9FECBA435C79@gmail.com>
+To: Tyler Palmer <tapsuns5@gmail.com>
+X-Mailer: iPhone Mail (23G71)
+
+
+--Apple-Mail-938D2F3C-7506-4F50-8C71-186B889D2967
+Content-Type: multipart/mixed;
+	boundary=Apple-Mail-99108DC6-82DF-490E-9F15-5725CA796738
+Content-Transfer-Encoding: 7bit
+
+
+--Apple-Mail-99108DC6-82DF-490E-9F15-5725CA796738
+Content-Type: text/html;
+	charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<html class=3D"apple-mail-supports-explicit-dark-mode"><head><meta http-equi=
+v=3D"content-type" content=3D"text/html; charset=3Dutf-8"></head><body dir=3D=
+"auto"><br id=3D"lineBreakAtBeginningOfSignature"><div dir=3D"ltr">Sent from=
+ my iPhone</div><div dir=3D"ltr"><br>Begin forwarded message:<br><br></div><=
+blockquote type=3D"cite"><div dir=3D"ltr"><b>From:</b> Emily Sharpe &lt;emil=
+ysharpe2@gmail.com&gt;<br><b>Date:</b> August 29, 2026 at 1:07:29=E2=80=AFPM=
+ EDT<br><b>To:</b> plans@shldrtravel.com<br><b>Subject:</b> <b>Fwd: =F0=9F=8D=
+=B4Your reservation at Ristorante Lu Stazzu</b><br><br></div></blockquote><b=
+lockquote type=3D"cite"><div dir=3D"ltr">=EF=BB=BF<meta http-equiv=3D"conten=
+t-type" content=3D"text/html; charset=3Dutf-8"><br id=3D"lineBreakAtBeginnin=
+gOfSignature"><div dir=3D"ltr">Sent from my iPhone</div><div dir=3D"ltr"><br=
+>Begin forwarded message:<br><br></div><blockquote type=3D"cite"><div dir=3D=
+"ltr"><b>From:</b> noreply-resm@dish.co<br><b>Date:</b> August 2, 2026 at 8:=
+14:02=E2=80=AFAM EDT<br><b>To:</b> emilysharpe2@gmail.com<br><b>Subject:</b>=
+ <b>=F0=9F=8D=B4Your reservation at Ristorante Lu Stazzu</b><br><br></div></=
+blockquote><blockquote type=3D"cite"><div dir=3D"ltr">=EF=BB=BF
+
+
+
+
+
+
+
+
+
+
+ =20
+  	<style>body { background-color: rgb(241, 241, 241); }</style>
+ =20
+ =20
+ =20
+  	<table width=3D"100%" height=3D"100%" cellpadding=3D"0" cellspacing=
+=3D"0" border=3D"0">
+		<tbody><tr>
+			<td align=3D"center">
+			  	<table width=3D"100%" style=3D"max-width: 6=
+50px;" cellpadding=3D"0" cellspacing=3D"0" border=3D"0">
+			  		<tbody><tr>
+			  			<td bgcolor=3D"#fff" style=3D=
+"background-color: rgb(255,255,255); color: rgb(51,51,51); font-family: Helv=
+etica , Arial , sans-serif; font-size: 15px; padding-top: 15px; padding-righ=
+t: 30px; padding-bottom: 15px; padding-left: 30px; text-align: left;">
+   =20
+						=09
+
+
+
+<div style=3D"text-align: center;">
+    <img width=3D"320" height=3D"200" class=3D"aligncenter" src=3D"https://c=
+dn.website.dish.co/icons/restool/emailTemplatePlate.jpg">
+</div>
+
+
+
+
+
+
+<p style=3D"text-align:center; color: #fbad25;font-weight: 600;font-size:20p=
+x;">
+	Your reservation is confirmed!
+</p>
+
+
+
+
+<p style=3D"padding:15px 0;margin: 10px 0">
+	Dear
+	 Emily Palmer,		=09
+</p>
+
+
+=09
+<p>
+	We confirm your reservation and look forward to hosting you. Your r=
+eservation details are as below.
+</p>
+
+<div style=3D"display: inline-block;width: 76%;">
+
+	=09
+
+
+
+=09
+
+<p>
+=09
+		Guest name: Emily Palmer <br>
+=09
+
+=09
+		Date: 23/09/2026 <br>
+	=09
+		=09
+		=09
+				Time: 07:30 PM<br>=20
+		=09
+	=09
+=09
+
+	Group size: 2 people <br>
+
+=09
+	=09
+		Offer:  <br>
+=09
+
+=09
+
+=09
+</p>
+
+<div class=3D"my-2">
+=09
+	<br>
+=09
+		Gentile cliente,
+la prenotazione =C3=A8 confermata non la pozione del tavolo,=20
+l'assegnazione dei tavoli va in ordine di prenotazione.
+
+
+
+
+=09
+</div>
+
+
+<p style=3D"padding:15px 0;">
+	Best regards<br>
+</p>
+
+<p>
+	Ristorante Lu Stazzu
+</p>
+
+
+
+
+<p>
+	<a href=3D"https://maps.google.de/maps?q=3DLocalita%27+Monte+Ladu%2=
+C+53%2C+OLBIA%2C+SS+07026%2C+IT%2C07026+OLBIA%2CItaly">
+		Show location on Google Maps
+	</a>
+</p>
+
+
+	=09
+
+
+
+
+<p>
+	Ristorante Lu Stazzu
+	<br>
+=09
+
+
+
+=09
+	=09
+		Localita' Monte Ladu, 53, OLBIA, SS 07026, IT
+		<br>
+		07026 OLBIA
+=09
+=09
+=09
+=09
+=09
+=09
+=09
+
+
+</p>
+
+
+	<p>
+		During our business hours, you can reach us via phone on:
+			 +39078934837<br>		=09
+	=09
+	=09
+	=09
+	</p>
+
+
+
+<p>
+   =20
+       =20
+    Your reservation is important to us. In case you are not able to keep yo=
+ur reservation, please contact us or cancel <a href=3D"https://reservation.d=
+ish.co/customer/cancelReservation/108459866?mac=3D6gx1fvtrupqjy9o8j4qbmtwx1&=
+amp;lang=3Den">here</a>.
+
+   =20
+       =20
+    To make changes to your reservation, click <a href=3D"https://reservatio=
+n.dish.co/customer/editReservation/108459866?mac=3Db0txzy42l2shnxo10adawlypr=
+&amp;lang=3Den">here</a>.
+</p>
+
+
+
+
+
+
+<p>
+	You can also add the reservation to your calendar:
+	<a href=3D"https://google.com/calendar/event?action=3DTEMPLATE&amp;=
+text=3DReservation+at+Ristorante+Lu+Stazzu&amp;details=3D2+people%0A%0A%0ARi=
+storante+Lu+Stazzu+%0ALocalita%26%23039%3B+Monte+Ladu%2C+53%2C+OLBIA%2C+SS+0=
+7026%2C+IT+%0A07026+OLBIA+%0A%0APhone%3A+%2B39078934837%0A%0A%0ADo+you+need+=
+to+make+changes+to+your+reservation%3F++Edit+Reservation+%28https%3A%2F%2Fre=
+servation.dish.co%2Fcustomer%2FeditReservation%2F108459866%3Fmac%3Db0txzy42l=
+2shnxo10adawlypr%26lang%3Den%29+%7C+Cancel+Reservation+%28https%3A%2F%2Frese=
+rvation.dish.co%2Fcustomer%2FcancelReservation%2F108459866%3Fmac%3D6gx1fvtru=
+pqjy9o8j4qbmtwx1%26lang%3Den%29+%0A%0A&amp;location=3DLocalita%27+Monte+Ladu=
+%2C+53%2C+OLBIA%2C+SS+07026%2C+IT, 07026 OLBIA, Italy&amp;dates=3D20260923T1=
+73000Z/20260923T180000Z" target=3D"_blank">Google</a> /
+	<a href=3D"https://reservation.dish.co/customer/reservation/1084598=
+66/ical?mac=3D6gx1fvtrupqjy9o8j4qbmtwx1" target=3D"_blank">Outlook</a>
+</p></div>
+=09
+=09
+
+
+			  			</td>
+			  		</tr>
+			  		<tr>
+			  			<td bgcolor=3D"#f8f8f8" sty=
+le=3D"background-color: rgb(255, 255, 255); color: rgb(190, 190, 190); font-=
+family: Helvetica , Arial , sans-serif; font-size: 12px; padding-right: 15px=
+; padding-bottom: 15px; padding-left: 15px; margin-top: 20px; margin-bottom:=
+ 20px; text-align: center;">						  =
+		=09
+						  	<p>
+						  	=09
+								=09
+								Ristorante L=
+u Stazzu is using DISH Reservation by DISH Digital Solutions GmbH.
+						  	</p>
+						=09
+						  	<p>		=
+				  	=09
+						  		A service o=
+ffered by DISH Digital Solutions GmbH<br>=20
+							=09
+								=09
+								=09
+								=09
+								DISH Digita=
+l Solutions GmbH, Metro-Stra=C3=9Fe 1, 40235 D=C3=BCsseldorf, Hotline: +39 0=
+2 51716969, Email: <span style=3D"white-space:nowrap;">
+									=
+		<a clicktracking=3D"off" href=3D"">
+									=
+			support-ita@dish.co
+									=
+		</a>
+									=
+	</span>, Whatsapp: +49 211 38768105
+								<br>
+							=09
+								represented=
+ by Dr. Volker Glaeser, Dr. Marc Mangold<br>
+								Commercial r=
+egister entry: HBR 62421, D=C3=BCsseldorf District Court, VAT identification=
+ number: DE269963589<br>
+								=E2=80=9CDI=
+SH=E2=80=9D is a brand of DISH Digital Solutions GmbH.<br><br>
+								You are rec=
+eiving this email as part of the reservation process
+						  	</p>		  =
+		=09
+			  			</td>
+			  		</tr>
+			  	</tbody></table>
+			=09
+  			</td>
+  		</tr>  =09
+  	</tbody></table>
+  <img src=3D"https://u6814660.ct.sendgrid.net/wf/open?upn=3Du001.0wPWMqoAKq=
+lk3afdcqkDoHyDLtzNDtU1sFIvDgj03S42R16D4IxEc5HJhbrJG2nLcz-2FGYQgBC3ZmAIStQ6ha=
+kj-2B6KuO3KInLhUM3X-2FFMeGICZakmN1JXhqYPiF4AwdZnNrYkq5-2BLjMlVf17HqHwywdG4BU=
+XpJag4fgsY7mLh6tlXJj4uaRiP0xkTKSLgL7FtTrpwf6C0UvfCQ-2BCy5eAT4Q-3D-3D" alt=3D=
+"" width=3D"1" height=3D"1" border=3D"0" style=3D"height:1px !important;widt=
+h:1px !important;border-width:0 !important;margin-top:0 !important;margin-bo=
+ttom:0 !important;margin-right:0 !important;margin-left:0 !important;padding=
+-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;pad=
+ding-left:0 !important;">
+</div></blockquote></div></blockquote></body></html>=
+
+--Apple-Mail-99108DC6-82DF-490E-9F15-5725CA796738
+Content-Type: text/calendar;
+	name=reservation-108459866.ics;
+	x-apple-part-url=763F9D7D-43C6-4276-89FA-B463A693CA01
+Content-Disposition: attachment;
+	filename=reservation-108459866.ics
+Content-Transfer-Encoding: 7bit
+
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:Custom
+METHOD:PUBLISH
+BEGIN:VEVENT
+LOCATION:Localita' Monte Ladu, 53, OLBIA, SS 07026, IT 07026 OLBIA Italy
+SUMMARY:Reservation at Ristorante Lu Stazzu
+DESCRIPTION:2 people\n\n\nRistorante Lu Stazzu \nLocalita&#039; Monte Ladu, 53, OLBIA, SS 07026, IT \n07026 OLBIA \n\nPhone: +39078934837\n\n\nDo you need to make changes to your reservation?  Edit Reservation (https://reservation.dish.co/customer/editReservation/108459866?mac=b0txzy42l2shnxo10adawlypr&lang=en) | Cancel Reservation (https://reservation.dish.co/customer/cancelReservation/108459866?mac=6gx1fvtrupqjy9o8j4qbmtwx1&lang=en) \n\n
+CLASS:PRIVATE
+DTSTART:20260923T173000Z
+DTEND:20260923T180000Z
+URL:null
+END:VEVENT
+END:VCALENDAR
+--Apple-Mail-99108DC6-82DF-490E-9F15-5725CA796738
+Content-Type: text/html;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<html class="apple-mail-supports-explicit-dark-mode"><head><meta http-equiv="content-type" content="text/html; charset=us-ascii"></head><body dir="auto"><blockquote type="cite"><div dir="ltr"><meta http-equiv="content-type" content="text/html; charset=us-ascii"><blockquote type="cite"><div dir="ltr"></div></blockquote></div></blockquote></body></html>
+--Apple-Mail-99108DC6-82DF-490E-9F15-5725CA796738--
+
+--Apple-Mail-938D2F3C-7506-4F50-8C71-186B889D2967--

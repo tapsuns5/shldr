@@ -56,6 +56,8 @@ interface TripEventDetailProps {
   tripTitle: string;
   reservation: APIReservation;
   initialMode?: 'view' | 'edit';
+  backHref?: string;
+  backLabel?: string;
   onDeleted?: () => void;
   onUpdated?: (updated: APIReservation) => void;
 }
@@ -169,6 +171,8 @@ export default function TripEventDetail({
   tripTitle,
   reservation,
   initialMode = 'view',
+  backHref,
+  backLabel,
   onDeleted,
   onUpdated,
 }: TripEventDetailProps) {
@@ -220,7 +224,7 @@ export default function TripEventDetail({
       if (onDeleted) {
         onDeleted();
       } else {
-        router.push(`/tripdetails/${tripId}`);
+        router.push(backHref ?? `/tripdetails/${tripId}`);
       }
     } catch {
       setDeleteError('Failed to delete event. Please try again.');
@@ -303,10 +307,10 @@ export default function TripEventDetail({
       {/* Back button */}
       <Button
         startIcon={<ArrowBackIcon />}
-        onClick={() => router.push(`/tripdetails/${tripId}`)}
+        onClick={() => router.push(backHref ?? `/tripdetails/${tripId}`)}
         sx={{ mb: 3, color: 'primary.main', fontWeight: 600 }}
       >
-        Back to {tripTitle}
+        Back to {backLabel ?? tripTitle}
       </Button>
 
       {/* Header */}

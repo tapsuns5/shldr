@@ -79,6 +79,20 @@ async function run() {
   assert.equal(sardiniaActivity.destinationCity, 'Palau');
   assertLocalDate(sardiniaActivity, { year: 2026, month: 9, day: 21, hour: 10, minute: 0 });
 
+  const luStazzu = await parseFixture('🍴Your reservation at Ristorante Lu Stazzu.eml');
+  assert.equal(luStazzu.type, 'restaurant');
+  assert.equal(luStazzu.title, 'Ristorante Lu Stazzu');
+  assert.equal(luStazzu.providerName, 'Ristorante Lu Stazzu');
+  assert.equal(luStazzu.destinationCity, 'OLBIA');
+  assert.equal(luStazzu.destinationCountry, 'Italy');
+  assertLocalDate(luStazzu, { year: 2026, month: 9, day: 23, hour: 19, minute: 30 });
+
+  const encodedTitle = parseConfirmationEmail({
+    subject: 'Fwd: Reservation confirmation',
+    bodyText: 'Activity confirmation of your reservation for &quot;&quot;SARDINIA BOAT TOUR&quot;&quot; below.\nData: 2026-09-21 10:00',
+  }).events[0];
+  assert.equal(encodedTitle.title, 'SARDINIA BOAT TOUR');
+
   console.log('Email parser fixtures passed');
 }
 
