@@ -157,10 +157,9 @@ export default function TripCards({ loading, error, trips, onTripClick, onTripDe
     setEditFocusLocation(false);
   };
 
-  const handleTripMerged = (updatedSource: APITrip, mergedTargetIds: string[]) => {
-    const uiSource = formatTrip(updatedSource);
-    onTripUpdated?.(uiSource);
-    mergedTargetIds.forEach((id) => onTripDeleted?.(id));
+  const handleTripMerged = (updatedDestination: APITrip, deletedSourceId: string) => {
+    onTripUpdated?.(formatTrip(updatedDestination));
+    onTripDeleted?.(deletedSourceId);
     setMergeTrip(null);
   };
 

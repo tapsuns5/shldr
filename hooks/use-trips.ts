@@ -34,6 +34,7 @@ export interface APITrip {
   destinationCountry?: string | null;
   coverImage?: string | null;
   status?: string;
+  isUncategorized?: boolean;
   createdBy?: string;
   tripDestinations?: APIDestination[];
   tripMembers?: APITripMember[];
@@ -77,6 +78,7 @@ export interface UITrip {
   image: string;
   monthYear: string;
   plans: PlanDay[];
+  isUncategorized: boolean;
   createdBy: string;
   members: APITripMember[];
 }
@@ -121,6 +123,7 @@ export function formatTrip(trip: APITrip): UITrip {
     image: trip.coverImage || `https://picsum.photos/seed/${trip.id}/400/300`,
     monthYear: start.format('MMMM YYYY'),
     plans: [],
+    isUncategorized: trip.isUncategorized ?? false,
     createdBy: trip.createdBy || '',
     members: trip.tripMembers || [],
   };
@@ -135,11 +138,13 @@ export function filterTrips(trips: UITrip[], tab: number): UITrip[] {
 
     switch (tab) {
       case 0: // Upcoming
-        return start.isAfter(today);
+        return !trip.isUncategorized && start.isAfter(today);
       case 1: // Active
-        return !start.isAfter(today) && !end.isBefore(today);
+        return !trip.isUncategorized && !start.isAfter(today) && !end.isBefore(today);
       case 2: // Past
-        return end.isBefore(today);
+        return !trip.isUncategorized && end.isBefore(today);
+      case 3:
+        return trip.isUncategorized;
       default:
         return true;
     }

@@ -187,10 +187,10 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
     setShareOpen(true);
   };
 
-  const handleTripMerged = (updatedSource: APITrip) => {
+  const handleTripMerged = (updatedDestination: APITrip) => {
     setMergeOpen(false);
-    const uiTrip = formatTrip(updatedSource);
-    onTripUpdated?.(uiTrip);
+    router.replace(`/tripdetails/${updatedDestination.id}`);
+    router.refresh();
   };
 
   const handleConfirmDelete = async () => {

@@ -25,7 +25,7 @@ interface MergeTripDialogProps {
   open: boolean;
   onClose: () => void;
   sourceTrip: UITrip;
-  onMerged?: (updatedSource: APITrip, mergedTargetIds: string[]) => void;
+  onMerged?: (updatedDestination: APITrip, deletedSourceId: string) => void;
 }
 
 interface TargetTrip extends UITrip {
@@ -36,13 +36,13 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
   const [targets, setTargets] = useState<TargetTrip[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [merging, setMerging] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setTargets([]);
-      setSelectedIds(new Set());
+      setSelectedId(null);
       setError(null);
       return;
     }
@@ -70,8 +70,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
   }, [open, sourceTrip.id]);
 
   const handleMerge = async () => {
-    if (selectedIds.size === 0) return;
-    const targetTripIds = Array.from(selectedIds);
+    if (!selectedId) return;
     setMerging(true);
     setError(null);
 
@@ -79,14 +78,14 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
       const res = await fetch(`/api/trips/${sourceTrip.id}/merge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetTripIds }),
+        body: JSON.stringify({ destinationTripId: selectedId }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || `Failed to merge trips (${res.status})`);
       }
-      const updatedSource: APITrip = await res.json();
-      onMerged?.(updatedSource, targetTripIds);
+      const updatedDestination: APITrip = await res.json();
+      onMerged?.(updatedDestination, sourceTrip.id);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -101,15 +100,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
   };
 
   const toggleSelection = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+    setSelectedId((current) => current === id ? null : id);
   };
 
   return (
@@ -126,7 +117,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
 
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Selected trip to merge
+              Trip being moved
             </Typography>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
               {sourceTrip.title}
@@ -151,7 +142,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
 
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-              Select trips to merge into this trip
+              Select the trip to move this trip into
             </Typography>
             {loading && (
               <Stack alignItems="center" sx={{ py: 3 }}>
@@ -168,7 +159,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
                 {targets.map((trip) => (
                   <ListItemButton
                     key={trip.id}
-                    selected={selectedIds.has(trip.id)}
+                    selected={selectedId === trip.id}
                     onClick={() => toggleSelection(trip.id)}
                     sx={{
                       border: 1,
@@ -177,11 +168,11 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
                       mb: 1,
                       flexDirection: 'column',
                       alignItems: 'flex-start',
-                      bgcolor: selectedIds.has(trip.id) ? 'action.selected' : 'background.paper',
+                      bgcolor: selectedId === trip.id ? 'action.selected' : 'background.paper',
                     }}
                   >
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%', mb: 0.5 }}>
-                      <Checkbox checked={selectedIds.has(trip.id)} sx={{ p: 0 }} />
+                      <Checkbox checked={selectedId === trip.id} sx={{ p: 0 }} />
                       <ListItemText
                         primary={
                           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
@@ -220,7 +211,7 @@ export default function MergeTripDialog({ open, onClose, sourceTrip, onMerged }:
         <Button
           variant="contained"
           onClick={handleMerge}
-          disabled={selectedIds.size === 0 || merging || loading}
+          disabled={!selectedId || merging || loading}
           startIcon={merging ? <CircularProgress size={18} color="inherit" /> : null}
         >
           {merging ? 'Merging...' : 'Merge Trips'}

@@ -1,0 +1,11 @@
+From: Restaurant Booking <reservations@example.com>
+To: traveler@example.com
+Date: Tue, 1 Sep 2026 10:00:00 +0200
+Subject: Dinner reservation confirmed
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Restaurant reservation confirmed
+Table for 2 on Sunday, September 20, 2026 at 8:00 pm
+Confirmation #: OLB2026
+Address: Via Roma 12, Olbia

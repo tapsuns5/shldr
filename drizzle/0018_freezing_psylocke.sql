@@ -1,0 +1,2 @@
+ALTER TABLE "trips" ADD COLUMN "is_uncategorized" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "trips" ADD CONSTRAINT "trips_account_external_uid_unique" UNIQUE("account_id","external_uid");

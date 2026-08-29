@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
   date,
+  boolean,
   pgEnum,
   unique,
   index,
@@ -47,6 +48,7 @@ export const trips = pgTable(
       .references(() => user.id, { onDelete: 'restrict' }),
     externalUid: text('external_uid'),
     externalSource: varchar('external_source', { length: 50 }),
+    isUncategorized: boolean('is_uncategorized').notNull().default(false),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
@@ -56,6 +58,7 @@ export const trips = pgTable(
     index('trips_status_idx').on(t.status),
     index('trips_created_by_idx').on(t.createdBy),
     index('trips_external_uid_idx').on(t.externalUid),
+    unique('trips_account_external_uid_unique').on(t.accountId, t.externalUid),
   ]
 );
 

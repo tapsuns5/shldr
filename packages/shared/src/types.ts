@@ -41,6 +41,7 @@ export interface APITrip {
   destinationCountry?: string | null;
   coverImage?: string | null;
   status?: string;
+  isUncategorized?: boolean;
   createdBy?: string;
   tripDestinations?: APIDestination[];
   tripMembers?: APITripMember[];

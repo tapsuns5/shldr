@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: 'SHLDR Travel',
+  description: 'SHLDR Travel - Inspire and organize your next journey',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

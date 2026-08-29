@@ -24,6 +24,7 @@ const ONE_DAY_MS = 86_400_000;
 /** Grace period in days — an event is considered "within" a trip if it falls
  *  within this many days before the trip start or after the trip end. */
 const DATE_GRACE_DAYS = 3;
+const DETAIL_EVENT_TYPES = new Set<ParsedEmailEvent['type']>(['restaurant', 'activity', 'transport', 'other']);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -47,6 +48,14 @@ function locationsOverlap(a: string | null | undefined, b: string | null | undef
   const tokensA = new Set(normaliseLocation(a).split(' ').filter(t => t.length > 2));
   const tokensB = normaliseLocation(b).split(' ').filter(t => t.length > 2);
   return tokensB.some(t => tokensA.has(t));
+}
+
+function locationsCloselyMatch(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return false;
+  const normalizedA = normaliseLocation(a);
+  const normalizedB = normaliseLocation(b);
+  if (!normalizedA || !normalizedB) return false;
+  return normalizedA === normalizedB || normalizedA.includes(normalizedB) || normalizedB.includes(normalizedA);
 }
 
 /** Return true if the event date range overlaps with or is adjacent to the trip window. */
@@ -83,6 +92,82 @@ export interface NewTripResult {
 
 export type TripMatchOutcome = MatchResult | NewTripResult;
 
+export interface TripCandidate {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  destinationCity: string | null;
+  status: string;
+  isUncategorized?: boolean;
+}
+
+export function isDetailEvent(event: ParsedEmailEvent): boolean {
+  return DETAIL_EVENT_TYPES.has(event.type);
+}
+
+export function selectTripCandidate(
+  event: ParsedEmailEvent,
+  candidates: TripCandidate[],
+): TripCandidate | null {
+  const dateMatches: TripCandidate[] = [];
+  for (const candidate of candidates) {
+    if (candidate.status === 'cancelled' || candidate.isUncategorized) continue;
+
+    const dateMatch = datesOverlap(event.startDateTime, event.endDateTime, candidate.startDate, candidate.endDate);
+    const locationMatch = isDetailEvent(event)
+      ? locationsCloselyMatch(event.destinationCity, candidate.destinationCity) ||
+        locationsCloselyMatch(event.location, candidate.destinationCity) ||
+        locationsCloselyMatch(event.destinationCity, candidate.title)
+      : locationsOverlap(event.destinationCity, candidate.destinationCity) ||
+        locationsOverlap(event.location, candidate.destinationCity) ||
+        locationsOverlap(event.destinationCity, candidate.title);
+
+    if (dateMatch) dateMatches.push(candidate);
+    if (dateMatch && locationMatch) return candidate;
+  }
+
+  return !isDetailEvent(event) && dateMatches.length === 1 ? dateMatches[0] : null;
+}
+
+async function getOrCreateUncategorizedTrip(opts: {
+  accountId: string;
+  userId: string;
+  event: ParsedEmailEvent;
+}): Promise<MatchResult> {
+  const date = (opts.event.startDateTime ?? new Date()).toISOString().slice(0, 10);
+  const [trip] = await db
+    .insert(trips)
+    .values({
+      accountId: opts.accountId,
+      title: 'Uncategorized',
+      startDate: date,
+      endDate: date,
+      status: 'planning',
+      externalUid: 'uncategorized',
+      externalSource: 'email_import',
+      isUncategorized: true,
+      createdBy: opts.userId,
+    })
+    .onConflictDoUpdate({
+      target: [trips.accountId, trips.externalUid],
+      set: { updatedAt: new Date() },
+    })
+    .returning();
+
+  await db
+    .insert(tripMembers)
+    .values({ tripId: trip.id, userId: opts.userId, role: 'editor' })
+    .onConflictDoNothing();
+
+  return {
+    matched: true,
+    tripId: trip.id,
+    tripTitle: trip.title,
+    isNewTrip: false,
+  };
+}
+
 // ─── Core matcher ─────────────────────────────────────────────────────────────
 
 /**
@@ -118,39 +203,19 @@ export async function matchOrCreateTrip(opts: {
   console.log('[trip-matcher] Found candidate trips:', candidates.length);
 
   // ── 2. Score each candidate ───────────────────────────────────────────────
-  for (const candidate of candidates) {
-    if (candidate.status === 'cancelled') continue;
-
-    const dateMatch = datesOverlap(
-      event.startDateTime,
-      event.endDateTime,
-      candidate.startDate,
-      candidate.endDate
-    );
-
-    const locationMatch =
-      locationsOverlap(event.destinationCity, candidate.destinationCity) ||
-      locationsOverlap(event.location, candidate.destinationCity) ||
-      locationsOverlap(event.destinationCity, candidate.title);
-
-    console.log('[trip-matcher] Checking candidate:', {
+  const candidate = selectTripCandidate(event, candidates);
+  if (candidate) {
+    console.log('[trip-matcher] MATCHED to existing trip:', candidate.id);
+    return {
+      matched: true,
       tripId: candidate.id,
       tripTitle: candidate.title,
-      tripDates: { start: candidate.startDate, end: candidate.endDate },
-      tripDestination: candidate.destinationCity,
-      dateMatch,
-      locationMatch,
-    });
+      isNewTrip: false,
+    };
+  }
 
-    if (dateMatch && locationMatch) {
-      console.log('[trip-matcher] MATCHED to existing trip:', candidate.id);
-      return {
-        matched: true,
-        tripId: candidate.id,
-        tripTitle: candidate.title,
-        isNewTrip: false,
-      };
-    }
+  if (isDetailEvent(event)) {
+    return getOrCreateUncategorizedTrip({ accountId, userId, event });
   }
 
   // ── 3. No match — create a new trip ───────────────────────────────────────

@@ -13,6 +13,8 @@ export type ReservationType =
   | 'rail'
   | 'activity'
   | 'restaurant'
+  | 'cruise'
+  | 'transport'
   | 'other';
 
 export interface ParsedEmailEvent {
@@ -51,18 +53,18 @@ export interface EmailParseResult {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const MONTHS: Record<string, number> = {
-  jan: 0, january: 0,
-  feb: 1, february: 1,
-  mar: 2, march: 2,
-  apr: 3, april: 3,
-  may: 4,
-  jun: 5, june: 5,
-  jul: 6, july: 6,
-  aug: 7, august: 7,
-  sep: 8, september: 8,
-  oct: 9, october: 9,
-  nov: 10, november: 10,
-  dec: 11, december: 11,
+  jan: 0, january: 0, janvier: 0, enero: 0, gennaio: 0, januar: 0, janeiro: 0,
+  feb: 1, february: 1, février: 1, fevrier: 1, febrero: 1, febbraio: 1, februar: 1, fevereiro: 1,
+  mar: 2, march: 2, mars: 2, marzo: 2, märz: 2, marz: 2, março: 2, marco: 2,
+  apr: 3, april: 3, avril: 3, abril: 3, aprile: 3,
+  may: 4, mai: 4, mayo: 4, maggio: 4, maio: 4,
+  jun: 5, june: 5, juin: 5, junio: 5, giugno: 5, juni: 5, junho: 5,
+  jul: 6, july: 6, juillet: 6, julio: 6, luglio: 6, juli: 6, julho: 6,
+  aug: 7, august: 7, août: 7, aout: 7, agosto: 7,
+  sep: 8, sept: 8, september: 8, septembre: 8, septiembre: 8, settembre: 8, setembro: 8,
+  oct: 9, october: 9, octobre: 9, octubre: 9, ottobre: 9, oktober: 9, outubro: 9,
+  nov: 10, november: 10, novembre: 10, noviembre: 10, novembro: 10,
+  dec: 11, december: 11, décembre: 11, decembre: 11, diciembre: 11, dicembre: 11, dezember: 11, dezembro: 11,
 };
 
 /** Parse a date string in a variety of common confirmation-email formats. */
@@ -83,10 +85,10 @@ function parseEmailDate(raw: string): Date | null {
 
   // "June 15, 2025" or "Jun 15 2025" or "15 June 2025"
   const alpha = raw.match(
-    /(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?)?/
+    /(\d{1,2})\.?\s+(?:de\s+)?([\p{L}.]+)\s+(?:de\s+)?(\d{4})(?:\s+(?:(?:at|à|alle|a\s+las|um|às)\s+)?(\d{1,2})[:h.](\d{2})(?:\s*([AP]M))?)?/iu
   );
   if (alpha) {
-    const month = MONTHS[alpha[2].toLowerCase()];
+    const month = MONTHS[alpha[2].replace('.', '').toLowerCase()];
     if (month !== undefined) {
       let hour = alpha[4] ? Number(alpha[4]) : 0;
       if (alpha[6]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
@@ -97,10 +99,10 @@ function parseEmailDate(raw: string): Date | null {
 
   // "June 15, 2025 10:30 AM"
   const alpha2 = raw.match(
-    /([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})(?:\s+(\d{1,2}):(\d{2})(?:\s*([AP]M))?)?/
+    /([\p{L}.]+)\s+(\d{1,2}),?\s+(\d{4})(?:\s+(?:(?:at|à|alle|a\s+las|um|às)\s+)?(\d{1,2})[:h.](\d{2})(?:\s*([AP]M))?)?/iu
   );
   if (alpha2) {
-    const month = MONTHS[alpha2[1].toLowerCase()];
+    const month = MONTHS[alpha2[1].replace('.', '').toLowerCase()];
     if (month !== undefined) {
       let hour = alpha2[4] ? Number(alpha2[4]) : 0;
       if (alpha2[6]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
@@ -112,7 +114,11 @@ function parseEmailDate(raw: string): Date | null {
   // MM/DD/YYYY or MM-DD-YYYY
   const mdy = raw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
   if (mdy) {
-    return new Date(Number(mdy[3]), Number(mdy[1]) - 1, Number(mdy[2]));
+    const first = Number(mdy[1]);
+    const second = Number(mdy[2]);
+    const month = first > 12 ? second : first;
+    const day = first > 12 ? first : second;
+    return new Date(Number(mdy[3]), month - 1, day);
   }
 
   // DD.MM.YYYY (European format) with optional time: 16.09.2026, 18:00
@@ -156,28 +162,33 @@ function normalizeBody(body: string): string {
 // ─── Type detection ───────────────────────────────────────────────────────────
 
 function detectType(subject: string, body: string): ReservationType {
-  const s = subject.toLowerCase();
-  const b = body.toLowerCase();
+  const content = `${subject} ${body}`.toLowerCase();
 
   if (
-    /\bflight\b|airline|boarding pass|itinerary.*flight|e-ticket|air ticket/.test(s + ' ' + b) ||
+    /\b(flight|airline|boarding pass|e-ticket|air ticket|vuelo|vol|volo|flug|voo)\b|itinerary.*flight/.test(content) ||
     /\b[A-Z]{2,3}\s*\d{3,4}\b/.test(subject)
   ) return 'flight';
 
-  if (/\bhotel\b|check.?in|check.?out|accommodation|lodging|reservation.*room|room.*reservation/.test(s + ' ' + b))
+  if (/\b(hotel|hôtel|albergo|accommodation|lodging|alojamiento|hospedagem|unterkunft)\b|check.?in|check.?out|reservation.*room|room.*reservation/.test(content))
     return 'hotel';
 
-  if (/\bcar rental\b|rent.?a.?car|vehicle rental|pickup.*rental|rental.*pickup/.test(s + ' ' + b))
+  if (/\b(car rental|rent.?a.?car|vehicle rental|alquiler de coche|alquiler de auto|location de voiture|noleggio auto|autovermietung)\b|pickup.*rental|rental.*pickup/.test(content))
     return 'car';
 
-  if (/\btrain\b|amtrak|rail|eurostar/.test(s + ' ' + b))
+  if (/\b(train|rail|amtrak|eurostar|tren|treno|zug|comboio)\b/.test(content))
     return 'rail';
 
-  if (/\brestaurant\b|dining|reservation.*table|table.*reservation/.test(s + ' ' + b))
+  if (/\b(cruise|crucero|croisière|croisiere|crociera|kreuzfahrt|cruzeiro)\b/.test(content))
+    return 'cruise';
+
+  if (/\b(restaurant|restaurante|ristorante|dining|opentable)\b|open table|reservation.*table|table.*reservation|table\s+for\s+\d|mesa\s+para|tavolo\s+per|table\s+pour/.test(content))
     return 'restaurant';
 
-  if (/\bactivity\b|tour\b|excursion|ticket.*event|event.*ticket/.test(s + ' ' + b))
+  if (/\b(activity|actividad|activité|activite|attività|attivita|aktivität|aktivitat|tour|excursion|escursione|ausflug)\b|ticket.*event|event.*ticket/.test(content))
     return 'activity';
+
+  if (/\b(transfer|transport|transportation|shuttle|traslado|navetta|navette|transporte)\b/.test(content))
+    return 'transport';
 
   return 'other';
 }
@@ -185,11 +196,16 @@ function detectType(subject: string, body: string): ReservationType {
 // ─── Field extractors ─────────────────────────────────────────────────────────
 
 function extractConfirmationNumber(body: string, subject: string): string | null {
+  const numberLabel = '(?:number|número|numero|numéro|nummer|nº|n°|#|no\\.?|code|código|codigo|codice|référence|referencia)';
+  const reservationLabel = '(?:booking|reservation|réservation|reservación|reservacion|prenotazione|reservierung|reserva)';
   const patterns = [
-    /(?:confirmation|confirm|record locator|pnr)[^\w]*(?:number|#|no\.?|code)?[^\w]*([A-Z0-9]{4,12})/i,
-    /(?:booking|reservation)[^\w]*(?:number|#|no\.?|code)[^\w]*([A-Z0-9]{4,12})/i,
-    /(?:ticket)\s+(?:number|#|no\.?)?\s*(\d{4,10})/i,
-    /(?:order|reference)[^\w]*(?:number|#|id)[^\w]*([A-Z0-9]{4,16})/i,
+    /(?:buchungsnummer|bestätigungsnummer|bestatigungsnummer|codice prenotazione)\s*[:#-]?\s*([A-Z0-9-]{4,20})/i,
+    new RegExp(`${numberLabel}\\s+(?:de\\s+)?${reservationLabel}\\s*[:#-]?\\s*([A-Z0-9-]{4,20})`, 'i'),
+    /(?:code|código|codigo|codice)\s*[:#-]\s*([A-Z0-9-]{4,20})/i,
+    new RegExp(`(?:confirmation|confirmación|confirmacion|conferma|bestätigung|bestatigung|confirmação|confirmacao|record locator|pnr)\\s*${numberLabel}\\s*[:#-]?\\s*([A-Z0-9-]{4,20})`, 'i'),
+    new RegExp(`(?:booking|reservation|réservation|reservación|reservacion|prenotazione|reservierung|reserva)\\s*${numberLabel}\\s*[:#-]?\\s*([A-Z0-9-]{4,20})`, 'i'),
+    new RegExp(`(?:ticket|billet|boleto|biglietto)\\s*${numberLabel}?\\s*[:#-]?\\s*([A-Z0-9-]{4,20})`, 'i'),
+    new RegExp(`(?:order|reference|référence|referencia|riferimento)\\s*${numberLabel}\\s*[:#-]?\\s*([A-Z0-9-]{4,20})`, 'i'),
   ];
   for (const p of patterns) {
     const m = (subject + ' ' + body).match(p);
@@ -257,6 +273,15 @@ function extractDates(body: string, type: ReservationType): {
 } {
   let startDateTime: Date | null = null;
   let endDateTime: Date | null = null;
+  const normalizedBody = body.toLowerCase();
+  const lastSubject = Math.max(
+    normalizedBody.lastIndexOf('subject:'),
+    normalizedBody.lastIndexOf('asunto:'),
+    normalizedBody.lastIndexOf('objet:'),
+    normalizedBody.lastIndexOf('oggetto:'),
+    normalizedBody.lastIndexOf('betreff:'),
+  );
+  const reservationContent = lastSubject >= 0 ? body.slice(lastSubject) : body;
 
   const labeledPatterns: [RegExp, 'start' | 'end'][] = [];
 
@@ -280,13 +305,15 @@ function extractDates(body: string, type: ReservationType): {
     );
   } else {
     labeledPatterns.push(
-      [/(?:date|starts?|begins?)[:\s]+([^\n]{5,30})/i, 'start'],
-      [/(?:ends?|through|until)[:\s]+([^\n]{5,30})/i, 'end'],
+      [/(?:date|fecha|data|datum|jour|starts?|begins?|inicio|début|debut|inizio|beginn)[:\s]+([^\n]{5,50})/i, 'start'],
+      [/(?:ends?|through|until|fin|final|hasta|jusqu(?:'|’)à|fine|ende|término|termino)[:\s]+([^\n]{5,50})/i, 'end'],
+      [/(?:on|el|le|il|am|em|para|pour|per)\s+(?:[\p{L}]+,?\s+)?([\p{L}.]+\s+\d{1,2},?\s+\d{4}(?:\s+(?:at|à|alle|a\s+las|um|às)\s+\d{1,2}[:h.]\d{2}\s*(?:[AP]M)?)?)/iu, 'start'],
+      [/(?:on|el|le|il|am|em|para|pour|per)\s+(?:[\p{L}]+,?\s+)?(\d{1,2}\.?\s+(?:de\s+)?[\p{L}.]+\s+(?:de\s+)?\d{4}(?:\s+(?:at|à|alle|a\s+las|um|às)\s+\d{1,2}[:h.]\d{2}\s*(?:[AP]M)?)?)/iu, 'start'],
     );
   }
 
   for (const [re, role] of labeledPatterns) {
-    const m = body.match(re);
+    const m = reservationContent.match(re);
     if (!m) continue;
     const d = parseEmailDate(m[1].trim());
     if (!d) continue;
@@ -294,15 +321,15 @@ function extractDates(body: string, type: ReservationType): {
     if (role === 'end' && !endDateTime) endDateTime = d;
   }
 
-  // Fallback: grab first date-like string in the body as start
+  // Fallback: grab first date-like string in the reservation content as start
   if (!startDateTime) {
-    const genericDate = body.match(/(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.\d{4})/);
+    const genericDate = reservationContent.match(/(\d{1,2}\.?\s+(?:de\s+)?[\p{L}.]{3,12}\s+(?:de\s+)?\d{4}|[\p{L}.]{3,12}\s+\d{1,2},?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4})/u);
     if (genericDate) startDateTime = parseEmailDate(genericDate[1]);
   }
 
   // Fallback for end: grab second date-like string
   if (!endDateTime) {
-    const allDates = body.matchAll(/(\d{1,2}\.\d{1,2}\.\d{4})/g);
+    const allDates = reservationContent.matchAll(/(\d{1,2}\.\d{1,2}\.\d{4})/g);
     const matches = [...allDates].map(m => parseEmailDate(m[1])).filter(Boolean) as Date[];
     if (matches.length >= 2) endDateTime = matches[1];
   }
@@ -331,8 +358,11 @@ function extractLocation(body: string, type: ReservationType): string | null {
     if (m) return m[1].trim();
   }
 
-  const m = body.match(/(?:location|venue|address|place)[:\s]+([^\n]{5,80})/i);
-  if (m) return m[1].trim();
+  const labeled = body.match(/(?:location|venue|address|place|ubicación|ubicacion|dirección|direccion|lieu|adresse|luogo|indirizzo|ort|adresse|localização|localizacao|endereço|endereco)[:\s]+([^\n]{5,120})/i);
+  if (labeled) return labeled[1].trim();
+
+  const postalAddress = body.match(/([A-ZÀ-Ý][\p{L}'’.-]+(?:\s+[A-ZÀ-Ý][\p{L}'’.-]+)*),\s+(?:Provincia di\s+[^\n,]+|[A-Z]{2,3}|[\p{L}'’.-]+(?:\s+[\p{L}'’.-]+)*)\s+\d{4,6}/u);
+  if (postalAddress) return postalAddress[0].trim();
   return null;
 }
 
@@ -355,6 +385,13 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
     if (iataMatch) return iataMatch[1].trim();
     // Fallback: first part before comma
     return location.split(',')[0].trim();
+  }
+
+  if (location && ['restaurant', 'activity', 'transport', 'other'].includes(type)) {
+    const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
+    if (parts.length > 1 && /^(?:\d|via\b|rue\b|calle\b|avenida\b|av\.?\b|straße\b|strasse\b|road\b|street\b|st\.?\b|piazza\b|plaza\b|place\b|square\b)/i.test(parts[0])) {
+      return parts.at(-1)?.replace(/^\d{4,6}\s+/, '').trim() || parts[0];
+    }
   }
 
   // Generic: look for "destination:" label specifically (not "city" which matches billing addresses)

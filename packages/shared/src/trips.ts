@@ -22,6 +22,7 @@ export interface UITrip {
   destinations: UIDestination[];
   image: string | null;
   monthYear: string;
+  isUncategorized: boolean;
   createdBy: string;
   members: APITripMember[];
 }
@@ -70,6 +71,7 @@ export function formatTrip(trip: APITrip): UITrip {
     destinations,
     image: trip.coverImage || null,
     monthYear: start.format('MMMM YYYY'),
+    isUncategorized: trip.isUncategorized ?? false,
     createdBy: trip.createdBy || '',
     members: trip.tripMembers || [],
   };
@@ -86,11 +88,11 @@ export function filterTrips(trips: UITrip[], tab: TripTab): UITrip[] {
 
     switch (tab) {
       case 'upcoming':
-        return start.isAfter(today);
+        return !trip.isUncategorized && start.isAfter(today);
       case 'active':
-        return !start.isAfter(today) && !end.isBefore(today);
+        return !trip.isUncategorized && !start.isAfter(today) && !end.isBefore(today);
       case 'past':
-        return end.isBefore(today);
+        return !trip.isUncategorized && end.isBefore(today);
       default:
         return true;
     }

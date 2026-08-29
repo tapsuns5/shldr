@@ -1,0 +1,13 @@
+From: Bahn Buchungsservice <tickets@example.de>
+To: traveler@example.com
+Date: Sun, 30 Aug 2026 12:00:00 +0200
+Subject: Zug Reservierung bestätigt
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Ihre Zug Reservierung ist bestätigt.
+Datum: 22. September 2026 um 08:45
+Buchungsnummer: DE1234
+Abfahrt: Berlin Hauptbahnhof
+Ankunft: München Hauptbahnhof

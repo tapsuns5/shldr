@@ -18,7 +18,7 @@ import {
 } from '@/db/schema';
 
 const mergeSchema = z.object({
-  targetTripIds: z.array(z.string().uuid()).min(1),
+  destinationTripId: z.string().uuid(),
 });
 
 async function requireTripAccess(tripId: string, userId: string, requireEditor = false) {
@@ -234,37 +234,36 @@ export async function POST(
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { targetTripIds } = parsed.data;
-  const uniqueTargetIds = Array.from(new Set(targetTripIds));
-  if (uniqueTargetIds.includes(tripId)) {
+  const { destinationTripId } = parsed.data;
+  if (destinationTripId === tripId) {
     return NextResponse.json({ error: 'Cannot merge a trip into itself' }, { status: 400 });
   }
 
-  for (const targetId of uniqueTargetIds) {
-    const targetAccess = await requireTripAccess(targetId, session.user.id, true);
-    if (!targetAccess) {
-      return NextResponse.json({ error: `Forbidden for trip ${targetId}` }, { status: 403 });
-    }
+  const destinationAccess = await requireTripAccess(destinationTripId, session.user.id, true);
+  if (!destinationAccess) {
+    return NextResponse.json({ error: `Forbidden for trip ${destinationTripId}` }, { status: 403 });
   }
 
-  const sourceTrip = await db.query.trips.findFirst({
-    where: (t, { eq: eqOp }) => eqOp(t.id, tripId),
-    with: { tripDestinations: true },
-  });
-  if (!sourceTrip) return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
+  const [sourceTrip, destinationTrip] = await Promise.all([
+    db.query.trips.findFirst({
+      where: (t, { eq: eqOp }) => eqOp(t.id, tripId),
+      with: { tripDestinations: true },
+    }),
+    db.query.trips.findFirst({
+      where: (t, { eq: eqOp }) => eqOp(t.id, destinationTripId),
+      with: { tripDestinations: true },
+    }),
+  ]);
+  if (!sourceTrip || !destinationTrip) {
+    return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
+  }
+  if (destinationTrip.accountId !== sourceTrip.accountId) {
+    return NextResponse.json({ error: 'Both trips must belong to the same account' }, { status: 400 });
+  }
 
-  const targetTrips = await Promise.all(
-    uniqueTargetIds.map((id) =>
-      db.query.trips.findFirst({
-        where: (t, { eq: eqOp }) => eqOp(t.id, id),
-        with: { tripDestinations: true },
-      })
-    )
-  );
-
-  const allTripIds = [tripId, ...uniqueTargetIds];
+  const allTripIds = [tripId, destinationTripId];
   const allReservations = await db.query.reservations.findMany({
-    where: (r, { eq: eqOp, inArray: inArrayOp }) => inArrayOp(r.tripId, allTripIds),
+    where: (r, { inArray: inArrayOp }) => inArrayOp(r.tripId, allTripIds),
     with: { flightDetails: true, hotelDetails: true },
   });
   const reservationsByTripId = new Map<string, ReservationInput[]>();
@@ -273,23 +272,14 @@ export async function POST(
     arr.push(res);
     reservationsByTripId.set(res.tripId, arr);
   }
-  if (targetTrips.some((t) => !t)) {
-    return NextResponse.json({ error: 'One or more target trips not found' }, { status: 404 });
-  }
-  const validTargets = targetTrips.filter((t): t is NonNullable<typeof t> => t !== null);
-  if (validTargets.some((t) => t.accountId !== sourceTrip.accountId)) {
-    return NextResponse.json({ error: 'All trips must belong to the same account' }, { status: 400 });
-  }
 
-  const destinationInputs: DestinationInput[] = [sourceTrip, ...validTargets].map((t) => ({
+  const destinationInputs: DestinationInput[] = [sourceTrip, destinationTrip].map((t) => ({
     ...t,
     reservations: reservationsByTripId.get(t.id),
   }));
 
   console.log('[merge] source trip:', { id: sourceTrip.id, title: sourceTrip.title, destinationCity: sourceTrip.destinationCity, destinationCountry: sourceTrip.destinationCountry, tripDestinations: sourceTrip.tripDestinations });
-  for (const t of validTargets) {
-    console.log('[merge] target trip:', { id: t.id, title: t.title, destinationCity: t.destinationCity, destinationCountry: t.destinationCountry, tripDestinations: t.tripDestinations });
-  }
+  console.log('[merge] destination trip:', { id: destinationTrip.id, title: destinationTrip.title, destinationCity: destinationTrip.destinationCity, destinationCountry: destinationTrip.destinationCountry, tripDestinations: destinationTrip.tripDestinations });
   for (const [id, resList] of reservationsByTripId.entries()) {
     console.log('[merge] reservations for trip', id, resList.map((r) => ({ type: r.type, title: r.title, location: r.location, notes: r.notes, flightDetails: r.flightDetails, hotelDetails: r.hotelDetails })));
   }
@@ -298,42 +288,34 @@ export async function POST(
   console.log('[merge] merged destinations before transaction:', mergeDestinations(destinationInputs));
 
   const mergedTrip = await db.transaction(async (tx) => {
-    const allTrips = [sourceTrip, ...validTargets];
-    let sourceMemberIds = new Set(
+    const allTrips = [sourceTrip, destinationTrip];
+    const destinationMemberIds = new Set(
       (await tx.query.tripMembers.findMany({
-        where: (t, { eq: eqOp }) => eqOp(t.tripId, tripId),
+        where: (t, { eq: eqOp }) => eqOp(t.tripId, destinationTripId),
       })).map((m) => m.userId)
     );
 
-    for (const target of validTargets) {
-      // Move all child records from the target trip into the source trip.
-      await tx.update(reservations).set({ tripId: tripId }).where(eq(reservations.tripId, target.id));
-      await tx.update(travelers).set({ tripId: tripId }).where(eq(travelers.tripId, target.id));
-      await tx.update(documents).set({ tripId: tripId }).where(eq(documents.tripId, target.id));
-      await tx.update(tripNotes).set({ tripId: tripId }).where(eq(tripNotes.tripId, target.id));
-      await tx.update(tripExpenses).set({ tripId: tripId }).where(eq(tripExpenses.tripId, target.id));
-      await tx.update(tripChecklists).set({ tripId: tripId }).where(eq(tripChecklists.tripId, target.id));
+    await tx.update(reservations).set({ tripId: destinationTripId }).where(eq(reservations.tripId, tripId));
+    await tx.update(travelers).set({ tripId: destinationTripId }).where(eq(travelers.tripId, tripId));
+    await tx.update(documents).set({ tripId: destinationTripId }).where(eq(documents.tripId, tripId));
+    await tx.update(tripNotes).set({ tripId: destinationTripId }).where(eq(tripNotes.tripId, tripId));
+    await tx.update(tripExpenses).set({ tripId: destinationTripId }).where(eq(tripExpenses.tripId, tripId));
+    await tx.update(tripChecklists).set({ tripId: destinationTripId }).where(eq(tripChecklists.tripId, tripId));
 
-      // Merge target trip members into the source without duplicating.
-      const targetMembers = await tx.query.tripMembers.findMany({
-        where: (t, { eq: eqOp }) => eqOp(t.tripId, target.id),
-      });
-      for (const member of targetMembers) {
-        if (!sourceMemberIds.has(member.userId)) {
-          await tx.insert(tripMembers).values({
-            tripId: tripId,
-            userId: member.userId,
-            role: member.role,
-          });
-          sourceMemberIds.add(member.userId);
-        }
+    const sourceMembers = await tx.query.tripMembers.findMany({
+      where: (t, { eq: eqOp }) => eqOp(t.tripId, tripId),
+    });
+    for (const member of sourceMembers) {
+      if (!destinationMemberIds.has(member.userId)) {
+        await tx.insert(tripMembers).values({
+          tripId: destinationTripId,
+          userId: member.userId,
+          role: member.role,
+        });
+        destinationMemberIds.add(member.userId);
       }
-
-      // Delete the target trip (cascade removes its former destinations).
-      await tx.delete(trips).where(eq(trips.id, target.id));
     }
 
-    // Combine destinations and update the source trip's date range.
     const mergedDestinations = mergeDestinations(destinationInputs);
     console.log('[merge] final merged destinations:', mergedDestinations);
     const newStart = allTrips.reduce((min, t) => (t.startDate < min ? t.startDate : min), allTrips[0].startDate);
@@ -345,17 +327,17 @@ export async function POST(
       .set({
         startDate: newStart,
         endDate: newEnd,
-        destinationCity: firstDest?.city ?? sourceTrip.destinationCity,
-        destinationCountry: firstDest?.country ?? sourceTrip.destinationCountry,
+        destinationCity: firstDest?.city ?? destinationTrip.destinationCity,
+        destinationCountry: firstDest?.country ?? destinationTrip.destinationCountry,
         updatedAt: new Date(),
       })
-      .where(eq(trips.id, tripId));
+      .where(eq(trips.id, destinationTripId));
 
-    await tx.delete(tripDestinations).where(eq(tripDestinations.tripId, tripId));
+    await tx.delete(tripDestinations).where(eq(tripDestinations.tripId, destinationTripId));
     if (mergedDestinations.length > 0) {
       await tx.insert(tripDestinations).values(
         mergedDestinations.map((d, idx) => ({
-          tripId: tripId,
+          tripId: destinationTripId,
           city: d.city,
           state: d.state || null,
           country: d.country,
@@ -364,8 +346,10 @@ export async function POST(
       );
     }
 
+    await tx.delete(trips).where(eq(trips.id, tripId));
+
     return tx.query.trips.findFirst({
-      where: (t, { eq: eqOp }) => eqOp(t.id, tripId),
+      where: (t, { eq: eqOp }) => eqOp(t.id, destinationTripId),
       with: { tripDestinations: true },
     });
   });
