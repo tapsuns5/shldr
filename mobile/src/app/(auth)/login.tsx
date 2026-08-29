@@ -13,7 +13,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   if (session) {
-    return <Redirect href="/trips" />;
+    return <Redirect href="/home" />;
   }
 
   const handleSignIn = async () => {

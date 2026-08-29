@@ -28,6 +28,13 @@ import { db } from '@/db';
 import { accountMembers, tripMembers } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { parseConfirmationEmail } from '@/lib/email-parser';
+import {
+  enrichHostingerBody,
+  isHostingerMessageReceived,
+  normalizeHostingerPayload,
+  resolveImportAccount,
+  verifyHostingerBearerToken,
+} from '@/lib/hostinger-email';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
 import { sendTripImportConfirmation } from '@/lib/mailer';
 import { createNotification } from '@/lib/notifications';
@@ -42,10 +49,23 @@ const payloadSchema = z.object({
   suggestedTripTitle: z.string().optional(),
 });
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function valueAsString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 function verifySecret(request: NextRequest): boolean {
+  const hostingerToken = process.env.HOSTINGER_WEBHOOK_BEARER_TOKEN;
+  if (hostingerToken) {
+    return verifyHostingerBearerToken(request.headers.get('authorization'), hostingerToken);
+  }
+
   const secret = process.env.WEBHOOK_SECRET;
   if (!secret) {
-    console.warn('[webhook/email-import] WEBHOOK_SECRET not set — accepting all requests');
+    console.warn('[webhook/email-import] No webhook secret configured — accepting request');
     return true;
   }
   const headerSecret = request.headers.get('x-webhook-secret');
@@ -69,13 +89,63 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const parsed = payloadSchema.safeParse(body);
-  if (!parsed.success) {
-    console.error('[webhook/email-import] Validation error:', parsed.error.flatten());
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  let accountId: string;
+  let userId: string;
+  let messageId: string;
+  let subject: string;
+  let bodyText: string;
+  let bodyHtml: string | undefined;
+  let suggestedTripTitle: string | undefined;
+
+  const raw = isRecord(body) ? body : null;
+  const looksLikeHostinger = !!raw && (
+    'event' in raw || 'event_type' in raw || 'type' in raw || 'data' in raw || 'message' in raw
+  );
+
+  if (looksLikeHostinger) {
+    if (!isHostingerMessageReceived(raw)) {
+      const eventType = valueAsString(raw.event_type) ?? valueAsString(raw.event) ?? valueAsString(raw.type);
+      return NextResponse.json({ ok: true, ignored: true, eventType });
+    }
+
+    const normalized = normalizeHostingerPayload(raw);
+    if (!normalized) {
+      return NextResponse.json({ error: 'Unparseable Hostinger message' }, { status: 400 });
+    }
+    const message = await enrichHostingerBody(normalized);
+    const accountHint = valueAsString(raw.accountId) ?? valueAsString(raw.account_id)
+      ?? (raw.data && isRecord(raw.data) ? valueAsString(raw.data.accountId) ?? valueAsString(raw.data.account_id) : null);
+    const resolved = await resolveImportAccount(message.fromEmail, accountHint);
+    if (resolved.status === 'unknown_sender') {
+      console.warn('[webhook/email-import] Ignoring unknown sender:', message.fromEmail);
+      return NextResponse.json({ ok: true, ignored: true, reason: 'unknown_sender' });
+    }
+    if (resolved.status === 'ambiguous') {
+      console.warn('[webhook/email-import] Ignoring ambiguous sender:', {
+        from: message.fromEmail,
+        accountIds: resolved.accountIds,
+      });
+      return NextResponse.json({ ok: true, ignored: true, reason: 'ambiguous_sender', accountIds: resolved.accountIds });
+    }
+
+    accountId = resolved.accountId;
+    userId = resolved.userId;
+    messageId = message.messageId ?? message.eventId;
+    subject = message.subject;
+    bodyText = message.bodyText ?? message.bodyHtml ?? '';
+    bodyHtml = message.bodyHtml ?? undefined;
+  } else {
+    const parsed = payloadSchema.safeParse(body);
+    if (!parsed.success) {
+      console.error('[webhook/email-import] Validation error:', parsed.error.flatten());
+      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    }
+    ({ accountId, userId, messageId, subject, bodyText, bodyHtml, suggestedTripTitle } = parsed.data);
   }
 
-  const { accountId, userId, messageId, subject, bodyText, bodyHtml, suggestedTripTitle } = parsed.data;
+  if (!bodyText.trim() && !bodyHtml?.trim()) {
+    return NextResponse.json({ error: 'Email has no body' }, { status: 422 });
+  }
 
   console.log('[webhook/email-import] Payload validated:', {
     accountId,

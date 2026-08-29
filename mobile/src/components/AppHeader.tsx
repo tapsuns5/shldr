@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } f
 import { ActivityIndicator, Avatar, Badge, Button, Divider, IconButton, List, RadioButton, Text, useTheme } from 'react-native-paper';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSession } from '@/lib/auth-client';
+import { useSession, signOut } from '@/lib/auth-client';
 import { useColorMode } from '@/lib/color-mode';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useGmailAccounts, useConnectGmail, useTripitFeed } from '@/hooks/use-integrations';
@@ -100,8 +100,14 @@ export function AppHeader() {
   };
   const screenTitle = screenTitles[pathname] ?? (pathname.includes('/day/') ? 'Trip day' : pathname.includes('/plan') ? 'Add a Plan' : pathname.includes('/map') ? 'Travel map' : pathname.includes('/share') ? 'Share trip' : pathname.includes('/trips/') ? 'Trip details' : 'SHLDR');
   const isTripDetail = /^\/trips\/[^/]+(?:\/index)?\/?$/.test(pathname);
+  const isSettingsRoute = pathname.startsWith('/settings');
   const { width } = useWindowDimensions();
   const { data: session } = useSession();
+
+  const handleLogout = async () => {
+    await signOut();
+    router.replace('/login');
+  };
   const [accountOpen, setAccountOpen] = useState(false);
   const [sheetSection, setSheetSection] = useState<'menu' | 'account' | 'integrations' | 'preferences'>('menu');
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -185,7 +191,15 @@ export function AppHeader() {
               style={isTripDetail ? [styles.tripDetailBackButton, { top: insets.top + 6, left: 8 }] : undefined}
             />
             {!isTripDetail && <Text variant="titleLarge" style={styles.screenTitle} numberOfLines={1}>{screenTitle}</Text>}
-            <View style={styles.headerSpacer} />
+            {isSettingsRoute ? (
+              <IconButton
+                icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
+                onPress={handleLogout}
+                accessibilityLabel="Log out"
+              />
+            ) : (
+              <View style={styles.headerSpacer} />
+            )}
           </>
         )}
       </View>
@@ -194,7 +208,14 @@ export function AppHeader() {
         <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
               {sheetSection === 'menu' ? (
                 <>
-                  <Text variant="headlineSmall" style={styles.sheetTitle}>Account</Text>
+                  <View style={styles.sheetHeaderRow}>
+                    <Text variant="headlineSmall" style={styles.sheetTitle}>Account</Text>
+                    <IconButton
+                      icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
+                      onPress={handleLogout}
+                      accessibilityLabel="Log out"
+                    />
+                  </View>
                   <Text variant="titleMedium">{session?.user.name ?? 'Traveler'}</Text>
             <Text style={{ color: theme.colors.onSurfaceVariant }}>{session?.user.email}</Text>
             <Divider style={styles.divider} />
@@ -222,10 +243,17 @@ export function AppHeader() {
                 </>
               ) : sheetSection === 'account' ? (
                 <>
-                  <Pressable style={styles.sheetBack} onPress={() => setSheetSection('menu')}>
-                    <SolarIcon name="arrow-left-line-duotone" size={22} color={theme.colors.onSurface} />
-                    <Text variant="titleMedium">Account</Text>
-                  </Pressable>
+                  <View style={styles.sheetHeaderRow}>
+                    <Pressable style={styles.sheetBack} onPress={() => setSheetSection('menu')}>
+                      <SolarIcon name="arrow-left-line-duotone" size={22} color={theme.colors.onSurface} />
+                      <Text variant="titleMedium">Account</Text>
+                    </Pressable>
+                    <IconButton
+                      icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
+                      onPress={handleLogout}
+                      accessibilityLabel="Log out"
+                    />
+                  </View>
                   <View style={styles.accountProfile}>
                     <Avatar.Text size={64} label={(session?.user.name ?? 'T').slice(0, 1).toUpperCase()} />
                     <View>
@@ -298,7 +326,8 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center' },
   badge: { position: 'absolute', top: 4, right: 3, backgroundColor: '#c62828' },
   sheetContent: { padding: 24, paddingTop: 8, paddingBottom: 40 },
-  sheetBack: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24 },
+  sheetHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sheetBack: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   accountProfile: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   accountFieldLabel: { marginTop: 22, marginBottom: 2 },
   sheetTitle: { fontWeight: '700' },

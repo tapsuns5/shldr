@@ -1,9 +1,10 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Container, Stack, Typography, Box, Tabs, Tab } from '@mui/material';
+import { Container, Stack, Typography, Box, Tabs, Tab, Button } from '@mui/material';
+import { signOut } from '@/lib/auth-client';
 import { PersonIcon, LinkIcon, SettingsIcon } from '@/components/Icons';
 import type { LocationDisplayMode } from '@/lib/location-image';
 
@@ -55,19 +56,30 @@ export default function SettingsShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const activeTab = TABS.find((t) => pathname?.startsWith(t.href))?.href ?? '/settings/account';
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/login');
+  };
 
   return (
     <SettingsContext.Provider value={{ user, primaryAccount }}>
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Stack spacing={3}>
-          <Box>
-            <Typography variant="h4" fontWeight={800} gutterBottom>
-              Settings
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Manage your account, billing, and connected services.
-            </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+            <Box>
+              <Typography variant="h4" fontWeight={800} gutterBottom>
+                Settings
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Manage your account, billing, and connected services.
+              </Typography>
+            </Box>
+            <Button variant="outlined" color="error" size="small" onClick={handleLogout}>
+              Log out
+            </Button>
           </Box>
 
           <Tabs
