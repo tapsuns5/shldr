@@ -73,6 +73,10 @@ function verifySecret(request: NextRequest): boolean {
   return headerSecret === secret || querySecret === secret;
 }
 
+export async function GET() {
+  return NextResponse.json({ ok: true, endpoint: 'email-import' });
+}
+
 export async function POST(request: NextRequest) {
   console.log('[webhook/email-import] Received request');
 

@@ -54,10 +54,17 @@ export const auth = betterAuth({
     enabled: false,
   },
   plugins: [expo()],
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ['google'],
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      disableImplicitSignUp: true,
     },
     microsoft: {
       clientId: process.env.MICROSOFT_CLIENT_ID!,

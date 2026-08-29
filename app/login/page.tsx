@@ -12,7 +12,12 @@ export default async function LoginPage({
   const session = await auth.api.getSession({ headers: await headers() });
 
   const resolvedSearchParams = await searchParams;
-  const redirectTo = typeof resolvedSearchParams.redirect === 'string' ? resolvedSearchParams.redirect : '/trips';
+  const requestedRedirect = typeof resolvedSearchParams.redirect === 'string'
+    ? resolvedSearchParams.redirect
+    : null;
+  const redirectTo = !requestedRedirect || requestedRedirect === '/dashboard'
+    ? '/'
+    : requestedRedirect;
   const defaultToSignup = resolvedSearchParams.mode === "signup";
 
   if (session) {

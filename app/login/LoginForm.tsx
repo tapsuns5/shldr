@@ -13,9 +13,15 @@ import {
 import { Input } from "@/components/auth-ui/input";
 import { Label } from "@/components/auth-ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
+
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  account_not_linked: "That Google account is not linked to an existing Shldr account.",
+  signup_disabled: "No account was found for that Google account. Switch to Sign up to create one.",
+  access_denied: "Google sign-in was cancelled.",
+};
 
 interface LoginFormComponentProps {
   className?: string;
@@ -28,7 +34,12 @@ export function LoginForm({
 }: LoginFormComponentProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(!defaultToSignup);
-  const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const [error, setError] = useState(
+    () => searchParams.get("error")
+      ? OAUTH_ERROR_MESSAGES[searchParams.get("error") ?? ""] || "Google sign-in failed. Please try again."
+      : "",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -36,8 +47,15 @@ export function LoginForm({
   const [name, setName] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/trips";
+  const requestedRedirect = searchParams.get("redirect");
+  const redirectTo = requestedRedirect === "/dashboard" || !requestedRedirect
+    ? "/"
+    : requestedRedirect;
+
+  useEffect(() => {
+    if (!searchParams.get("error")) return;
+    router.replace(`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
+  }, [redirectTo, router, searchParams]);
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8;
@@ -82,16 +100,19 @@ export function LoginForm({
     if (typeof window !== 'undefined') sessionStorage.removeItem('pending-team-invite');
   };
 
-  const handleOAuthSignIn = (provider: string) => {
+  const handleOAuthSignIn = () => {
     setError("");
     setIsLoading(true);
     const inviteToken = getInviteToken();
-    const callbackURL = inviteToken
+    const callbackURL = redirectTo;
+    const newUserCallbackURL = inviteToken
       ? redirectTo
       : `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
     signIn.social({
-      provider: provider as "google" | "microsoft",
+      provider: "google",
       callbackURL,
+      newUserCallbackURL,
+      requestSignUp: !isLogin,
     });
   };
 
@@ -109,13 +130,7 @@ export function LoginForm({
       return;
     }
 
-    const accountsResponse = await fetch('/api/accounts');
-    if (!accountsResponse.ok) throw new Error('Unable to load accounts');
-    const accounts = await accountsResponse.json();
-    const destination = accounts.length > 0
-      ? redirectTo
-      : `/onboarding/account?redirect=${encodeURIComponent(redirectTo)}`;
-    router.push(destination);
+    router.push(redirectTo);
     router.refresh();
   };
 
@@ -248,19 +263,19 @@ export function LoginForm({
             <CardDescription className="text-xs">
               <div className="mb-4">
                 {isLogin
-                  ? "Login with your Outlook or Google account"
-                  : "Sign up with your Outlook or Google account"}
+                  ? "Login with your Google account"
+                  : "Sign up with your Google account"}
               </div>
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-4">
                 <Button
                   type="button"
                   variant="outline"
                   className="hover:bg-gray-100 h-12 border-gray-300"
-                  onClick={() => handleOAuthSignIn("google")}
+                  onClick={handleOAuthSignIn}
                   disabled={isLoading}
                 >
                   <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
@@ -282,21 +297,6 @@ export function LoginForm({
                     />
                   </svg>
                   Google
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="hover:bg-gray-100 h-12 border-gray-300"
-                  onClick={() => handleOAuthSignIn("microsoft")}
-                  disabled={isLoading}
-                >
-                  <svg className="mr-2 h-5 w-5" viewBox="0 0 23 23">
-                    <path fill="#f25022" d="M1 1h10v10H1z" />
-                    <path fill="#7fba00" d="M12 1h10v10H12z" />
-                    <path fill="#00a4ef" d="M1 12h10v10H1z" />
-                    <path fill="#ffb900" d="M12 12h10v10H12z" />
-                  </svg>
-                  Outlook
                 </Button>
               </div>
               <div className="relative">
