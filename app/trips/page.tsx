@@ -1,6 +1,6 @@
-'use client'; 
+'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import {
   Container,
 } from '@mui/material';
@@ -13,7 +13,7 @@ import { useTrips, filterTrips, formatTrip, type APITrip, type UITrip } from '..
 import type { LocationDisplayMode } from '../../lib/location-image';
 
 
-export default function TripsPage() {
+function TripsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tabValue, setTabValue] = useState(() => searchParams.get('tab') === 'uncategorized' ? 3 : 0);
@@ -74,5 +74,13 @@ export default function TripsPage() {
         </motion.div>
       </AnimatePresence>
     </Container>
+  );
+}
+
+export default function TripsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TripsPageContent />
+    </Suspense>
   );
 }
