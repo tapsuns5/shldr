@@ -61,6 +61,8 @@ export async function GET(
   });
   if (!reservation) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  console.log('[reservation GET] rawEmailHtml present:', !!reservation.rawEmailHtml, 'rawEmailSubject:', reservation.rawEmailSubject);
+
   return NextResponse.json(reservation);
 }
 

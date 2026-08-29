@@ -4,7 +4,7 @@ import { importedEmails, gmailAccounts, reservationImportLogs } from '@/db/schem
 import { eq } from 'drizzle-orm';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
 import { getRedisConnection, enqueueNotification, type TripMatcherJob } from '@/lib/queue';
-import type { ParsedEmailEvent } from '@/lib/email-parser';
+import { deserializeEvents, type ParsedEmailEvent } from '@/lib/email-parser';
 
 function calculateConfidence(event: ParsedEmailEvent): number {
   let score = 0;
@@ -38,7 +38,7 @@ export const tripMatcherWorker = new Worker<TripMatcherJob>(
       throw new Error('Gmail account not found');
     }
 
-    const events = JSON.parse(email.parsedPayload) as ParsedEmailEvent[];
+    const events = deserializeEvents(email.parsedPayload);
     const event = events[eventIndex];
     if (!event) {
       throw new Error(`Event index ${eventIndex} not found`);

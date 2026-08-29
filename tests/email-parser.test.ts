@@ -21,11 +21,13 @@ function assertLocalDate(
   expected: { year: number; month: number; day: number; hour: number; minute: number },
 ) {
   assert.ok(event.startDateTime, 'expected a parsed start date');
-  assert.equal(event.startDateTime.getFullYear(), expected.year);
-  assert.equal(event.startDateTime.getMonth() + 1, expected.month);
-  assert.equal(event.startDateTime.getDate(), expected.day);
-  assert.equal(event.startDateTime.getHours(), expected.hour);
-  assert.equal(event.startDateTime.getMinutes(), expected.minute);
+  // Dates are stored as naive datetimes encoded in UTC (Date.UTC), so the
+  // wall-clock components live in the UTC getters.
+  assert.equal(event.startDateTime.getUTCFullYear(), expected.year);
+  assert.equal(event.startDateTime.getUTCMonth() + 1, expected.month);
+  assert.equal(event.startDateTime.getUTCDate(), expected.day);
+  assert.equal(event.startDateTime.getUTCHours(), expected.hour);
+  assert.equal(event.startDateTime.getUTCMinutes(), expected.minute);
 }
 
 async function assertFixture(

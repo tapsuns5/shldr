@@ -77,7 +77,7 @@ export function formatTrip(trip: APITrip): UITrip {
   };
 }
 
-export type TripTab = 'upcoming' | 'active' | 'past';
+export type TripTab = 'upcoming' | 'active' | 'past' | 'uncategorized';
 
 export function filterTrips(trips: UITrip[], tab: TripTab): UITrip[] {
   const today = dayjs().startOf('day');
@@ -93,6 +93,8 @@ export function filterTrips(trips: UITrip[], tab: TripTab): UITrip[] {
         return !trip.isUncategorized && !start.isAfter(today) && !end.isBefore(today);
       case 'past':
         return !trip.isUncategorized && end.isBefore(today);
+      case 'uncategorized':
+        return trip.isUncategorized;
       default:
         return true;
     }

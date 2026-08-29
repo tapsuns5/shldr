@@ -4,6 +4,9 @@ import { SvgUri } from 'react-native-svg';
 import { Text, useTheme } from 'react-native-paper';
 import { SolarIcon } from './SolarIcon';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import type { APIReservation, ReservationType } from '@shldr/shared';
 import { API_URL } from '@/lib/config';
 import { BottomSheet } from './BottomSheet';
@@ -70,7 +73,8 @@ type ReservationWithDetails = APIReservation & {
 };
 
 function getDisplayTime(reservation: APIReservation): { time: string; timezone: string } {
-  const date = dayjs(reservation.startDateTime);
+  const isNaiveUtc = reservation.source === 'email_import';
+  const date = isNaiveUtc ? dayjs.utc(reservation.startDateTime) : dayjs(reservation.startDateTime);
   if (!date.isValid() || reservation.type === 'hotel') return { time: '', timezone: '' };
 
   if (reservation.type === 'flight' && reservation.notes) {
@@ -96,6 +100,8 @@ type DetailLine = { text: string; address?: boolean };
 
 function getDetails(reservation: ReservationWithDetails): DetailLine[] {
   const details = reservation.details;
+  const isNaiveUtc = reservation.source === 'email_import';
+  const djs = (v: string | null | undefined) => (isNaiveUtc ? dayjs.utc(v) : dayjs(v));
   const lines: DetailLine[] = [];
   const add = (text: string | null | undefined, address = false) => {
     if (text) lines.push({ text, address });
@@ -111,16 +117,16 @@ function getDetails(reservation: ReservationWithDetails): DetailLine[] {
     add(flight.ticketNumber ? `Ticket: ${flight.ticketNumber}` : null);
   } else if (reservation.type === 'car' && details?.car) {
     const car = details.car;
-    add(car.pickupDateTime ? `Pick up ${dayjs(car.pickupDateTime).format('h:mm A')}` : null);
+    add(car.pickupDateTime ? `Pick up ${djs(car.pickupDateTime).format('h:mm A')}` : null);
     add(car.pickupLocation, true);
-    add(car.dropoffDateTime ? `Drop off ${dayjs(car.dropoffDateTime).format('h:mm A')}` : null);
+    add(car.dropoffDateTime ? `Drop off ${djs(car.dropoffDateTime).format('h:mm A')}` : null);
     add(car.dropoffLocation, true);
     add(car.vehicleClass ? `Vehicle: ${car.vehicleClass}` : null);
   } else if (reservation.type === 'hotel' && details?.hotel) {
     const hotel = details.hotel;
     add([hotel.address1, hotel.city, hotel.state, hotel.country].filter(Boolean).join(', '), true);
-    add(hotel.checkIn ? `Check-in: ${dayjs(hotel.checkIn).format('MMM D, h:mm A')}` : null);
-    add(hotel.checkOut ? `Check-out: ${dayjs(hotel.checkOut).format('MMM D, h:mm A')}` : null);
+    add(hotel.checkIn ? `Check-in: ${djs(hotel.checkIn).format('MMM D, h:mm A')}` : null);
+    add(hotel.checkOut ? `Check-out: ${djs(hotel.checkOut).format('MMM D, h:mm A')}` : null);
     add(hotel.roomType ? `Room: ${hotel.roomType}` : null);
   } else if (['activity', 'restaurant', 'cruise'].includes(reservation.type) && details?.activity) {
     add(details.activity.venue, true);

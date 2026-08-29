@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { importedEmails, reservations } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getRedisConnection, enqueueTripMatcher, type ReservationImportJob } from '@/lib/queue';
-import type { ParsedEmailEvent } from '@/lib/email-parser';
+import { deserializeEvents, type ParsedEmailEvent } from '@/lib/email-parser';
 
 export const reservationImportWorker = new Worker<ReservationImportJob>(
   'reservation-import',
@@ -26,7 +26,7 @@ export const reservationImportWorker = new Worker<ReservationImportJob>(
       throw new Error('Gmail account not found');
     }
 
-    const events = JSON.parse(email.parsedPayload) as ParsedEmailEvent[];
+    const events = deserializeEvents(email.parsedPayload);
     const event = events[eventIndex];
     if (!event) {
       throw new Error(`Event index ${eventIndex} not found`);

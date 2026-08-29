@@ -41,6 +41,7 @@ export default function TripEventDetailPage() {
         const tripData: APITrip = await tripRes.json();
         const resData: APIReservation = await resRes.json();
         if (!cancelled) {
+          console.log('[event-page] reservation rawEmailHtml:', !!resData.rawEmailHtml, 'keys:', Object.keys(resData).filter(k => k.toLowerCase().includes('email')));
           const ui = formatTrip(tripData);
           setTripTitle(ui.title);
           setReservation(resData);

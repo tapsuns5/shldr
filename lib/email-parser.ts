@@ -52,6 +52,21 @@ export interface EmailParseResult {
   tripEndDate: Date | null;
 }
 
+/**
+ * Deserialize a JSON string of ParsedEmailEvent[] (as produced by
+ * JSON.stringify) back into events with real Date objects.
+ * JSON.stringify converts Date to ISO strings; JSON.parse leaves them as
+ * strings, which breaks downstream code that calls .getTime() etc.
+ */
+export function deserializeEvents(json: string): ParsedEmailEvent[] {
+  const events = JSON.parse(json) as ParsedEmailEvent[];
+  for (const e of events) {
+    if (typeof e.startDateTime === 'string') e.startDateTime = new Date(e.startDateTime);
+    if (typeof e.endDateTime === 'string') e.endDateTime = new Date(e.endDateTime);
+  }
+  return events;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const MONTHS: Record<string, number> = {
@@ -69,7 +84,16 @@ const MONTHS: Record<string, number> = {
   dec: 11, december: 11, décembre: 11, decembre: 11, diciembre: 11, dicembre: 11, dezember: 11, dezembro: 11,
 };
 
-/** Parse a date string in a variety of common confirmation-email formats. */
+/** Parse a date string in a variety of common confirmation-email formats.
+ *
+ *  Returns a Date constructed via `Date.UTC(...)` so that the wall-clock
+ *  components (year, month, day, hour, minute) found in the email are
+ *  preserved exactly regardless of the server's local timezone.  Email
+ *  confirmation times are "local to the event" and carry no timezone
+ *  information, so we store them as naive datetimes encoded in UTC.  The
+ *  display layer must use `dayjs.utc(...)` to render them without
+ *  timezone conversion.
+ */
 function parseEmailDate(raw: string): Date | null {
   if (!raw) return null;
 
@@ -77,11 +101,13 @@ function parseEmailDate(raw: string): Date | null {
   const iso = raw.match(/(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
   if (iso) {
     return new Date(
-      Number(iso[1]),
-      Number(iso[2]) - 1,
-      Number(iso[3]),
-      iso[4] ? Number(iso[4]) : 0,
-      iso[5] ? Number(iso[5]) : 0
+      Date.UTC(
+        Number(iso[1]),
+        Number(iso[2]) - 1,
+        Number(iso[3]),
+        iso[4] ? Number(iso[4]) : 0,
+        iso[5] ? Number(iso[5]) : 0
+      )
     );
   }
 
@@ -95,7 +121,7 @@ function parseEmailDate(raw: string): Date | null {
       let hour = alpha[4] ? Number(alpha[4]) : 0;
       if (alpha[6]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
       if (alpha[6]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
-      return new Date(Number(alpha[3]), month, Number(alpha[1]), hour, alpha[5] ? Number(alpha[5]) : 0);
+      return new Date(Date.UTC(Number(alpha[3]), month, Number(alpha[1]), hour, alpha[5] ? Number(alpha[5]) : 0));
     }
   }
 
@@ -109,7 +135,7 @@ function parseEmailDate(raw: string): Date | null {
       let hour = alpha2[4] ? Number(alpha2[4]) : 0;
       if (alpha2[6]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
       if (alpha2[6]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
-      return new Date(Number(alpha2[3]), month, Number(alpha2[2]), hour, alpha2[5] ? Number(alpha2[5]) : 0);
+      return new Date(Date.UTC(Number(alpha2[3]), month, Number(alpha2[2]), hour, alpha2[5] ? Number(alpha2[5]) : 0));
     }
   }
 
@@ -120,18 +146,20 @@ function parseEmailDate(raw: string): Date | null {
     const second = Number(mdy[2]);
     const month = first > 12 ? second : first;
     const day = first > 12 ? first : second;
-    return new Date(Number(mdy[3]), month - 1, day);
+    return new Date(Date.UTC(Number(mdy[3]), month - 1, day));
   }
 
   // DD.MM.YYYY (European format) with optional time: 16.09.2026, 18:00
   const dmy = raw.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:\s*[,:]?\s*(\d{1,2}):(\d{2}))?/);
   if (dmy) {
     return new Date(
-      Number(dmy[3]),
-      Number(dmy[2]) - 1,
-      Number(dmy[1]),
-      dmy[4] ? Number(dmy[4]) : 0,
-      dmy[5] ? Number(dmy[5]) : 0
+      Date.UTC(
+        Number(dmy[3]),
+        Number(dmy[2]) - 1,
+        Number(dmy[1]),
+        dmy[4] ? Number(dmy[4]) : 0,
+        dmy[5] ? Number(dmy[5]) : 0
+      )
     );
   }
 
@@ -336,13 +364,13 @@ function extractDates(body: string, type: ReservationType): {
     if (role === 'end' && !endDateTime) endDateTime = d;
   }
 
-  if (startDateTime && startDateTime.getHours() === 0 && startDateTime.getMinutes() === 0) {
+  if (startDateTime && startDateTime.getUTCHours() === 0 && startDateTime.getUTCMinutes() === 0) {
     const time = reservationContent.match(/(?:time|ora|heure|hora|uhrzeit)\s*(?::|\n)+\s*(\d{1,2})[:h.](\d{2})\s*([AP]M)?/i);
     if (time) {
       let hour = Number(time[1]);
       if (time[3]?.toUpperCase() === 'PM' && hour < 12) hour += 12;
       if (time[3]?.toUpperCase() === 'AM' && hour === 12) hour = 0;
-      startDateTime.setHours(hour, Number(time[2]), 0, 0);
+      startDateTime.setUTCHours(hour, Number(time[2]), 0, 0);
     }
   }
 

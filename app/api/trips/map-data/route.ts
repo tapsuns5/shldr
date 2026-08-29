@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { eq, and, inArray } from 'drizzle-orm';
@@ -219,7 +222,9 @@ export async function GET(request: NextRequest) {
             });
           }
           if (to) {
-            const arrDate = reservation.endDateTime || dayjs(reservation.startDateTime).add(2, 'hour').toISOString();
+            const isNaiveUtc = reservation.source === 'email_import';
+            const startDayjs = isNaiveUtc ? dayjs.utc(reservation.startDateTime) : dayjs(reservation.startDateTime);
+            const arrDate = reservation.endDateTime || startDayjs.add(2, 'hour').toISOString();
             locations.push({
               reservationId: reservation.id,
               date: arrDate,
@@ -235,6 +240,7 @@ export async function GET(request: NextRequest) {
               to,
               title: reservation.title,
               date: reservation.startDateTime,
+              source: reservation.source,
               dep,
               arr,
               isReturnHome: false,

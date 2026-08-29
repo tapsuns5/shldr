@@ -6,6 +6,9 @@ import { ActivityIndicator, Divider, IconButton, Text, useTheme } from 'react-na
 import { Camera, GeoJSONSource, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import { formatTrip, generateCurvedLine, MAP_STYLE_DARK, MAP_STYLE_LIGHT, type APIReservation, type TripRouteLocation } from '@shldr/shared';
 import { useReservations, useTrip } from '@/hooks/use-reservations';
 import { useTripRoute } from '@/hooks/use-trip-route';
@@ -30,20 +33,22 @@ const ROUTE_ICONS: Record<string, keyof typeof MaterialCommunityIcons.glyphMap> 
 type RouteDay = { date: string; label: string; reservations: APIReservation[] };
 
 function effectiveReservationTime(reservation: APIReservation, reservations: APIReservation[]) {
-  const baseTime = dayjs(reservation.startDateTime).valueOf();
+  const rDjs = (r: APIReservation, v: string | null | undefined) =>
+    r.source === 'email_import' ? dayjs.utc(v) : dayjs(v);
+  const baseTime = rDjs(reservation, reservation.startDateTime).valueOf();
   if (reservation.type !== 'hotel') return baseTime;
 
-  const reservationDay = dayjs(reservation.startDateTime).format('YYYY-MM-DD');
+  const reservationDay = rDjs(reservation, reservation.startDateTime).format('YYYY-MM-DD');
   let latestArrival = 0;
   for (const item of reservations) {
-    if (dayjs(item.startDateTime).format('YYYY-MM-DD') !== reservationDay) continue;
+    if (rDjs(item, item.startDateTime).format('YYYY-MM-DD') !== reservationDay) continue;
     if (item.type === 'flight') {
       const arrival = item.endDateTime
-        ? dayjs(item.endDateTime).valueOf()
-        : dayjs(item.startDateTime).add(2, 'hour').valueOf();
+        ? rDjs(item, item.endDateTime).valueOf()
+        : rDjs(item, item.startDateTime).add(2, 'hour').valueOf();
       latestArrival = Math.max(latestArrival, arrival);
     } else if (item.type === 'car' || item.type === 'transport') {
-      latestArrival = Math.max(latestArrival, dayjs(item.startDateTime).valueOf());
+      latestArrival = Math.max(latestArrival, rDjs(item, item.startDateTime).valueOf());
     }
   }
 
@@ -62,7 +67,9 @@ function groupReservations(reservations: APIReservation[], startDate: string, en
   }
 
   for (const reservation of reservations) {
-    const reservationDate = dayjs(reservation.startDateTime);
+    const reservationDate = reservation.source === 'email_import'
+      ? dayjs.utc(reservation.startDateTime)
+      : dayjs(reservation.startDateTime);
     const key = reservationDate.isValid() ? reservationDate.format('YYYY-MM-DD') : 'unknown';
     const existing = groups.get(key);
     if (existing) {

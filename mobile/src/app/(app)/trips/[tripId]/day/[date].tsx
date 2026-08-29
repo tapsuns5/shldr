@@ -3,6 +3,9 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Appbar, Button, Text, useTheme } from 'react-native-paper';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import { formatTrip } from '@shldr/shared';
 import { useReservations, useTrip } from '@/hooks/use-reservations';
 import { ReservationRow } from '@/components/ReservationRow';
@@ -13,9 +16,14 @@ export default function TripDayScreen() {
   const { tripId, date } = useLocalSearchParams<{ tripId: string; date: string }>();
   const { data: trip, isLoading: tripLoading } = useTrip(tripId);
   const { data: reservations, isLoading: reservationsLoading } = useReservations(tripId);
-  const day = dayjs(date);
+  const day = dayjs.utc(date);
   const dayReservations = useMemo(
-    () => (reservations ?? []).filter((reservation) => dayjs(reservation.startDateTime).isSame(day, 'day')),
+    () => (reservations ?? []).filter((reservation) => {
+      const rDate = reservation.source === 'email_import'
+        ? dayjs.utc(reservation.startDateTime)
+        : dayjs(reservation.startDateTime);
+      return rDate.isSame(day, 'day');
+    }),
     [reservations, day]
   );
   const uiTrip = trip ? formatTrip(trip) : undefined;

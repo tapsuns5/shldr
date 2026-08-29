@@ -1,6 +1,28 @@
 import { useEffect, useState, useCallback } from 'react';
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { type PlanDay } from './use-trips';
+
+dayjs.extend(utc);
+
+/**
+ * Reservation timestamps have two storage conventions:
+ *  - `email_import`: naive-UTC — the wall-clock time of the event encoded
+ *    via `Date.UTC(...)`.  Must be read with `dayjs.utc()` so no timezone
+ *    conversion happens.
+ *  - everything else (manual, calendar_import, api_import): real UTC
+ *    moments.  Must be read with `dayjs()` so they convert to the viewer's
+ *    local timezone.
+ */
+export function reservationDayjs(
+  reservation: { source?: string | null },
+  value: string | null | undefined,
+): Dayjs {
+  if (!value) return dayjs(NaN);
+  return reservation.source === 'email_import'
+    ? dayjs.utc(value)
+    : dayjs(value);
+}
 
 export interface APIReservation {
   id: string;
@@ -109,9 +131,9 @@ export function getReservationDetailLines(reservation: APIReservation): DetailLi
     case 'car': {
       const c = details?.car;
       if (c) {
-        lines.push({ text: `Pick up ${dayjs(c.pickupDateTime).format('h:mm A')}` });
+        lines.push({ text: `Pick up ${reservationDayjs(reservation, c.pickupDateTime).format('h:mm A')}` });
         lines.push({ text: c.pickupLocation, address: c.pickupLocation });
-        lines.push({ text: `Drop off ${dayjs(c.dropoffDateTime).format('h:mm A')}` });
+        lines.push({ text: `Drop off ${reservationDayjs(reservation, c.dropoffDateTime).format('h:mm A')}` });
         lines.push({ text: c.dropoffLocation, address: c.dropoffLocation });
         if (c.vehicleClass) lines.push({ text: `Vehicle: ${c.vehicleClass}` });
       }
@@ -122,8 +144,8 @@ export function getReservationDetailLines(reservation: APIReservation): DetailLi
       if (h) {
         const address = [h.address1, h.city, h.state, h.country].filter(Boolean).join(', ');
         lines.push({ text: address, address });
-        lines.push({ text: `Check-in: ${dayjs(h.checkIn).format('MMM D, h:mm A')}` });
-        lines.push({ text: `Check-out: ${dayjs(h.checkOut).format('MMM D, h:mm A')}` });
+        lines.push({ text: `Check-in: ${reservationDayjs(reservation, h.checkIn).format('MMM D, h:mm A')}` });
+        lines.push({ text: `Check-out: ${reservationDayjs(reservation, h.checkOut).format('MMM D, h:mm A')}` });
         if (h.roomType) lines.push({ text: `Room: ${h.roomType}` });
       }
       break;
@@ -244,21 +266,21 @@ export function reservationsToPlanDays(
 
   // Function to compute effective sort timestamp for sequential timeline ordering
   const getEffectiveReservationTime = (r: APIReservation): number => {
-    const baseTime = dayjs(r.startDateTime).valueOf();
+    const baseTime = reservationDayjs(r, r.startDateTime).valueOf();
     if (r.type !== 'hotel') return baseTime;
 
-    const rDateStr = dayjs(r.startDateTime).format('YYYY-MM-DD');
+    const rDateStr = reservationDayjs(r, r.startDateTime).format('YYYY-MM-DD');
     let maxArrivalOnDay = 0;
 
     for (const item of reservations) {
-      const itemDateStr = dayjs(item.startDateTime).format('YYYY-MM-DD');
+      const itemDateStr = reservationDayjs(item, item.startDateTime).format('YYYY-MM-DD');
       if (itemDateStr !== rDateStr) continue;
 
       if (item.type === 'flight') {
-        const arrTime = item.endDateTime ? dayjs(item.endDateTime).valueOf() : dayjs(item.startDateTime).add(2, 'hour').valueOf();
+        const arrTime = item.endDateTime ? reservationDayjs(item, item.endDateTime).valueOf() : reservationDayjs(item, item.startDateTime).add(2, 'hour').valueOf();
         if (arrTime > maxArrivalOnDay) maxArrivalOnDay = arrTime;
       } else if (item.type === 'car' || item.type === 'transport') {
-        const startTime = dayjs(item.startDateTime).valueOf();
+        const startTime = reservationDayjs(item, item.startDateTime).valueOf();
         if (startTime > maxArrivalOnDay) maxArrivalOnDay = startTime;
       }
     }
@@ -285,7 +307,7 @@ export function reservationsToPlanDays(
   let prevFlight: FlightTracker | null = null;
 
   for (const reservation of sorted) {
-    const start = dayjs(reservation.startDateTime);
+    const start = reservationDayjs(reservation, reservation.startDateTime);
     const dateKey = start.format('ddd, MMM D YYYY');
     const day = grouped.get(dateKey) || { id: dateKey, date: dateKey, items: [] };
 
@@ -293,7 +315,7 @@ export function reservationsToPlanDays(
       const depAirport = departureAirportFromTitle(reservation.title);
 
       if (prevFlight && prevFlight.arrivalAirport && depAirport) {
-        const layoverStart = dayjs(prevFlight.endDateTime);
+        const layoverStart = reservationDayjs({ source: reservation.source }, prevFlight.endDateTime);
         const layoverMinutes = start.diff(layoverStart, 'minute');
 
         // Same connecting airport, gap between 0 and 24 hours → it's a layover

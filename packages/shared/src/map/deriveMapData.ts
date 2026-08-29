@@ -1,4 +1,7 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import { buildFlightRoute, type FlightRoute } from './arcRoutes';
 import { getAirportInfo } from './airportCoords';
 import { getCityCoords, getCountryCode } from './cityCoords';
@@ -56,6 +59,7 @@ export interface RawFlight {
   reservationId: string;
   tripId: string;
   startDateTime: string;
+  source?: string | null;
   providerName: string | null;
   airline: string;
   flightNumber: string;
@@ -182,7 +186,9 @@ export function deriveTravelMapData(raw: RawTravelMapData | null): TravelMapData
       to: flight.arrivalAirport,
       airline: flight.airline,
       flightNumber: flight.flightNumber,
-      date: flight.startDateTime ? dayjs(flight.startDateTime).format('MMM D, YYYY') : undefined,
+      date: flight.startDateTime
+        ? (flight.source === 'email_import' ? dayjs.utc(flight.startDateTime) : dayjs(flight.startDateTime)).format('MMM D, YYYY')
+        : undefined,
     });
 
     if (route) {

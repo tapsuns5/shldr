@@ -10,11 +10,13 @@ import { useAccounts } from '@/hooks/use-accounts';
 import { useTrips } from '@/hooks/use-trips';
 import { TripCard } from '@/components/TripCard';
 import { NewTripSheet } from '@/components/NewTripSheet';
+import { UncategorizedEventCards } from '@/components/UncategorizedEventCards';
 
 const TABS: { value: TripTab; label: string }[] = [
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'active', label: 'Active' },
   { value: 'past', label: 'Past' },
+  { value: 'uncategorized', label: 'Uncategorized' },
 ];
 
 export default function TripsScreen() {
@@ -29,6 +31,14 @@ export default function TripsScreen() {
   const { data: trips, isLoading, isRefetching, refetch } = useTrips(accountId);
 
   const visibleTrips = useMemo(() => filterTrips(trips ?? [], tab), [trips, tab]);
+  const uncategorizedTrip = useMemo(
+    () => (trips ?? []).find((t) => t.isUncategorized) ?? null,
+    [trips],
+  );
+
+  const openEvent = (tripId: string, reservationId: string) => {
+    router.push(`/trips/${tripId}?reservationId=${reservationId}`);
+  };
 
   return (
     <View style={[styles.flex, { backgroundColor: theme.colors.background }]}>
@@ -44,7 +54,14 @@ export default function TripsScreen() {
       </View>
 
       <View style={styles.content}>
-        {isLoading ? (
+        {tab === 'uncategorized' ? (
+          <UncategorizedEventCards
+            trip={uncategorizedTrip}
+            tripsLoading={isLoading}
+            accountId={accountId}
+            onOpenEvent={openEvent}
+          />
+        ) : isLoading ? (
           <View style={styles.center}>
             <ActivityIndicator />
           </View>

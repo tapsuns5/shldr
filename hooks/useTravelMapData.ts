@@ -6,6 +6,10 @@ import { getAirportInfo } from '@/lib/map/airportCoords';
 import AIRPORT_COORDS from '@/lib/map/airportCoords';
 import { isWishlistItemVisited } from '@/lib/map/wishlistMatcher';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { reservationDayjs } from './use-reservations';
+
+dayjs.extend(utc);
 
 export interface MapPinTrip {
   id: string;
@@ -340,6 +344,7 @@ interface RawFlight {
   reservationId: string;
   tripId: string;
   startDateTime: string;
+  source?: string | null;
   providerName: string | null;
   airline: string;
   flightNumber: string;
@@ -484,7 +489,7 @@ export function useTravelMapData(accountId: string): TravelMapData {
         to: flight.arrivalAirport,
         airline: flight.airline,
         flightNumber: flight.flightNumber,
-        date: flight.startDateTime ? dayjs(flight.startDateTime).format('MMM D, YYYY') : undefined,
+        date: flight.startDateTime ? reservationDayjs(flight, flight.startDateTime).format('MMM D, YYYY') : undefined,
       });
 
       if (route) {

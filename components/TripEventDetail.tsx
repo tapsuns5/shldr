@@ -26,6 +26,9 @@ import {
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { type Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import { useRouter } from 'next/navigation';
 import {
   ArrowBackIcon,
@@ -44,11 +47,13 @@ import {
   TheaterIcon,
   TourIcon,
   ExpandMoreIcon,
+  MailIcon,
 } from '@/components/Icons';
 import AddressMenu from './AddressMenu';
 import {
   type APIReservation,
   tzidToAbbrev,
+  reservationDayjs,
 } from '@/hooks/use-reservations';
 
 interface TripEventDetailProps {
@@ -185,21 +190,22 @@ export default function TripEventDetail({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   const [editTitle, setEditTitle] = useState(reservation.title);
   const [editConfirmation, setEditConfirmation] = useState(reservation.confirmationNumber ?? '');
   const [editProvider, setEditProvider] = useState(reservation.providerName ?? '');
   const [editLocation, setEditLocation] = useState(reservation.location ?? '');
   const [editNotes, setEditNotes] = useState(reservation.notes ?? '');
-  const [editStart, setEditStart] = useState<Dayjs | null>(dayjs(reservation.startDateTime));
-  const [editEnd, setEditEnd] = useState<Dayjs | null>(reservation.endDateTime ? dayjs(reservation.endDateTime) : null);
+  const [editStart, setEditStart] = useState<Dayjs | null>(reservationDayjs(reservation, reservation.startDateTime));
+  const [editEnd, setEditEnd] = useState<Dayjs | null>(reservation.endDateTime ? reservationDayjs(reservation, reservation.endDateTime) : null);
 
   const typeLabel = TYPE_LABELS[reservation.type] ?? 'Event';
   const typeColor = TYPE_COLORS[reservation.type] ?? 'default';
   const typeIcon = TYPE_ICONS[reservation.type] ?? <ActivityIcon sx={{ fontSize: 18 }} />;
 
-  const startDt = dayjs(reservation.startDateTime);
-  const endDt = reservation.endDateTime ? dayjs(reservation.endDateTime) : null;
+  const startDt = reservationDayjs(reservation, reservation.startDateTime);
+  const endDt = reservation.endDateTime ? reservationDayjs(reservation, reservation.endDateTime) : null;
 
   const flightDetails = reservation.details?.flight;
   const hotelDetails = reservation.details?.hotel;
@@ -580,6 +586,19 @@ export default function TripEventDetail({
               <DetailRow label="Provider" value={reservation.providerName} />
               <DetailRow label="Location" value={reservation.location ? <AddressMenu address={reservation.location} /> : undefined} />
               <DetailRow label="Total Cost" value={reservation.totalCost ? `${reservation.currency ?? ''} ${reservation.totalCost}`.trim() : undefined} />
+              {reservation.rawEmailHtml && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<MailIcon sx={{ fontSize: '1.125rem' }} />}
+                    onClick={() => setEmailDialogOpen(true)}
+                    sx={{ textTransform: 'none', fontWeight: 600 }}
+                  >
+                    View original email
+                  </Button>
+                </Box>
+              )}
             </Paper>
           </Grid>
 
@@ -644,6 +663,33 @@ export default function TripEventDetail({
           >
             {deleting ? 'Deleting...' : 'Delete'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Email viewer dialog */}
+      <Dialog
+        open={emailDialogOpen}
+        onClose={() => setEmailDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { height: '80vh' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <MailIcon sx={{ fontSize: 20 }} />
+          {reservation.rawEmailSubject ?? 'Email'}
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
+          {reservation.rawEmailHtml && (
+            <iframe
+              srcDoc={reservation.rawEmailHtml}
+              title="Original email"
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              sandbox="allow-same-origin"
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setEmailDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

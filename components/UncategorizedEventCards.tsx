@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { reservationDayjs } from '@/hooks/use-reservations';
+
+dayjs.extend(utc);
 import {
   Alert,
   Box,
@@ -32,6 +36,7 @@ import {
   EditIcon,
   FlightIcon,
   HotelIcon,
+  MailIcon,
   MoreHorizIcon,
   MoveIcon,
   RailIcon,
@@ -78,6 +83,17 @@ export default function UncategorizedEventCards({ trip, tripsLoading }: Uncatego
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [moveMode, setMoveMode] = useState<'move' | 'copy'>('move');
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailDialogContent, setEmailDialogContent] = useState<{ html: string; subject: string } | null>(null);
+
+  const openEmail = (reservation: APIReservation) => {
+    if (!reservation.rawEmailHtml) return;
+    setEmailDialogContent({
+      html: reservation.rawEmailHtml,
+      subject: reservation.rawEmailSubject ?? 'Email',
+    });
+    setEmailDialogOpen(true);
+  };
 
   const openEvent = (reservation: APIReservation, edit = false) => {
     if (!trip) return;
@@ -188,7 +204,7 @@ export default function UncategorizedEventCards({ trip, tripsLoading }: Uncatego
                       <Chip label={TYPE_LABELS[reservation.type] ?? 'Event'} size="small" variant="outlined" />
                     </Stack>
                     <Typography variant="body2" color="text.secondary">
-                      {dayjs(reservation.startDateTime).format('ddd, MMM D, YYYY [at] h:mm A')}
+                      {reservationDayjs(reservation, reservation.startDateTime).format('ddd, MMM D, YYYY [at] h:mm A')}
                     </Typography>
                     {reservation.location && (
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -199,6 +215,27 @@ export default function UncategorizedEventCards({ trip, tripsLoading }: Uncatego
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                         {reservation.providerName}
                       </Typography>
+                    )}
+                    {reservation.rawEmailHtml && (
+                      <Button
+                        size="small"
+                        startIcon={<MailIcon sx={{ fontSize: '1rem' }} />}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEmail(reservation);
+                        }}
+                        sx={{
+                          color: 'text.secondary',
+                          textTransform: 'none',
+                          minWidth: 0,
+                          px: 0,
+                          mt: 0.5,
+                          fontSize: '0.8125rem',
+                          '&:hover': { bgcolor: 'transparent', color: 'primary.main' },
+                        }}
+                      >
+                        View original email
+                      </Button>
                     )}
                   </Box>
                 </Stack>
@@ -233,6 +270,12 @@ export default function UncategorizedEventCards({ trip, tripsLoading }: Uncatego
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Edit Event Detail</ListItemText>
         </MenuItem>
+        {activeReservation?.rawEmailHtml && (
+          <MenuItem onClick={() => { closeMenu(); openEmail(activeReservation); }}>
+            <ListItemIcon><MailIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>View Original Email</ListItemText>
+          </MenuItem>
+        )}
         <MenuItem onClick={() => openMove('move')}>
           <ListItemIcon><MoveIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Move Event Detail</ListItemText>
@@ -283,6 +326,33 @@ export default function UncategorizedEventCards({ trip, tripsLoading }: Uncatego
           }}
         />
       )}
+
+      {/* Email viewer dialog */}
+      <Dialog
+        open={emailDialogOpen}
+        onClose={() => setEmailDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { height: '80vh' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <MailIcon sx={{ fontSize: 20 }} />
+          {emailDialogContent?.subject ?? 'Email'}
+        </DialogTitle>
+        <DialogContent sx={{ p: 0, overflow: 'hidden' }}>
+          {emailDialogContent && (
+            <iframe
+              srcDoc={emailDialogContent.html}
+              title="Original email"
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              sandbox="allow-same-origin"
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setEmailDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
