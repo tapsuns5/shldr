@@ -8,16 +8,16 @@ import { reservations, flightReservations, hotelReservations } from '@/db/schema
 const updateReservationSchema = z.object({
   tripId: z.string().uuid().optional(),
   title: z.string().min(1).max(255).optional(),
-  confirmationNumber: z.string().max(255).optional(),
-  providerName: z.string().max(255).optional(),
-  providerPhone: z.string().max(255).optional(),
-  providerWebsite: z.string().optional(),
-  startDateTime: z.string().optional(),
-  endDateTime: z.string().optional(),
-  location: z.string().optional(),
-  currency: z.string().max(10).optional(),
-  totalCost: z.string().optional(),
-  notes: z.string().optional(),
+  confirmationNumber: z.string().max(255).nullable().optional(),
+  providerName: z.string().max(255).nullable().optional(),
+  providerPhone: z.string().max(255).nullable().optional(),
+  providerWebsite: z.string().nullable().optional(),
+  startDateTime: z.string().nullable().optional(),
+  endDateTime: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  currency: z.string().max(10).nullable().optional(),
+  totalCost: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 const flightDetailsSchema = z.object({

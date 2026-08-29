@@ -30,6 +30,10 @@ async function run() {
   assert.equal(matchingDetail.destinationCity, 'Olbia');
   assert.equal(selectTripCandidate(matchingDetail, [referencedTrip])?.id, referencedTrip.id);
 
+  const sardiniaActivity = await parseFixture('Reservation confirmation.eml');
+  assert.equal(sardiniaActivity.providerName, 'Blue Island Sardinia');
+  assert.equal(selectTripCandidate(sardiniaActivity, [referencedTrip])?.id, referencedTrip.id);
+
   const sameDateDifferentLocation = await parseFixture('same-date-unmatched-trip-detail.eml');
   assert.equal(sameDateDifferentLocation.type, 'activity');
   assert.equal(sameDateDifferentLocation.destinationCity, 'Rome');

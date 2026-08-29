@@ -118,7 +118,9 @@ export function selectTripCandidate(
     const locationMatch = isDetailEvent(event)
       ? locationsCloselyMatch(event.destinationCity, candidate.destinationCity) ||
         locationsCloselyMatch(event.location, candidate.destinationCity) ||
-        locationsCloselyMatch(event.destinationCity, candidate.title)
+        locationsCloselyMatch(event.destinationCity, candidate.title) ||
+        locationsCloselyMatch(event.providerName, candidate.destinationCity) ||
+        locationsCloselyMatch(event.providerName, candidate.title)
       : locationsOverlap(event.destinationCity, candidate.destinationCity) ||
         locationsOverlap(event.location, candidate.destinationCity) ||
         locationsOverlap(event.destinationCity, candidate.title);

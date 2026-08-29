@@ -139,6 +139,8 @@ function parseEmailDate(raw: string): Date | null {
 /** Normalize the plain-text body: strip HTML tags if present and collapse whitespace. */
 function normalizeBody(body: string): string {
   return body
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(?:p|div|tr|td|h[1-6]|li|table)>/gi, '\n')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -234,7 +236,11 @@ function extractProviderName(subject: string, body: string, type: ReservationTyp
     if (m) return m[1].trim();
   }
 
-  return null;
+  const forwardedFrom = [...body.matchAll(/(?:^|\n)\s*From:\s*([^<\n]{2,80})/gim)].at(-1);
+  if (forwardedFrom?.[1]) return forwardedFrom[1].trim();
+
+  const teamSignature = body.match(/(?:team|equipo|équipe)\s+([A-ZÀ-Ý][\p{L}\d& .'-]{2,80})/u);
+  return teamSignature?.[1]?.trim() || null;
 }
 
 function extractFlightDetails(body: string, subject: string): {
@@ -338,6 +344,9 @@ function extractDates(body: string, type: ReservationType): {
 }
 
 function extractLocation(body: string, type: ReservationType): string | null {
+  const meetingPoint = body.match(/(?:location del luogo dell'offerta\s*\/\s*nome del punto di incontro|meeting point|punto di incontro|point de rencontre|punto de encuentro|treffpunkt)\s*\n+\s*([^\n]{2,120})/i);
+  if (meetingPoint) return meetingPoint[1].trim();
+
   if (type === 'hotel') {
     const m = body.match(/(?:address|location|hotel)[:\s]+([^\n]{5,80})/i)
       || body.match(/(?:city)[:\s]+([A-Za-z ,]{3,40})/i);
@@ -353,8 +362,7 @@ function extractLocation(body: string, type: ReservationType): string | null {
 
   if (type === 'car') {
     // Use pick-up location
-    const m = body.match(/(?:pick.?up|pickup)[:\s]+([^\n]{5,80})/i)
-      || body.match(/(?:pick.?up location)[:\s]+([^\n]{5,80})/i);
+    const m = body.match(/pick.?up(?:\s+location)?\s*(?::|\n)+\s*([^\n]{5,80})/i);
     if (m) return m[1].trim();
   }
 
@@ -456,6 +464,8 @@ export function parseConfirmationEmail(opts: {
   let departureAirport: string | null = null;
   let arrivalAirport: string | null = null;
   let title = subject.replace(/^(fwd?:|re:)\s*/i, '').trim();
+  const namedReservation = body.match(/(?:reservation|prenotazione|booking)\s+(?:for|per|pour|para|de)\s+["“”']{0,2}([^\n"]{4,120}?)["“”']{0,2}\s+(?:below|di seguito|ci-dessous|a continuación)/i);
+  if (namedReservation) title = namedReservation[1].trim();
 
   if (type === 'flight') {
     const fd = extractFlightDetails(body, subject);

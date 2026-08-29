@@ -72,6 +72,13 @@ async function run() {
     destinationCity: 'Olbia',
   });
 
+  const sardiniaActivity = await parseFixture('Reservation confirmation.eml');
+  assert.equal(sardiniaActivity.type, 'activity');
+  assert.equal(sardiniaActivity.title, 'TOUR CONDIVISO ARCIPELAGO DELLA MADDALENA CON 7 SOSTE');
+  assert.equal(sardiniaActivity.providerName, 'Blue Island Sardinia');
+  assert.equal(sardiniaActivity.destinationCity, 'Palau');
+  assertLocalDate(sardiniaActivity, { year: 2026, month: 9, day: 21, hour: 10, minute: 0 });
+
   console.log('Email parser fixtures passed');
 }
 
