@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type {Metadata, Viewport} from 'next';
 import { Inter } from 'next/font/google';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 import './globals.css';
@@ -14,6 +14,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'SHLDR Travel',
   description: 'SHLDR Travel - Inspire and organize your next journey',
+};
+
+export const viewport: Viewport = {
+  width: 'deviceWidth',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

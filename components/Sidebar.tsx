@@ -55,7 +55,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
   const isMinimalHeader = MINIMAL_HEADER_ROUTES.some((r) => pathname === r || pathname.startsWith(r + '/'));
   if (isMinimalHeader) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', bgcolor: 'background.paper', overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100dvh', bgcolor: 'background.paper', overflow: 'hidden' }}>
         <Header />
         <Box
           component="main"
@@ -176,7 +176,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100dvh',
         width: '100vw',
         bgcolor: 'background.paper',
         overflow: 'hidden',
@@ -194,7 +194,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
         sx={{
           display: 'flex',
           flexGrow: 1,
-          height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+          height: `calc(100dvh - ${HEADER_HEIGHT}px)`,
           overflow: 'hidden',
           minHeight: 0,
         }}

@@ -283,8 +283,12 @@ function extractProviderName(subject: string, body: string, type: ReservationTyp
   }
 
   if (type === 'restaurant') {
+    // "Your reservation at Ristorante Lu Stazzu", "booking at X"
     const restaurant = subject.match(/(?:reservation|booking)\s+(?:at|with|for)\s+(.+)$/i);
     if (restaurant) return restaurant[1].trim();
+    // "Your reservation confirmation for Casa Bohème Bistro"
+    const confirmationFor = subject.match(/(?:reservation|booking)\s+confirmation\s+for\s+(.+)$/i);
+    if (confirmationFor) return confirmationFor[1].trim();
   }
 
   const forwardedFrom = [...body.matchAll(/(?:^|\n)\s*From:\s*([^<\n]{2,80})/gim)].at(-1);
@@ -535,8 +539,11 @@ function extractDestinationCity(body: string, type: ReservationType, location: s
       const addressCity = location.match(/,\s*([A-ZÀ-Ý][\p{L}' .-]+),\s*[A-Z]{2}\s+\d{4,6}(?:,|$)/u);
       if (addressCity) return addressCity[1].trim();
 
-      // European: "1201 Genève" or "1204, Genève" — city after postal code
-      const europeanCity = location.match(/\d{4,6},?\s+([A-ZÀ-Ý][\p{L}'’.-]{2,40})/u);
+      // European: "1201 Genève" or "1204, Genève" — city after a standalone
+      // postal code. Require the digit run to be preceded by a separator
+      // (start, comma, or space) so we don't match the tail of a longer
+      // postal code like "160-0021, Japan" and capture the country as the city.
+      const europeanCity = location.match(/(?:^|[, ])\d{4,6}(?:-\d{3,4})?,?\s+([A-ZÀ-Ý][\p{L}'’.-]{2,40})/u);
       if (europeanCity) return europeanCity[1].trim();
 
       const parts = location.split(',').map((part) => part.trim()).filter(Boolean);
@@ -625,6 +632,228 @@ function extractCarDetails(body: string, location: string | null): string | null
   return parts.length ? parts.join('\n') : null;
 }
 
+// ─── Title construction ───────────────────────────────────────────────────────
+
+/**
+ * Extract a venue/activity name directly from the email body, independent of
+ * the subject line. Returns the most specific name found, or null. Patterns
+ * are intentionally conservative — when in doubt, return null and let the
+ * caller fall back to provider name / cleaned subject.
+ */
+function extractVenueName(body: string): string | null {
+  // "reservation/prenotazione/booking for/per/pour/para/de "X" below/..."
+  const namedReservation = body.match(
+    /(?:reservation|prenotazione|booking)\s+(?:for|per|pour|para|de)\s+["“”']{0,2}([^\n"”“']{4,120}?)["“”']{0,2}\s+(?:below|di seguito|ci-dessous|a continuación)/i,
+  );
+  if (namedReservation) return cleanVenueName(namedReservation[1]);
+
+  // Italian: "La tua prenotazione per La Pelosa è stata confermata."
+  const itPrenotazione = body.match(
+    /la\s+tua\s+prenotazione\s+per\s+([A-ZÀ-Ý][\p{L}'’.\s-]{2,60}?)(?:\s+è\s+stata|\s+e'\s+stata|\.\s)/iu,
+  );
+  if (itPrenotazione) return cleanVenueName(itPrenotazione[1]);
+
+  // Activity leading name before a date:
+  //   "Walking tour on Sunday, September 20, 2026 ..."
+  //   "Excursión en barco para martes, 22 de septiembre de 2026 ..."
+  //   "Table for 2 on Tuesday, September 22, 2026 ..."  (skip — restaurant)
+  // Name class excludes newlines so we don't capture boilerplate on a prior line.
+  const activityOnDate = body.match(
+    /([A-ZÀ-Ý][\p{L}'’.& -]{3,80}?)\s+(?:on|para|el|le|il|am|em)\s+(?:[\p{L}]+,?\s+)?(?:\d{1,2}\s+(?:de\s+)?[\p{L}.]+\s+(?:de\s+)?\d{4}|[\p{L}.]+\s+\d{1,2},?\s+\d{4})/iu,
+  );
+  if (activityOnDate) {
+    const name = cleanVenueName(activityOnDate[1]);
+    // Skip restaurant "Table for N" / "Mesa para N" / "Tavolo per N" — those
+    // are not venue names; the restaurant's provider/subject handles the title.
+    if (name && !/\b(?:table|mesa|tavolo)\b/i.test(name)) return name;
+  }
+
+  // Standalone tour/activity name on its own line, immediately followed by a
+  // "Date:" line. e.g.:
+  //   "Tokyo Night Food Tour\nDate: December 12, 2027 at 7:00 PM"
+  const standaloneTour = body.match(
+    /\n\s*([A-ZÀ-Ý][\p{L}'’.& -]{3,80}?)\s*\n\s*(?:date|fecha|data|datum)\s*[:\n]/iu,
+  );
+  if (standaloneTour) return cleanVenueName(standaloneTour[1]);
+
+  return null;
+}
+
+/** Trim, collapse internal whitespace, strip a trailing connector word. */
+function cleanVenueName(raw: string): string {
+  return raw
+    .replace(/\s+/g, ' ')
+    .replace(/\s+(?:at|@|on|for|with|-|–|—)\s*$/i, '')
+    .trim();
+}
+
+/**
+ * Last-resort subject fallback: strip forwarding prefixes, bracketed prefixes,
+ * and common boilerplate so a generic subject like "Dinner reservation
+ * confirmed" becomes "Dinner". If everything is stripped, return the original
+ * (stripped of forwarding prefixes only) so we never produce an empty title.
+ */
+function cleanSubjectForTitle(subject: string): string {
+  // 1. Strip leading Fwd:/Re:
+  let s = subject.replace(/^(?:fwd?:|re:)\s*/i, '').trim();
+
+  // 2. Strip a leading bracketed prefix "[Restaurant Les Armures] ..."
+  const bracketed = s.match(/^\[[^\]]+\]\s*(.+)$/);
+  if (bracketed) s = bracketed[1].trim();
+
+  // Remember this as the safe fallback before boilerplate stripping.
+  const fallback = s;
+
+  // 3. Remove boilerplate tokens/phrases (case-insensitive).
+  const boilerplate = [
+    /\breservation\s+confirmed\b/gi,
+    /\bbooking\s+confirmed\b/gi,
+    /\bappointment\s+confirmed\b/gi,
+    /\bdinner\s+reservation\s+confirmed\b/gi,
+    /\bactivity\s+reservation\s+confirmed\b/gi,
+    /\bis\s+confirmed\b/gi,
+    /\bconfirmed\b/gi,
+    /\bconfirmation\b/gi,
+    /\byour\s+appointment\s+information\b/gi,
+    /\bconferma\s+prenotazione\s+spiaggia\s+n\.?\s*\d+\b/gi,
+    /\bconferma\s+prenotazione\b/gi,
+    /\bconfirmaci[óo]n\s+de\s+actividad\b/gi,
+    /\bconfirmaci[óo]n\b/gi,
+    /\bzug\s+reservierung\b/gi,
+    /\bbest[äa]tigt\b/gi,
+    /\breservierung\b/gi,
+    /\bprenotazione\b/gi,
+    /\breservation\b/gi,
+    /\bbooking\b/gi,
+  ];
+  for (const re of boilerplate) s = s.replace(re, '');
+
+  // 4. Collapse whitespace, strip leftover punctuation/connector words.
+  s = s
+    .replace(/\s+/g, ' ')
+    .replace(/\s*[-–—:|]\s*$/g, '')
+    .replace(/^\s*[-–—:|]\s*/g, '')
+    .replace(/\s+(?:at|@|on|for|with|of)\s*$/i, '')
+    .trim();
+
+  return s.length >= 3 ? s : fallback;
+}
+
+/** Extract a rail route ({from, to}) from labeled departure/arrival lines. */
+function extractRailRoute(body: string): { from: string | null; to: string | null } {
+  const fromMatch = body.match(/(?:abfahrt|from|origen|d[ée]part|partenza|abfahrt)\s*[:\n]\s*([^\n]{3,60})/i);
+  const toMatch = body.match(/(?:ankunft|to|destino|arriv[ée]e|arrivo)\s*[:\n]\s*([^\n]{3,60})/i);
+  const clean = (s: string | null) => s?.replace(/\s+/g, ' ').replace(/\b(?:Hauptbahnhof|Hbf|Station|Stazione|Estaci[óo]n|Gare)\b/gi, '').replace(/[,.\s]+$/g, '').trim() || null;
+  return { from: clean(fromMatch?.[1] ?? null), to: clean(toMatch?.[1] ?? null) };
+}
+
+/** Title-case a single city name (only the car type uses this). */
+function titleCaseCity(city: string): string {
+  return city
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
+ * Build a human-friendly event title from the structured fields already
+ * extracted by the parser. Falls back to a cleaned subject line when no
+ * structured name is available. Format is `Provider (City)` per type.
+ */
+function buildTitle(args: {
+  type: ReservationType;
+  subject: string;
+  body: string;
+  providerName: string | null;
+  venueName: string | null;
+  destinationCity: string | null;
+  destinationCountry: string | null;
+  airlineCode: string | null;
+  flightNumber: string | null;
+  departureAirport: string | null;
+  arrivalAirport: string | null;
+}): string {
+  const {
+    type, subject, body, providerName, venueName,
+    destinationCity, destinationCountry,
+    airlineCode, flightNumber, departureAirport, arrivalAirport,
+  } = args;
+
+  /** Append " (City)" when the city is meaningful and not redundant. */
+  const withCity = (name: string): string => {
+    if (!destinationCity) return name;
+    const city = destinationCity.trim();
+    if (!city) return name;
+    // Omit when city equals the country (defends against residual bugs).
+    if (destinationCountry && city.toLowerCase() === destinationCountry.toLowerCase()) return name;
+    // Omit when city equals the name (e.g. "Capichera (Capichera)").
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (norm(city) === norm(name)) return name;
+    return `${name} (${city})`;
+  };
+
+  switch (type) {
+    case 'flight': {
+      if (departureAirport && arrivalAirport) {
+        const route = `${departureAirport} → ${arrivalAirport}`;
+        if (airlineCode && flightNumber) return `${airlineCode}${flightNumber}: ${route}`;
+        return route;
+      }
+      if (airlineCode && flightNumber) return `${airlineCode}${flightNumber}`;
+      return cleanSubjectForTitle(subject);
+    }
+
+    case 'car': {
+      if (destinationCity) return `${titleCaseCity(destinationCity)} Car Rental`;
+      return cleanSubjectForTitle(subject);
+    }
+
+    case 'rail': {
+      const { from, to } = extractRailRoute(body);
+      if (from && to) return `Train: ${from} → ${to}`;
+      if (providerName) return withCity(`Rail: ${providerName}`);
+      return cleanSubjectForTitle(subject);
+    }
+
+    case 'hotel': {
+      if (providerName) return withCity(providerName);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+
+    case 'restaurant': {
+      const name = providerName || venueName;
+      if (name) return withCity(name);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+
+    case 'activity': {
+      const name = venueName || providerName;
+      if (name) return withCity(name);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+
+    case 'cruise': {
+      const name = providerName ? `Cruise: ${providerName}` : null;
+      if (name) return withCity(name);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+
+    case 'transport': {
+      const name = providerName ? `Transport: ${providerName}` : null;
+      if (name) return withCity(name);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+
+    case 'other': {
+      const name = providerName || venueName;
+      if (name) return withCity(name);
+      return withCity(cleanSubjectForTitle(subject));
+    }
+  }
+
+  return cleanSubjectForTitle(subject);
+}
+
 // ─── Main parser ──────────────────────────────────────────────────────────────
 
 /**
@@ -667,11 +896,6 @@ export function parseConfirmationEmail(opts: {
   let flightNumber: string | null = null;
   let departureAirport: string | null = null;
   let arrivalAirport: string | null = null;
-  let title = subject.replace(/^(fwd?:|re:)\s*/i, '').trim();
-  const subjectVenue = title.match(/(?:reservation|booking)\s+(?:at|with|for)\s+(.+)$/i);
-  if (subjectVenue) title = subjectVenue[1].trim();
-  const namedReservation = body.match(/(?:reservation|prenotazione|booking)\s+(?:for|per|pour|para|de)\s+["“”']{0,2}([^\n"]{4,120}?)["“”']{0,2}\s+(?:below|di seguito|ci-dessous|a continuación)/i);
-  if (namedReservation) title = namedReservation[1].trim();
 
   if (type === 'flight') {
     const fd = extractFlightDetails(body, subject);
@@ -679,14 +903,24 @@ export function parseConfirmationEmail(opts: {
     flightNumber = fd.flightNumber;
     departureAirport = fd.departureAirport;
     arrivalAirport = fd.arrivalAirport;
-    if (departureAirport && arrivalAirport) {
-      title = `${departureAirport} → ${arrivalAirport}`;
-    }
   }
 
-  if (type === 'car' && destinationCity) {
-    title = `${destinationCity} car rental` + (confirmationNumber ? ` (${confirmationNumber})` : '');
-  }
+  const venueName = extractVenueName(body);
+
+  const title = buildTitle({
+    type,
+    subject,
+    body,
+    providerName,
+    venueName,
+    destinationCity,
+    destinationCountry,
+    airlineCode,
+    flightNumber,
+    departureAirport,
+    arrivalAirport,
+  });
+  console.log('[email-parser] Title:', title);
 
   const notes = type === 'car' ? extractCarDetails(body, location) : null;
   console.log('[email-parser] Notes:', notes);

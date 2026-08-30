@@ -39,7 +39,7 @@ export default function Header({
 
   return (
     <AppBar
-      position="relative"
+      position="sticky"
       color="inherit"
       elevation={0}
       sx={{
@@ -47,6 +47,7 @@ export default function Header({
         color: 'text.primary',
         boxShadow: 'none',
         borderBottom: 'none',
+        top: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >

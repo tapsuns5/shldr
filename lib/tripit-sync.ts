@@ -107,6 +107,27 @@ function parseFlightSummary(summary: string): {
   };
 }
 
+/**
+ * Extract a confirmation/booking number from a TripIt description block.
+ * Handles common label variants and allows hyphens in the value.
+ * Returns the matched value (uppercased) or null.
+ */
+function extractConfirmationNumber(text: string): string | null {
+  const patterns = [
+    // "Confirmation ABCDEF", "Confirmation #ABC-123", "Confirmation Number: ABCDEF"
+    /(?:confirmation|conf\.?(?:irmation)?|conf#?)\s*(?:number|no\.?|#|nº|n°|code)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]{3,19})/i,
+    // Airline-specific: "Record Locator: ABCDEF", "PNR: ABCDEF"
+    /(?:record\s+locator|pnr)\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]{3,19})/i,
+    // "Booking Reference: ABCDEF", "Booking #: ABCDEF", "Booking ABCDEF"
+    /(?:booking|reservation)\s*(?:number|no\.?|#|reference|ref\.?)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]{3,19})/i,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return m[1].toUpperCase();
+  }
+  return null;
+}
+
 function parseSegmentDescription(description: string, type: string, summary: string): ParsedSegmentMeta {
   const meta: ParsedSegmentMeta = {};
 
@@ -117,6 +138,9 @@ function parseSegmentDescription(description: string, type: string, summary: str
     .replace(/^\s*\n/gm, '')
     .trim();
 
+  // Extract confirmation number for all segment types
+  meta.confirmationNumber = extractConfirmationNumber(clean) ?? undefined;
+
   if (type === 'flight') {
     // Parse structured fields from summary line
     const flightParsed = parseFlightSummary(summary);
@@ -126,10 +150,6 @@ function parseSegmentDescription(description: string, type: string, summary: str
       meta.departureAirport = flightParsed.departureAirport;
       meta.arrivalAirport = flightParsed.arrivalAirport;
     }
-
-    // Confirmation number: look for "Confirmation ABCDEF"
-    const confMatch = clean.match(/(?:Confirmation|Conf#?)\s+([A-Z0-9]{4,10})/i);
-    if (confMatch) meta.confirmationNumber = confMatch[1];
 
     // Airline full name from a line like "Lufthansa 463, Terminal 2" or "NK 859, Terminal 4"
     const airlineLineMatch = clean.match(/^([A-Za-z][A-Za-z ]{1,30})\s+\d{1,4}\s*,/m);
@@ -164,16 +184,13 @@ function parseSegmentDescription(description: string, type: string, summary: str
     }
 
   } else if (type === 'hotel') {
-    const confMatch = clean.match(/(?:Confirmation|Conf#?)\s+([A-Z0-9]{4,12})/i);
-    if (confMatch) meta.confirmationNumber = confMatch[1];
-
     // Address: lines after Check-In time
     const lines = clean.split('\n').map(l => l.trim()).filter(Boolean);
     const addrLines = lines.filter(l =>
       !/^\[/.test(l) &&
       !/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),/.test(l) &&
       !/^(Check-?in|Check-?out)/i.test(l) &&
-      !/^Confirmation/i.test(l) &&
+      !/^(Confirmation|Conf#?|Record\s+Locator|PNR|Booking)/i.test(l) &&
       !/^\d{1,2}:\d{2}/.test(l)
     );
     if (addrLines.length) meta.address = addrLines.slice(0, 3).join(', ');
@@ -183,16 +200,14 @@ function parseSegmentDescription(description: string, type: string, summary: str
     if (meta.address) meta.notes = (meta.notes ? meta.notes + '\n' : '') + meta.address;
 
   } else if (type === 'car') {
-    const confMatch = clean.match(/(?:Confirmation|Conf#?|Booking)\s+([A-Z0-9]{4,12})/i);
-    if (confMatch) meta.confirmationNumber = confMatch[1];
-
     const vendorMatch = clean.match(/(?:Pick Up|Drop Off)\s+(.+?)\s+Car Rental/i);
     if (vendorMatch) meta.providerName = vendorMatch[1].trim();
 
     const infoLines = clean
       .split('\n')
       .map(l => l.trim())
-      .filter(l => l && !/^\[/.test(l) && !/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),/.test(l))
+      .filter(l => l && !/^\[/.test(l) && !/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),/.test(l)
+        && !/^(Confirmation|Conf#?|Record\s+Locator|PNR|Booking)\b/i.test(l))
       .slice(0, 5);
     if (infoLines.length) meta.notes = infoLines.join('\n');
 
@@ -201,7 +216,8 @@ function parseSegmentDescription(description: string, type: string, summary: str
     const infoLines = clean
       .split('\n')
       .map(l => l.trim())
-      .filter(l => l && !/^\[/.test(l) && !/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),/.test(l))
+      .filter(l => l && !/^\[/.test(l) && !/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),/.test(l)
+        && !/^(Confirmation|Conf#?|Record\s+Locator|PNR|Booking)\b/i.test(l))
       .slice(0, 4);
     if (infoLines.length) meta.notes = infoLines.join('\n');
   }

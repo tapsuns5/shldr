@@ -9,6 +9,7 @@ import {
   CardContent,
   Avatar,
   Stack,
+  Chip,
   Button,
   IconButton,
   Menu,
@@ -327,23 +328,18 @@ export default function TripCards({ loading, error, trips, onTripClick, onTripDe
                   {trip.date} · {trip.duration}
                 </Typography>
 
-                {/* Destinations — plain text with icon, not chips */}
+                {/* Destinations — outlined chips with location icon */}
                 {trip.destinations.length > 0 && (
-                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mt: 1 }}>
                     {trip.destinations.map((dest, idx) => (
-                      <Typography
+                      <Chip
                         key={idx}
-                        sx={{
-                          color: 'text.secondary',
-                          fontSize: '0.8125rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <LocationIcon sx={{ fontSize: '0.9rem' }} />
-                        {dest.location}
-                      </Typography>
+                        size="small"
+                        icon={<LocationIcon sx={{ fontSize: '1rem' }} />}
+                        label={dest.location}
+                        variant="outlined"
+                        sx={{ maxWidth: '100%', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }}
+                      />
                     ))}
                   </Stack>
                 )}

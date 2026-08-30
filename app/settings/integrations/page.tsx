@@ -95,7 +95,8 @@ export default function IntegrationsPage() {
                   TripIt
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Sync your trips and reservations automatically.
+                  Sync your trips and reservations automatically. Confirmation numbers are not
+                  available via TripIt&apos;s calendar feed.
                 </Typography>
               </Box>
             </Stack>

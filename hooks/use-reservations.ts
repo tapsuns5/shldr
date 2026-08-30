@@ -110,7 +110,7 @@ export interface APIReservationDetails {
   };
 }
 
-export type DetailLine = { text: string; address?: string };
+export type DetailLine = { text: string; address?: string; copyValue?: string };
 
 export function getReservationDetailLines(reservation: APIReservation): DetailLine[] {
   const details = reservation.details;
@@ -123,7 +123,9 @@ export function getReservationDetailLines(reservation: APIReservation): DetailLi
         // Manually entered flight — build structured lines
         lines.push({ text: `Flight Number ${f.airline} ${f.flightNumber}` });
         lines.push({ text: `${f.departureAirport} → ${f.arrivalAirport}` });
-        if (reservation.confirmationNumber) lines.push({ text: `Confirmation ${reservation.confirmationNumber}` });
+        if (reservation.confirmationNumber) {
+          lines.push({ text: `Confirmation: ${reservation.confirmationNumber}`, copyValue: reservation.confirmationNumber });
+        }
         if (f.departureTerminal) {
           lines.push({ text: `Terminal ${f.departureTerminal}${f.departureGate ? `, Gate ${f.departureGate}` : ''}` });
         }
@@ -138,6 +140,10 @@ export function getReservationDetailLines(reservation: APIReservation): DetailLi
             .join('\n')
             .trim(),
         });
+        // Add confirmation number as a clickable copyable line if present and not already in notes
+        if (reservation.confirmationNumber && !reservation.notes.includes(reservation.confirmationNumber)) {
+          lines.push({ text: `Confirmation: ${reservation.confirmationNumber}`, copyValue: reservation.confirmationNumber });
+        }
       }
       break;
     }

@@ -236,6 +236,15 @@ export default function TripItConnectDialog({
             </Box>
           )}
 
+          <Alert severity="info" icon={false} sx={{ '& .MuiAlert-message': { width: '100%' } }}>
+            <Typography variant="caption" color="text.secondary" component="div">
+              <strong>Note:</strong> TripIt&apos;s iCal feed is designed for calendar display and does
+              not include confirmation numbers, record locators, or PNRs. Synced reservations will
+              have flight numbers, times, airports, and gates — but confirmation numbers must be
+              added manually.
+            </Typography>
+          </Alert>
+
           <TextField
             label="TripIt iCal URL"
             placeholder="https://www.tripit.com/feed/ical/private/.../tripit.ics"

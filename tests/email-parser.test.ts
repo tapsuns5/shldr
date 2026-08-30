@@ -39,6 +39,7 @@ async function assertFixture(
     destinationCity?: string;
     destinationCountry?: string;
     hasTime?: boolean;
+    title?: string;
   },
 ) {
   const event = await parseFixture(fileName);
@@ -48,6 +49,7 @@ async function assertFixture(
   if (expected.destinationCity) assert.equal(event.destinationCity, expected.destinationCity, `${fileName}: destinationCity mismatch`);
   if (expected.destinationCountry) assert.equal(event.destinationCountry, expected.destinationCountry, `${fileName}: destinationCountry mismatch`);
   if (expected.hasTime !== undefined) assert.equal(event.hasTime, expected.hasTime, `${fileName}: hasTime mismatch`);
+  if (expected.title !== undefined) assert.equal(event.title, expected.title, `${fileName}: title mismatch`);
 }
 
 async function run() {
@@ -56,6 +58,7 @@ async function run() {
     confirmationNumber: '21803',
     date: { year: 2026, month: 9, day: 22, hour: 19, minute: 30 },
     destinationCity: 'San Pantaleo',
+    title: 'Casa Bohème Bistro (San Pantaleo)',
   });
 
   await assertFixture('spanish-activity-reservation.eml', {
@@ -63,12 +66,14 @@ async function run() {
     confirmationNumber: 'ABC123',
     date: { year: 2026, month: 9, day: 22, hour: 19, minute: 30 },
     destinationCity: 'Madrid',
+    title: 'Excursión en barco (Madrid)',
   });
 
   await assertFixture('german-rail-reservation.eml', {
     type: 'rail',
     confirmationNumber: 'DE1234',
     date: { year: 2026, month: 9, day: 22, hour: 8, minute: 45 },
+    title: 'Train: Berlin → München',
   });
 
   await assertFixture('Your car rental ticket 054716.eml', {
@@ -76,18 +81,19 @@ async function run() {
     confirmationNumber: '054716',
     date: { year: 2026, month: 9, day: 16, hour: 18, minute: 0 },
     destinationCity: 'Olbia',
+    title: 'Olbia Car Rental',
   });
 
   const sardiniaActivity = await parseFixture('Reservation confirmation.eml');
   assert.equal(sardiniaActivity.type, 'activity');
-  assert.equal(sardiniaActivity.title, 'TOUR CONDIVISO ARCIPELAGO DELLA MADDALENA CON 7 SOSTE');
+  assert.equal(sardiniaActivity.title, 'TOUR CONDIVISO ARCIPELAGO DELLA MADDALENA CON 7 SOSTE (Palau)');
   assert.equal(sardiniaActivity.providerName, 'Blue Island Sardinia');
   assert.equal(sardiniaActivity.destinationCity, 'Palau');
   assertLocalDate(sardiniaActivity, { year: 2026, month: 9, day: 21, hour: 10, minute: 0 });
 
   const luStazzu = await parseFixture('🍴Your reservation at Ristorante Lu Stazzu.eml');
   assert.equal(luStazzu.type, 'restaurant');
-  assert.equal(luStazzu.title, 'Ristorante Lu Stazzu');
+  assert.equal(luStazzu.title, 'Ristorante Lu Stazzu (OLBIA)');
   assert.equal(luStazzu.providerName, 'Ristorante Lu Stazzu');
   assert.equal(luStazzu.destinationCity, 'OLBIA');
   assert.equal(luStazzu.destinationCountry, 'Italy');
@@ -109,6 +115,7 @@ async function run() {
     destinationCity: 'Genève',
     destinationCountry: 'Switzerland',
     hasTime: true,
+    title: 'Auberge de Savièse (Genève)',
   });
 
   // La Pelosa beach reservation (Sardinia) — no time in email
@@ -118,6 +125,7 @@ async function run() {
     date: { year: 2026, month: 9, day: 19, hour: 0, minute: 0 },
     destinationCountry: 'Italy',
     hasTime: false,
+    title: 'La Pelosa',
   });
 
   // Capichera wine tasting (Sardinia) — Italian "in data ... alle 15:00"
@@ -127,6 +135,7 @@ async function run() {
     date: { year: 2026, month: 9, day: 23, hour: 15, minute: 0 },
     destinationCountry: 'Italy',
     hasTime: true,
+    title: 'Capichera',
   });
 
   // Restaurant Les Armures (Geneva) — "Friday 25 September 2026 at 7:30 PM"
@@ -137,6 +146,20 @@ async function run() {
     destinationCity: 'Genève',
     destinationCountry: 'Switzerland',
     hasTime: true,
+    title: 'Restaurant Les Armures (Genève)',
+  });
+
+  // Tokyo food tour — exercises the city-extraction fix (postal code
+  // 160-0021 must not yield "Japan" as the city) and standalone tour-name
+  // venue extraction.
+  await assertFixture('unassigned-tokyo-activity.eml', {
+    type: 'activity',
+    confirmationNumber: 'TOKYO-2027',
+    date: { year: 2027, month: 12, day: 12, hour: 19, minute: 0 },
+    destinationCity: 'Tokyo',
+    destinationCountry: 'Japan',
+    hasTime: true,
+    title: 'Tokyo Night Food Tour (Tokyo)',
   });
 
   console.log('Email parser fixtures passed');

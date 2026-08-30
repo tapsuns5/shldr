@@ -21,6 +21,7 @@ import { MapProvider, useTravelMap } from './MapProvider';
 import { useTravelMapData, usePersistWishlistVisits, type MapPin, type MapPinTrip, type WishlistDestination } from '@/hooks/useTravelMapData';
 import { useTravelStats } from '@/hooks/useTravelStats';
 import { type FlightRoute } from '@/lib/map/arcRoutes';
+import { cn } from '@/lib/utils';
 
 const MAP_STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/liberty';
 const MAP_STYLE_DARK = 'https://tiles.openfreemap.org/styles/dark';
@@ -563,8 +564,9 @@ function TravelMapInner({ accountId, darkMode = false, mini = false }: TravelMap
         zoom={mini ? 1.2 : 1.8}
         styles={mapStyles}
         theme={darkMode ? 'dark' : 'light'}
-        className="w-full h-full"
+        className={cn("w-full h-full", mini && "[&_.maplibregl-canvas]:!touch-pan-y")}
         cooperativeGestures={mini}
+        touchZoomRotate={!mini}
       >
         {showCountries && (
           <CountryHighlight

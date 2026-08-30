@@ -292,9 +292,6 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
           <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 1, fontSize: { xs: '1.5rem', md: '2.125rem' }, wordBreak: 'break-word' }}>
             {trip.title}
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 1, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-            {trip.location}
-          </Typography>
           {trip.destinations.length > 1 && (
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, mb: 2, justifyContent: 'flex-start', width: '100%', maxWidth: '100%', minWidth: 0 }}>
               {trip.destinations.map((dest, idx) => (
