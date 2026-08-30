@@ -141,6 +141,21 @@ async function geocodePlace(query: string): Promise<{ lat: number; lng: number }
   }
 }
 
+/**
+ * email_import reservations store wall-clock times as naive-UTC (e.g.
+ * "2026-09-19T00:00:00.000Z" means 00:00 local, not midnight UTC).  The
+ * client renders map dates with plain `dayjs()`, which would shift those
+ * timestamps across day boundaries in non-UTC timezones.  Strip the
+ * timezone so the client interprets the value as local wall-clock time —
+ * mirroring `reservationDayjs()` in hooks/use-reservations.ts.
+ */
+function toMapDate(reservation: { source?: string | null }, value: string | Date): string {
+  if (reservation.source === 'email_import') {
+    return dayjs.utc(value).format('YYYY-MM-DDTHH:mm:ss');
+  }
+  return value instanceof Date ? value.toISOString() : value;
+}
+
 function parseFlightAirports(reservation: {
   title: string;
   location?: string | null;
@@ -215,7 +230,7 @@ export async function GET(request: NextRequest) {
           if (from) {
             locations.push({
               reservationId: reservation.id,
-              date: reservation.startDateTime,
+              date: toMapDate(reservation, reservation.startDateTime),
               title: `Depart ${dep}`,
               type: 'flight',
               ...from,
@@ -227,7 +242,7 @@ export async function GET(request: NextRequest) {
             const arrDate = reservation.endDateTime || startDayjs.add(2, 'hour').toISOString();
             locations.push({
               reservationId: reservation.id,
-              date: arrDate,
+              date: toMapDate(reservation, arrDate),
               title: `Arrive ${arr}`,
               type: 'flight',
               ...to,
@@ -239,7 +254,7 @@ export async function GET(request: NextRequest) {
               from,
               to,
               title: reservation.title,
-              date: reservation.startDateTime,
+              date: toMapDate(reservation, reservation.startDateTime),
               source: reservation.source,
               dep,
               arr,
@@ -260,7 +275,7 @@ export async function GET(request: NextRequest) {
               reservationId: reservation.id,
               type: reservation.type,
               title: reservation.title,
-              date: reservation.startDateTime,
+              date: toMapDate(reservation, reservation.startDateTime),
               from,
               to,
             });
@@ -278,7 +293,7 @@ export async function GET(request: NextRequest) {
       if (!coords) continue;
       locations.push({
         reservationId: reservation.id,
-        date: reservation.startDateTime,
+        date: toMapDate(reservation, reservation.startDateTime),
         title: reservation.title,
         type: reservation.type,
         ...coords,

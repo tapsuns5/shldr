@@ -11,6 +11,7 @@ import { apiClient } from '@/lib/api-client';
 import { BottomSheet } from './BottomSheet';
 import { ShldrLogo } from './ShldrLogo';
 import { SolarIcon } from './SolarIcon';
+import * as haptics from '@/lib/haptics';
 
 type Notification = {
   id: string;
@@ -36,7 +37,7 @@ function timeAgo(value: string) {
 function SheetBack({ onPress, title }: { onPress: () => void; title: string }) {
   const theme = useTheme();
   return (
-    <Pressable style={styles.sheetBack} onPress={onPress}>
+    <Pressable style={styles.sheetBack} onPress={() => { haptics.selection(); onPress(); }}>
       <SolarIcon name="arrow-left-line-duotone" size={22} color={theme.colors.onSurface} />
       <Text variant="titleMedium">{title}</Text>
     </Pressable>
@@ -144,6 +145,7 @@ export function AppHeader() {
 
   const handleNotificationPress = async (notification: Notification) => {
     if (!notification.read) await markRead(notification.id);
+    haptics.selection();
     setNotificationsOpen(false);
     if (notification.link) router.push(notification.link as never);
     else if (notification.tripId) router.push(`/trips/${notification.tripId}`);
@@ -162,7 +164,7 @@ export function AppHeader() {
           <>
             <IconButton
               icon={() => <SolarIcon name="user-line-duotone" size={25} color={theme.colors.onSurface} />}
-              onPress={() => { setSheetSection('menu'); setAccountOpen(true); }}
+              onPress={() => { haptics.selection(); setSheetSection('menu'); setAccountOpen(true); }}
               accessibilityLabel="Account"
             />
             <ShldrLogo height={28} />
@@ -171,6 +173,7 @@ export function AppHeader() {
                 <IconButton
                   icon={() => <SolarIcon name="bell-line-duotone" size={25} color={theme.colors.onSurface} />}
                   onPress={() => {
+                    haptics.selection();
                     setNotificationsOpen(true);
                     loadNotifications();
                   }}
@@ -186,7 +189,7 @@ export function AppHeader() {
           <>
             <IconButton
               icon={() => <SolarIcon name="arrow-left-line-duotone" size={28} color={isTripDetail ? '#ffffff' : theme.colors.onSurface} />}
-              onPress={() => router.back()}
+              onPress={() => { haptics.selection(); router.back(); }}
               accessibilityLabel="Back"
               style={isTripDetail ? [styles.tripDetailBackButton, { top: insets.top + 6, left: 8 }] : undefined}
             />
@@ -194,7 +197,7 @@ export function AppHeader() {
             {isSettingsRoute ? (
               <IconButton
                 icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
-                onPress={handleLogout}
+                onPress={() => { haptics.selection(); handleLogout(); }}
                 accessibilityLabel="Log out"
               />
             ) : (
@@ -212,7 +215,7 @@ export function AppHeader() {
                     <Text variant="headlineSmall" style={styles.sheetTitle}>Account</Text>
                     <IconButton
                       icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
-                      onPress={handleLogout}
+                      onPress={() => { haptics.selection(); handleLogout(); }}
                       accessibilityLabel="Log out"
                     />
                   </View>
@@ -221,7 +224,7 @@ export function AppHeader() {
             <Divider style={styles.divider} />
             <Pressable
               style={styles.sheetRow}
-              onPress={() => setSheetSection('account')}
+              onPress={() => { haptics.selection(); setSheetSection('account'); }}
             >
               <SolarIcon name="user-line-duotone" size={22} color={theme.colors.primary} />
               <Text variant="titleMedium">Account settings</Text>
@@ -229,13 +232,13 @@ export function AppHeader() {
             </Pressable>
             <Divider style={styles.divider} />
             <Text variant="labelLarge" style={styles.sectionLabel}>Integrations</Text>
-            <Pressable style={styles.sheetRow} onPress={() => setSheetSection('integrations')}>
+            <Pressable style={styles.sheetRow} onPress={() => { haptics.selection(); setSheetSection('integrations'); }}>
               <SolarIcon name="link-line-duotone" size={22} color={theme.colors.primary} />
               <Text variant="titleMedium">Gmail and TripIt</Text>
               <SolarIcon name="alt-arrow-right-line-duotone" size={20} color={theme.colors.onSurfaceVariant} />
             </Pressable>
             <Text variant="labelLarge" style={styles.sectionLabel}>Preferences</Text>
-            <Pressable style={styles.sheetRow} onPress={() => setSheetSection('preferences')}>
+            <Pressable style={styles.sheetRow} onPress={() => { haptics.selection(); setSheetSection('preferences'); }}>
               <SolarIcon name="settings-bold-duotone" size={22} color={theme.colors.primary} />
               <Text variant="titleMedium">Appearance</Text>
               <SolarIcon name="alt-arrow-right-line-duotone" size={20} color={theme.colors.onSurfaceVariant} />
@@ -244,13 +247,13 @@ export function AppHeader() {
               ) : sheetSection === 'account' ? (
                 <>
                   <View style={styles.sheetHeaderRow}>
-                    <Pressable style={styles.sheetBack} onPress={() => setSheetSection('menu')}>
+                    <Pressable style={styles.sheetBack} onPress={() => { haptics.selection(); setSheetSection('menu'); }}>
                       <SolarIcon name="arrow-left-line-duotone" size={22} color={theme.colors.onSurface} />
                       <Text variant="titleMedium">Account</Text>
                     </Pressable>
                     <IconButton
                       icon={() => <SolarIcon name="logout-2-line-duotone" size={25} color={theme.colors.onSurface} />}
-                      onPress={handleLogout}
+                      onPress={() => { haptics.selection(); handleLogout(); }}
                       accessibilityLabel="Log out"
                     />
                   </View>
@@ -284,10 +287,10 @@ export function AppHeader() {
           >
             <View style={styles.popoverHeader}>
               <Text variant="titleLarge" style={styles.sheetTitle}>Notifications{notificationData.unreadCount ? ` (${notificationData.unreadCount})` : ''}</Text>
-              <IconButton icon={() => <SolarIcon name="close-circle-line-duotone" size={22} color={theme.colors.onSurfaceVariant} />} onPress={() => setNotificationsOpen(false)} />
+              <IconButton icon={() => <SolarIcon name="close-circle-line-duotone" size={22} color={theme.colors.onSurfaceVariant} />} onPress={() => { haptics.selection(); setNotificationsOpen(false); }} />
             </View>
             {notificationData.unreadCount > 0 && (
-              <Pressable onPress={async () => { await apiClient.post('/api/notifications/mark-all-read', {}); setNotificationData((current) => ({ ...current, unreadCount: 0, notifications: current.notifications.map((item) => ({ ...item, read: true })) })); }}>
+              <Pressable onPress={async () => { haptics.selection(); await apiClient.post('/api/notifications/mark-all-read', {}); setNotificationData((current) => ({ ...current, unreadCount: 0, notifications: current.notifications.map((item) => ({ ...item, read: true })) })); }}>
                 <Text style={[styles.markAll, { color: theme.colors.primary }]}>Mark all read</Text>
               </Pressable>
             )}

@@ -9,6 +9,7 @@ import { useSession } from '@/lib/auth-client';
 import { useAccounts } from '@/hooks/use-accounts';
 import { useRegisterPushToken } from '@/hooks/use-register-push-token';
 import { AppHeader } from '@/components/AppHeader';
+import * as haptics from '@/lib/haptics';
 
 type TabRoute = { key: string; name: string; params?: object };
 type TabBarProps = {
@@ -44,6 +45,7 @@ function BottomTabBar({ state, navigation }: TabBarProps) {
   const selectTab = useCallback((index: number) => {
     const route = visibleRoutes[index];
     if (!route || route.key === state.routes[state.index]?.key) return;
+    haptics.selection();
     const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
     if (!event.defaultPrevented) navigation.navigate(route.name, route.params);
   }, [navigation, state.index, state.routes, visibleRoutes]);

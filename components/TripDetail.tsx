@@ -424,10 +424,25 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                   position: 'sticky',
                   top: 0,
                   zIndex: 10,
-                  borderBottom: 1,
+                  border: 1,
                   borderColor: 'divider',
+                  borderRadius: 2,
                 }}
               >
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    pl: 2,
+                    pr: 1,
+                    minWidth: 64,
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    Day {dayIdx + 1}
+                  </Typography>
+                </Box>
                 <Box sx={{ width: TIME_WIDTH, flexShrink: 0 }} />
                 <Box sx={{ width: SUBWAY_WIDTH, flexShrink: 0 }} />
                 <Box

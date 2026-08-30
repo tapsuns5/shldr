@@ -16,6 +16,7 @@ import { ReservationRow } from '@/components/ReservationRow';
 import { PinBadge } from '@/components/map/PinBadge';
 import { boundsFromPoints } from '@/lib/map-bounds';
 import { useColorMode } from '@/lib/color-mode';
+import * as haptics from '@/lib/haptics';
 
 const ROUTE_COLORS: Record<string, string> = {
   flight: '#2563eb', hotel: '#7c3aed', lodging: '#7c3aed', car: '#d97706', rental: '#d97706',
@@ -173,17 +174,42 @@ export default function TripDetailScreen() {
   const dragStartY = useRef(compactTop);
   const lastY = useRef(compactTop);
   const currentSnap = useRef(compactTop);
+  const scrollOffset = useRef(0);
+  const scrollRef = useRef<ScrollView>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const snapSheet = useCallback((toValue: number) => {
     currentSnap.current = toValue;
+    const expanding = toValue === expandedTop;
+    setIsExpanded(expanding);
+    haptics.light();
+    // Reset scroll to top when collapsing so re-expanding starts fresh
+    if (!expanding) {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+      scrollOffset.current = 0;
+    }
     Animated.spring(sheetY, { toValue, useNativeDriver: false, stiffness: 300, damping: 30 }).start();
-  }, [sheetY]);
+  }, [sheetY, expandedTop]);
+
+  // Whether the sheet should capture a vertical drag.
+  // When compact, the ScrollView is disabled (scrollEnabled=false) so it won't grab the gesture.
+  // When expanded, only capture when content is at top (so ScrollView can scroll otherwise).
+  const shouldCaptureVertical = useCallback((_: any, gesture: any) => {
+    const isVertical = Math.abs(gesture.dy) > Math.abs(gesture.dx);
+    if (!isVertical) return false;
+    const isCompact = Math.abs(currentSnap.current - compactTop) < 1;
+    if (isCompact) return true;
+    // Expanded: only capture when scrolled to top
+    return scrollOffset.current <= 0;
+  }, [compactTop]);
 
   const sheetPan = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onStartShouldSetPanResponderCapture: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponderCapture: () => true,
+    // Let children (ScrollView, Pressables) receive the initial touch
+    onStartShouldSetPanResponder: () => false,
+    onStartShouldSetPanResponderCapture: () => false,
+    // Capture vertical drags only when the sheet should move (not when scrolling content)
+    onMoveShouldSetPanResponder: shouldCaptureVertical,
+    onMoveShouldSetPanResponderCapture: shouldCaptureVertical,
     onPanResponderGrant: () => {
       sheetY.stopAnimation((value) => {
         dragStartY.current = value;
@@ -197,15 +223,16 @@ export default function TripDetailScreen() {
     },
     onPanResponderRelease: (_, gesture) => {
       const position = lastY.current;
-      const mid = (compactTop + expandedTop) / 2;
-      // Fast swipe up → expand
-      if (gesture.vy < -0.5) { snapSheet(expandedTop); return; }
+      // Bias the settle threshold toward expanding so a smaller upward drag is enough
+      const mid = compactTop - (compactTop - expandedTop) * 0.35;
+      // Fast swipe up → expand (lower threshold for easier triggering)
+      if (gesture.vy < -0.25) { snapSheet(expandedTop); return; }
       // Fast swipe down → compact
       if (gesture.vy > 0.5) { snapSheet(compactTop); return; }
-      // Settle to nearest
+      // Settle: expand once past 35% of the drag distance
       snapSheet(position < mid ? expandedTop : compactTop);
     },
-  }), [sheetY, compactTop, expandedTop, windowHeight, snapSheet]);
+  }), [sheetY, compactTop, expandedTop, windowHeight, snapSheet, shouldCaptureVertical]);
 
   if (tripLoading || !uiTrip) {
     return (
@@ -264,41 +291,52 @@ export default function TripDetailScreen() {
         </View>
       </View>
 
-      {/* Bottom sheet: itinerary */}
-      <Animated.View style={[styles.sheet, { top: sheetY, backgroundColor: theme.colors.surface }]}>
-        <View {...sheetPan.panHandlers} style={styles.sheetHandle}>
-          <View style={[styles.handleBar, { backgroundColor: theme.colors.outline }]} />
-        </View>
-        <View style={styles.sheetHeaderRow}>
-          <Text variant="titleLarge" style={styles.sheetTitle}>{uiTrip.title}</Text>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>{uiTrip.destinations.map((d) => d.location).join(' → ')}</Text>
-        </View>
+      {/* Bottom sheet: itinerary — entire sheet is draggable */}
+      <Animated.View style={[styles.sheet, { top: sheetY, backgroundColor: theme.colors.surface }]} {...sheetPan.panHandlers}>
+        {/* Header region (handle + title + day chips) */}
+        <View style={styles.sheetHeaderDrag}>
+          <View style={styles.sheetHandle}>
+            <View style={[styles.handleBar, { backgroundColor: theme.colors.outline }]} />
+          </View>
+          <View style={styles.sheetHeaderRow}>
+            <Text variant="titleLarge" style={styles.sheetTitle}>{uiTrip.title}</Text>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>{uiTrip.destinations.map((d) => d.location).join(' → ')}</Text>
+          </View>
 
-        {/* Day filter chips */}
-        <View style={styles.dayChipsRow}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayChips}>
-            <Pressable
-              style={[styles.chip, !selectedDay && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}
-              onPress={() => setSelectedDay(null)}
-            >
-              <Text style={{ color: !selectedDay ? theme.colors.onPrimary : theme.colors.onSurfaceVariant, fontWeight: '600', fontSize: 13 }}>All days</Text>
-            </Pressable>
-            {reservationGroups.map((group, index) => (
+          {/* Day filter chips */}
+          <View style={styles.dayChipsRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayChips}>
               <Pressable
-                key={group.date}
-                style={[styles.chip, selectedDay === group.date && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}
-                onPress={() => setSelectedDay(selectedDay === group.date ? null : group.date)}
+                style={[styles.chip, !selectedDay && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}
+                onPress={() => setSelectedDay(null)}
               >
-                <Text style={{ color: selectedDay === group.date ? theme.colors.onPrimary : theme.colors.onSurfaceVariant, fontWeight: '600', fontSize: 13 }}>Day {index + 1}</Text>
+                <Text style={{ color: !selectedDay ? theme.colors.onPrimary : theme.colors.onSurfaceVariant, fontWeight: '600', fontSize: 13 }}>All days</Text>
               </Pressable>
-            ))}
-          </ScrollView>
+              {reservationGroups.map((group, index) => (
+                <Pressable
+                  key={group.date}
+                  style={[styles.chip, selectedDay === group.date && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }]}
+                  onPress={() => setSelectedDay(selectedDay === group.date ? null : group.date)}
+                >
+                  <Text style={{ color: selectedDay === group.date ? theme.colors.onPrimary : theme.colors.onSurfaceVariant, fontWeight: '600', fontSize: 13 }}>Day {index + 1}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
         <Divider />
 
         {/* Itinerary content */}
-        <ScrollView style={styles.itineraryScroll} contentContainerStyle={styles.itineraryContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.itineraryScroll}
+          contentContainerStyle={styles.itineraryContent}
+          showsVerticalScrollIndicator={false}
+          scrollEnabled={isExpanded}
+          onScroll={(e) => { scrollOffset.current = e.nativeEvent.contentOffset.y; }}
+          scrollEventThrottle={16}
+        >
           {reservationsLoading ? (
             <View style={styles.centerSmall}><ActivityIndicator /></View>
           ) : filteredGroups.length === 0 ? (
@@ -307,7 +345,7 @@ export default function TripDetailScreen() {
             filteredGroups.map((group, gIndex) => (
               <View key={group.date} style={styles.dayGroup}>
                 <Pressable
-                  style={[styles.dayHeader, { backgroundColor: theme.colors.surfaceVariant }]}
+                  style={[styles.dayHeader, { backgroundColor: theme.colors.surfaceVariant, borderColor: theme.colors.outline }]}
                   onPress={() => router.push(`/trips/${tripId}/day/${group.date}`)}
                 >
                   <Text variant="titleSmall" style={styles.dayLabel}>{group.label}</Text>
@@ -343,6 +381,7 @@ const styles = StyleSheet.create({
 
   // Bottom sheet
   sheet: { position: 'absolute', left: 0, right: 0, bottom: 0, borderTopLeftRadius: 24, borderTopRightRadius: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.15, shadowRadius: 12, elevation: 12 },
+  sheetHeaderDrag: {},
   sheetHandle: { paddingTop: 10, paddingBottom: 10, alignItems: 'center' },
   handleBar: { width: 40, height: 5, borderRadius: 3 },
   sheetHeaderRow: { paddingHorizontal: 20, paddingBottom: 12 },
@@ -357,7 +396,7 @@ const styles = StyleSheet.create({
   itineraryScroll: { flex: 1 },
   itineraryContent: { paddingHorizontal: 16, paddingTop: 12 },
   dayGroup: { marginBottom: 8 },
-  dayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, marginBottom: 6 },
+  dayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1, marginBottom: 6 },
   dayLabel: { fontWeight: '700' },
   reservationItem: { marginBottom: 2 },
 });

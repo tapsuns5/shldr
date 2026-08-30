@@ -13,6 +13,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import * as haptics from '@/lib/haptics';
 
 export function BottomSheet({
   visible,
@@ -79,6 +80,7 @@ export function BottomSheet({
     currentSnap.current = initialSnap;
     translateY.setValue(0);
     backdropOpacity.setValue(0);
+    haptics.medium();
     Animated.parallel([
       Animated.spring(translateY, {
         toValue: initialSnap,
@@ -99,6 +101,7 @@ export function BottomSheet({
     if (closing.current) return;
     closing.current = true;
     Keyboard.dismiss();
+    haptics.rigid();
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: 0,
@@ -118,6 +121,7 @@ export function BottomSheet({
 
   const snapTo = useCallback((snap: number) => {
     currentSnap.current = snap;
+    haptics.light();
     Animated.parallel([
       Animated.spring(translateY, {
         toValue: snap,
