@@ -5,12 +5,14 @@ import {
   text,
   timestamp,
   decimal,
+  integer,
   pgEnum,
   unique,
   index,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import { trips } from './trips';
+import { rankTiers } from './rank-tiers';
 
 export const reservationTypeEnum = pgEnum('reservation_type', [
   'flight',
@@ -53,6 +55,10 @@ export const reservations = pgTable(
     rawEmailHtml: text('raw_email_html'),
     rawEmailSubject: text('raw_email_subject'),
     source: reservationSourceEnum('source').notNull().default('manual'),
+    rankTier: varchar('rank_tier', { length: 20 }),
+    rankTierId: uuid('rank_tier_id').references(() => rankTiers.id, { onDelete: 'set null' }),
+    rankOrder: integer('rank_order'),
+    rankLabels: text('rank_labels').array().notNull().default([]),
     createdBy: text('created_by')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),
@@ -63,6 +69,8 @@ export const reservations = pgTable(
     index('reservations_trip_id_idx').on(t.tripId),
     index('reservations_type_idx').on(t.type),
     index('reservations_start_date_time_idx').on(t.startDateTime),
+    index('reservations_rank_tier_idx').on(t.rankTier),
+    index('reservations_rank_tier_id_idx').on(t.rankTierId),
   ]
 );
 

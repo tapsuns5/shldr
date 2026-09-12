@@ -5,7 +5,8 @@ import crypto from 'crypto';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { tripInvites } from '@/db/schema';
-import { sendMail, buildInviteEmailHtml } from '@/lib/mailer';
+import { sendMail } from '@/lib/mailer';
+import { buildInviteEmailHtml } from '@/lib/email-templates';
 
 const inviteSchema = z.object({
   emails: z.array(z.string().email()).optional(),

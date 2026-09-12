@@ -21,6 +21,7 @@ import {
   SettingsIcon,
   DocumentsIcon,
   MapIcon,
+  RankIcon,
 } from '@/components/Icons';
 import Header, { HEADER_HEIGHT } from './Header';
 
@@ -30,6 +31,7 @@ const drawerWidthCollapsed = 68;
 const navItems: { label: string; icon: typeof HomeIcon; path: string }[] = [
   { label: 'Home', icon: HomeIcon, path: '/' },
   { label: 'Trips', icon: TripsIcon, path: '/trips' },
+  { label: 'Rank', icon: RankIcon, path: '/rank' },
   { label: 'Maps', icon: MapIcon, path: '/maps' },
   { label: 'Documents', icon: DocumentsIcon, path: '/documents' },
   { label: 'Settings', icon: SettingsIcon, path: '/settings' },
@@ -37,7 +39,7 @@ const navItems: { label: string; icon: typeof HomeIcon; path: string }[] = [
 
 const sidebarIconProps = { strokeWidth: 2 };
 
-const FULL_PAGE_ROUTES = ['/login', '/signup', '/invite', '/onboarding', '/team-invite'];
+const FULL_PAGE_ROUTES = ['/login', '/signup', '/invite', '/onboarding', '/team-invite', '/forgot-password', '/reset-password'];
 const MINIMAL_HEADER_ROUTES = ['/public'];
 
 export default function Sidebar({ children }: { children: React.ReactNode }) {

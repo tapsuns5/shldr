@@ -15,6 +15,7 @@ import { Label } from "@/components/auth-ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
+import { validatePassword } from "@/lib/password-validation";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -56,27 +57,6 @@ export function LoginForm({
     if (!searchParams.get("error")) return;
     router.replace(`/login${redirectTo !== "/" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`);
   }, [redirectTo, router, searchParams]);
-
-  const validatePassword = (password: string) => {
-    const minLength = password.length >= 8;
-    const hasCapital = /[A-Z]/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
-    const hasProblematicChars = /[('"`~,%_;)]/.test(password);
-
-    if (!minLength) {
-      return "Password must be at least 8 characters long";
-    }
-    if (!hasCapital) {
-      return "Password must contain at least one capital letter";
-    }
-    if (!hasSpecialChar) {
-      return "Password must contain at least one special character";
-    }
-    if (hasProblematicChars) {
-      return "Password cannot contain these special characters [!@#$%^&*+\"'`()]";
-    }
-    return "";
-  };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;

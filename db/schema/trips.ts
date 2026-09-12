@@ -6,12 +6,14 @@ import {
   timestamp,
   date,
   boolean,
+  integer,
   pgEnum,
   unique,
   index,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import { accounts } from './accounts';
+import { rankTiers } from './rank-tiers';
 
 export const tripStatusEnum = pgEnum('trip_status', [
   'planning',
@@ -49,6 +51,10 @@ export const trips = pgTable(
     externalUid: text('external_uid'),
     externalSource: varchar('external_source', { length: 50 }),
     isUncategorized: boolean('is_uncategorized').notNull().default(false),
+    rankTier: varchar('rank_tier', { length: 20 }),
+    rankTierId: uuid('rank_tier_id').references(() => rankTiers.id, { onDelete: 'set null' }),
+    rankOrder: integer('rank_order'),
+    rankLabels: text('rank_labels').array().notNull().default([]),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
@@ -58,6 +64,8 @@ export const trips = pgTable(
     index('trips_status_idx').on(t.status),
     index('trips_created_by_idx').on(t.createdBy),
     index('trips_external_uid_idx').on(t.externalUid),
+    index('trips_rank_tier_idx').on(t.rankTier),
+    index('trips_rank_tier_id_idx').on(t.rankTierId),
     unique('trips_account_external_uid_unique').on(t.accountId, t.externalUid),
   ]
 );

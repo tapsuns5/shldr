@@ -30,6 +30,8 @@ import {
   userTravelDocs,
   publicShares,
   wishlistDestinations,
+  rankTiers,
+  rankedCities,
 } from './schema';
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -59,6 +61,8 @@ export const accountsRelations = relations(accounts, ({ one, many }) => ({
   }),
   gmailAccounts: many(gmailAccounts),
   wishlistDestinations: many(wishlistDestinations),
+  rankTiers: many(rankTiers),
+  rankedCities: many(rankedCities),
 }));
 
 export const tripitFeedsRelations = relations(tripitFeeds, ({ one }) => ({
@@ -378,6 +382,29 @@ export const wishlistDestinationsRelations = relations(wishlistDestinations, ({ 
   createdByUser: one(user, {
     fields: [wishlistDestinations.createdBy],
     references: [user.id],
+  }),
+}));
+
+export const rankTiersRelations = relations(rankTiers, ({ one, many }) => ({
+  account: one(accounts, {
+    fields: [rankTiers.accountId],
+    references: [accounts.id],
+  }),
+  createdByUser: one(user, {
+    fields: [rankTiers.createdBy],
+    references: [user.id],
+  }),
+  rankedCities: many(rankedCities),
+}));
+
+export const rankedCitiesRelations = relations(rankedCities, ({ one }) => ({
+  account: one(accounts, {
+    fields: [rankedCities.accountId],
+    references: [accounts.id],
+  }),
+  tier: one(rankTiers, {
+    fields: [rankedCities.rankTierId],
+    references: [rankTiers.id],
   }),
 }));
 

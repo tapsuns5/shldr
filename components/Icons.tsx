@@ -51,6 +51,10 @@ export const PersonIcon = createIcon('user-line-duotone');
 export const SearchIcon = createIcon('magnifer-line-duotone');
 export const ArrowBackIcon = createIcon('arrow-left-line-duotone');
 export const DocumentsIcon = createIcon('folder-with-files-line-duotone');
+export const RankIcon = createIcon('medal-ribbon-star-line-duotone');
+export const ListIcon = createIcon('list-line-duotone');
+export const TierIcon = createIcon('medal-star-circle-line-duotone');
+export const DragHandleIcon = createIcon('sort-vertical-line-duotone');
 
 // Actions
 export const AddIcon = createIcon('add-circle-line-duotone');

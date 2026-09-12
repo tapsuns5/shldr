@@ -141,6 +141,27 @@
       "when": 1788029596381,
       "tag": "0019_migrate_email_import_timestamps",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788183295765,
+      "tag": "0020_parched_crusher_hogan",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788262001229,
+      "tag": "0021_futuristic_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788615905137,
+      "tag": "0022_sour_loki",
+      "breakpoints": true
     }
   ]
 }

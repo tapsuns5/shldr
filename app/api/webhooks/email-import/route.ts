@@ -36,8 +36,22 @@ import {
   verifyHostingerBearerToken,
 } from '@/lib/hostinger-email';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
-import { sendTripImportConfirmation } from '@/lib/mailer';
+import { sendTripImportConfirmation, sendTripImportFailure } from '@/lib/mailer';
 import { createNotification } from '@/lib/notifications';
+
+async function notifyImportFailure(opts: {
+  to: string;
+  recipientName: string;
+  originalSubject?: string;
+  reason: string;
+  tips?: string[];
+}) {
+  try {
+    await sendTripImportFailure(opts);
+  } catch (err) {
+    console.error('[webhook/email-import] Failed to send failure email:', err);
+  }
+}
 
 const payloadSchema = z.object({
   accountId: z.string().uuid(),
@@ -122,12 +136,32 @@ export async function POST(request: NextRequest) {
     const resolved = await resolveImportAccount(message.fromEmail, accountHint);
     if (resolved.status === 'unknown_sender') {
       console.warn('[webhook/email-import] Ignoring unknown sender:', message.fromEmail);
+      await notifyImportFailure({
+        to: message.fromEmail,
+        recipientName: message.fromName ?? 'there',
+        originalSubject: message.subject,
+        reason: 'This email address isn\u2019t linked to a Shldr account.',
+        tips: [
+          'Forward confirmations from the email address you use to sign in to Shldr.',
+          'Or connect that email address under Settings \u2192 Integrations.',
+        ],
+      });
       return NextResponse.json({ ok: true, ignored: true, reason: 'unknown_sender' });
     }
     if (resolved.status === 'ambiguous') {
       console.warn('[webhook/email-import] Ignoring ambiguous sender:', {
         from: message.fromEmail,
         accountIds: resolved.accountIds,
+      });
+      await notifyImportFailure({
+        to: message.fromEmail,
+        recipientName: message.fromName ?? 'there',
+        originalSubject: message.subject,
+        reason: 'Your email address is linked to multiple Shldr accounts, so we couldn\u2019t tell which one to import into.',
+        tips: [
+          'Make sure you only belong to the Shldr accounts you actively use.',
+          'Contact support if you need help merging or removing an account.',
+        ],
       });
       return NextResponse.json({ ok: true, ignored: true, reason: 'ambiguous_sender', accountIds: resolved.accountIds });
     }
@@ -176,6 +210,22 @@ export async function POST(request: NextRequest) {
 
   if (parseResult.events.length === 0) {
     console.error('[webhook/email-import] No events parsed from email');
+    const importer = await db.query.user.findFirst({
+      where: (u, { eq: eqOp }) => eqOp(u.id, userId),
+    });
+    if (importer?.email) {
+      await notifyImportFailure({
+        to: importer.email,
+        recipientName: importer.name ?? 'there',
+        originalSubject: subject,
+        reason: 'We couldn\u2019t find any recognizable travel details (flights, hotels, or reservations) in the email.',
+        tips: [
+          'Forward the original booking confirmation rather than a reply or summary.',
+          'Make sure the email includes the full confirmation details.',
+          'You can always add plans manually from the trip page.',
+        ],
+      });
+    }
     return NextResponse.json(
       { error: 'No recognisable trip events found in the email' },
       { status: 422 }
@@ -221,6 +271,18 @@ export async function POST(request: NextRequest) {
 
   if (!tripOutcome) {
     console.error('[webhook/email-import] Failed to match or create trip');
+    const importer = await db.query.user.findFirst({
+      where: (u, { eq: eqOp }) => eqOp(u.id, userId),
+    });
+    if (importer?.email) {
+      await notifyImportFailure({
+        to: importer.email,
+        recipientName: importer.name ?? 'there',
+        originalSubject: subject,
+        reason: 'Something went wrong on our side while importing your email.',
+        tips: ['Try forwarding it again in a few minutes.', 'Contact support if the problem persists.'],
+      });
+    }
     return NextResponse.json({ error: 'Failed to match or create trip' }, { status: 500 });
   }
 

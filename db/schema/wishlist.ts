@@ -4,6 +4,7 @@ import {
   varchar,
   text,
   doublePrecision,
+  integer,
   timestamp,
   index,
 } from 'drizzle-orm/pg-core';
@@ -25,6 +26,9 @@ export const wishlistDestinations = pgTable(
     lng: doublePrecision('lng'),
     note: text('note'),
     visitedAt: timestamp('visited_at'),
+    rankTier: varchar('rank_tier', { length: 20 }),
+    rankOrder: integer('rank_order'),
+    rankLabels: text('rank_labels').array().notNull().default([]),
     createdBy: text('created_by')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),
@@ -34,5 +38,6 @@ export const wishlistDestinations = pgTable(
   (t) => [
     index('wishlist_destinations_account_id_idx').on(t.accountId),
     index('wishlist_destinations_created_by_idx').on(t.createdBy),
+    index('wishlist_destinations_rank_tier_idx').on(t.rankTier),
   ]
 );
