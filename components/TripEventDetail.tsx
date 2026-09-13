@@ -306,9 +306,15 @@ export default function TripEventDetail({
       : { time: '', tz: '' };
   })();
 
-  const arrTime = endDt
-    ? { time: endDt.format('h:mm A'), tz: tzidToAbbrev(reservation.providerPhone, endDt.toDate()) }
-    : null;
+  const arrTime = (() => {
+    if (reservation.type === 'flight' && reservation.notes) {
+      const m = reservation.notes.match(/^Arrive\s+(\d{1,2}:\d{2}\s*[AP]M)\s+([A-Z]{2,5}|[+-]\d{2}(?::\d{2})?)/im);
+      if (m) return { time: m[1], tz: m[2] };
+    }
+    return endDt
+      ? { time: endDt.format('h:mm A'), tz: tzidToAbbrev(reservation.providerPhone, endDt.toDate()) }
+      : null;
+  })();
 
   const moreDetailsItems = [
     reservation.confirmationNumber ? { key: 'confirmation', label: 'Confirmation', value: reservation.confirmationNumber } : null,
