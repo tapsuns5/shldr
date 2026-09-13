@@ -213,6 +213,8 @@ export interface TripImportConfirmationOptions {
   tripDates: string;
   tripLocation: string | null;
   tripUrl: string;
+  /** True when the importer could not confidently match this to a named trip. */
+  isUncategorized?: boolean;
   /** Whether this import created a brand-new trip (true) or added to an existing one (false) */
   isNewTrip: boolean;
   /** Reservation / event summaries imported in this batch */
@@ -220,7 +222,7 @@ export interface TripImportConfirmationOptions {
 }
 
 export function buildTripImportConfirmationHtml(opts: TripImportConfirmationOptions): string {
-  const { tripTitle, tripDates, tripLocation, tripUrl, isNewTrip, importedItems, ownerName } = opts;
+  const { tripTitle, tripDates, tripLocation, tripUrl, isNewTrip, importedItems, ownerName, isUncategorized } = opts;
 
   const itemRows = importedItems
     .map(
@@ -235,15 +237,21 @@ export function buildTripImportConfirmationHtml(opts: TripImportConfirmationOpti
     )
     .join('');
 
-  const intro = isNewTrip
-    ? 'We\'ve turned your forwarded email into a brand-new trip on Shldr.'
-    : 'We\'ve added the details from your forwarded email to an existing trip.';
+  const intro = isUncategorized
+    ? 'We\'ve imported the itinerary, but couldn\'t confidently match it to one of your named trips, so it\'s been placed in Uncategorized.'
+    : isNewTrip
+      ? 'We\'ve turned your forwarded email into a brand-new trip on Shldr.'
+      : 'We\'ve added the details from your forwarded email to an existing trip.';
 
   return emailLayout({
     preheader: isNewTrip
       ? `Trip created: ${tripTitle} — see what we imported.`
       : `Trip updated: ${tripTitle} — see what we imported.`,
-    heading: isNewTrip ? 'Trip imported' : 'Trip updated',
+    heading: isUncategorized
+      ? 'Itinerary imported to Uncategorized'
+      : isNewTrip
+        ? 'Trip imported'
+        : 'Trip updated',
     bodyHtml: `
       <p style="margin:0 0 16px;color:${TEXT_BODY};font-size:16px;line-height:1.6;">
         Hi ${escapeHtml(ownerName)},<br><br>

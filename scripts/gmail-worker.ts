@@ -5,6 +5,7 @@ import '@/lib/workers/email-parser';
 import '@/lib/workers/reservation-import';
 import '@/lib/workers/trip-matcher';
 import '@/lib/workers/notifications';
+import '@/lib/workers/email-delivery';
 import '@/lib/workers/gmail-watch-renewal';
 import { scheduleWatchRenewal } from '@/lib/queue';
 

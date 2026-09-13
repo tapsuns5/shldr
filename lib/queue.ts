@@ -1,4 +1,8 @@
 import { Queue } from 'bullmq';
+import type {
+  TripImportConfirmationOptions,
+  TripImportFailureOptions,
+} from '@/lib/email-templates';
 
 let cachedConnection: ReturnType<typeof buildConnection> | null = null;
 
@@ -63,6 +67,10 @@ export interface NotificationsJob {
   isNewTrip: boolean;
 }
 
+export type EmailDeliveryJob =
+  | { kind: 'trip-import-confirmation'; options: TripImportConfirmationOptions }
+  | { kind: 'trip-import-failure'; options: TripImportFailureOptions };
+
 const queueCache = new Map<string, Queue>();
 
 function getQueue(name: string) {
@@ -120,6 +128,13 @@ export async function enqueueNotification(job: NotificationsJob) {
   await queue.add('notify', job);
 }
 
+export async function enqueueEmailDelivery(job: EmailDeliveryJob, jobId?: string) {
+  const queue = getQueue('email-delivery');
+  await queue.add('send-email', job, {
+    jobId,
+  });
+}
+
 export async function scheduleWatchRenewal() {
   const queue = getQueue('gmail-watch-renewal');
   await queue.add(
@@ -139,6 +154,7 @@ const BULLBOARD_QUEUE_NAMES = [
   'reservation-import',
   'trip-matcher',
   'notifications',
+  'email-delivery',
   'gmail-watch-renewal',
 ];
 

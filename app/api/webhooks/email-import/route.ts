@@ -25,7 +25,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/db';
-import { accountMembers, tripMembers } from '@/db/schema';
+import { accountMembers, tripMembers, notifications } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { parseConfirmationEmail } from '@/lib/email-parser';
 import {
@@ -36,21 +36,21 @@ import {
   verifyHostingerBearerToken,
 } from '@/lib/hostinger-email';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
-import { sendTripImportConfirmation, sendTripImportFailure } from '@/lib/mailer';
+import { enqueueEmailDelivery } from '@/lib/queue';
 import { createNotification } from '@/lib/notifications';
 
-async function notifyImportFailure(opts: {
+function notifyImportFailure(opts: {
   to: string;
   recipientName: string;
   originalSubject?: string;
   reason: string;
   tips?: string[];
-}) {
-  try {
-    await sendTripImportFailure(opts);
-  } catch (err) {
-    console.error('[webhook/email-import] Failed to send failure email:', err);
-  }
+}, jobId?: string) {
+  // Queue delivery so Hostinger receives an acknowledgement without waiting
+  // for SMTP, while a persistent worker retries failed email sends.
+  void enqueueEmailDelivery({ kind: 'trip-import-failure', options: opts }, jobId).catch((err) => {
+    console.error('[webhook/email-import] Failed to enqueue failure email:', err);
+  });
 }
 
 const payloadSchema = z.object({
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     const resolved = await resolveImportAccount(message.fromEmail, accountHint);
     if (resolved.status === 'unknown_sender') {
       console.warn('[webhook/email-import] Ignoring unknown sender:', message.fromEmail);
-      await notifyImportFailure({
+      notifyImportFailure({
         to: message.fromEmail,
         recipientName: message.fromName ?? 'there',
         originalSubject: message.subject,
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
         from: message.fromEmail,
         accountIds: resolved.accountIds,
       });
-      await notifyImportFailure({
+      notifyImportFailure({
         to: message.fromEmail,
         recipientName: message.fromName ?? 'there',
         originalSubject: message.subject,
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
       where: (u, { eq: eqOp }) => eqOp(u.id, userId),
     });
     if (importer?.email) {
-      await notifyImportFailure({
+      notifyImportFailure({
         to: importer.email,
         recipientName: importer.name ?? 'there',
         originalSubject: subject,
@@ -237,6 +237,7 @@ export async function POST(request: NextRequest) {
   // ── 3. Match / create trip and upsert reservations ────────────────────────
   const importedItems: Array<{ type: string; title: string; date: string }> = [];
   let tripOutcome: Awaited<ReturnType<typeof matchOrCreateTrip>> | null = null;
+  let newReservationCount = 0;
 
   for (let i = 0; i < parseResult.events.length; i++) {
     const event = parseResult.events[i];
@@ -251,7 +252,7 @@ export async function POST(request: NextRequest) {
     }
 
     const externalUid = `email::${messageId}::${i}`;
-    await upsertEmailReservation({
+    const reservationResult = await upsertEmailReservation({
       tripId: tripOutcome.tripId,
       userId,
       event,
@@ -260,6 +261,8 @@ export async function POST(request: NextRequest) {
       rawEmailSubject: subject,
     });
 
+    if (!reservationResult.isNew) continue;
+    newReservationCount += 1;
     importedItems.push({
       type: event.type,
       title: event.title,
@@ -275,7 +278,7 @@ export async function POST(request: NextRequest) {
       where: (u, { eq: eqOp }) => eqOp(u.id, userId),
     });
     if (importer?.email) {
-      await notifyImportFailure({
+      notifyImportFailure({
         to: importer.email,
         recipientName: importer.name ?? 'there',
         originalSubject: subject,
@@ -290,7 +293,23 @@ export async function POST(request: NextRequest) {
     tripId: tripOutcome.tripId,
     tripTitle: tripOutcome.tripTitle,
     isNewTrip: tripOutcome.isNewTrip,
+    newReservationCount,
   });
+
+  // Hostinger retries timed-out deliveries. If every reservation already
+  // existed, this is a duplicate delivery and must not create more notifications
+  // or confirmation emails.
+  if (newReservationCount === 0) {
+    return NextResponse.json({
+      success: true,
+      duplicate: true,
+      tripId: tripOutcome.tripId,
+      tripTitle: tripOutcome.tripTitle,
+      isNewTrip: tripOutcome.isNewTrip,
+      importedCount: 0,
+      items: [],
+    });
+  }
 
   // ── 3b. Create notifications for all trip members ─────────────────────────
   const tripMembersList = await db.query.tripMembers.findMany({
@@ -307,21 +326,33 @@ export async function POST(request: NextRequest) {
   const notifBody = `Imported from email: ${importItemsSummary}`;
   const notifLink = `/tripdetails/${tripOutcome.tripId}`;
 
-  for (const member of tripMembersList) {
-    try {
-      await createNotification({
-        userId: member.userId,
-        type: tripOutcome.isNewTrip ? 'trip_created' : 'trip_detail_imported',
-        title: notifTitle,
-        body: notifBody,
-        tripId: tripOutcome.tripId,
-        link: notifLink,
-      });
-    } catch (err) {
-      console.error('[webhook/email-import] Failed to create notification for user:', member.userId, err);
+  void (async () => {
+    for (const member of tripMembersList) {
+      try {
+        const existing = await db.query.notifications.findFirst({
+          where: and(
+            eq(notifications.userId, member.userId),
+            eq(notifications.tripId, tripOutcome!.tripId),
+            eq(notifications.type, tripOutcome!.isNewTrip ? 'trip_created' : 'trip_detail_imported'),
+            eq(notifications.body, notifBody),
+          ),
+        });
+        if (existing) continue;
+
+        await createNotification({
+          userId: member.userId,
+          type: tripOutcome!.isNewTrip ? 'trip_created' : 'trip_detail_imported',
+          title: notifTitle,
+          body: notifBody,
+          tripId: tripOutcome!.tripId,
+          link: notifLink,
+        });
+      } catch (err) {
+        console.error('[webhook/email-import] Failed to create notification for user:', member.userId, err);
+      }
     }
-  }
-  console.log('[webhook/email-import] Notifications created for', tripMembersList.length, 'members');
+    console.log('[webhook/email-import] Notifications created for', tripMembersList.length, 'members');
+  })();
 
   // ── 4. Build confirmation email recipient list ────────────────────────────
   const ownerUser = await db.query.user.findFirst({
@@ -357,8 +388,9 @@ export async function POST(request: NextRequest) {
   })();
 
   if (ownerUser?.email) {
-    try {
-      await sendTripImportConfirmation({
+    void enqueueEmailDelivery({
+      kind: 'trip-import-confirmation',
+      options: {
         ownerEmail: ownerUser.email,
         ownerName: ownerUser.name ?? 'there',
         ccEmails,
@@ -367,12 +399,14 @@ export async function POST(request: NextRequest) {
         tripLocation: parseResult.tripLocation,
         tripUrl,
         isNewTrip: tripOutcome.isNewTrip,
+        isUncategorized: tripOutcome.tripTitle === 'Uncategorized',
         importedItems,
-      });
-      console.log('[webhook/email-import] Confirmation email sent');
-    } catch (err) {
-      console.error('[webhook/email-import] Failed to send confirmation email:', err);
-    }
+      },
+    }, `trip-import-confirmation-${messageId}`).then(() => {
+      console.log('[webhook/email-import] Confirmation email queued');
+    }).catch((err) => {
+      console.error('[webhook/email-import] Failed to enqueue confirmation email:', err);
+    });
   } else {
     console.warn('[webhook/email-import] No owner email found, skipping confirmation email');
   }
