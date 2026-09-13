@@ -48,8 +48,12 @@ import {
   TourIcon,
   ExpandMoreIcon,
   MailIcon,
+  AttachIcon,
 } from '@/components/Icons';
 import AddressMenu from './AddressMenu';
+import AttachmentsSection from './attachments/AttachmentsSection';
+import AddAttachmentDialog from './attachments/AddAttachmentDialog';
+import { useTripDocuments } from '@/hooks/use-trip-documents';
 import {
   type APIReservation,
   tzidToAbbrev,
@@ -192,6 +196,8 @@ export default function TripEventDetail({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const { documents: tripDocs, refetch: refetchDocs } = useTripDocuments(tripId);
+  const [attachOpen, setAttachOpen] = useState(false);
 
   const [editTitle, setEditTitle] = useState(reservation.title);
   const [editConfirmation, setEditConfirmation] = useState(reservation.confirmationNumber ?? '');
@@ -385,6 +391,12 @@ export default function TripEventDetail({
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               <MenuItem
+                onClick={() => { setMoreMenuAnchor(null); setAttachOpen(true); }}
+              >
+                <ListItemIcon><AttachIcon fontSize="small" /></ListItemIcon>
+                <ListItemText>Attach File</ListItemText>
+              </MenuItem>
+              <MenuItem
                 onClick={() => { setMoreMenuAnchor(null); setDeleteOpen(true); }}
                 sx={{ color: 'error.main' }}
               >
@@ -452,6 +464,12 @@ export default function TripEventDetail({
                 rows={3}
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
+              />
+              <AttachmentsSection
+                tripId={tripId}
+                reservationId={reservation.id}
+                documents={tripDocs}
+                onChanged={refetchDocs}
               />
             </Stack>
             <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
@@ -604,6 +622,15 @@ export default function TripEventDetail({
                 </Box>
               )}
             </Paper>
+
+            <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, mb: 3 }}>
+              <AttachmentsSection
+                tripId={tripId}
+                reservationId={reservation.id}
+                documents={tripDocs}
+                onChanged={refetchDocs}
+              />
+            </Paper>
           </Grid>
 
           {/* More Details collapsible */}
@@ -696,6 +723,15 @@ export default function TripEventDetail({
           <Button onClick={() => setEmailDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Attach file dialog (plan-level) */}
+      <AddAttachmentDialog
+        open={attachOpen}
+        onClose={() => setAttachOpen(false)}
+        tripId={tripId}
+        reservationId={reservation.id}
+        onAdded={refetchDocs}
+      />
     </Box>
   );
 }

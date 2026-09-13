@@ -128,6 +128,7 @@ export default function RankedItemRow({
               label={tier.label}
               sx={{
                 height: 20,
+                flexShrink: 0,
                 bgcolor: tier.color ?? undefined,
                 color: tier.color ? '#fff' : undefined,
                 fontWeight: 700,
@@ -136,14 +137,27 @@ export default function RankedItemRow({
             />
           )}
         </Stack>
-        <Typography variant="body2" color="text.secondary" noWrap>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            display: '-webkit-box',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: { xs: 2, sm: 1 },
+            overflow: 'hidden',
+          }}
+        >
           {item.context}
         </Typography>
         <Typography
           variant="caption"
           color="text.secondary"
-          noWrap
-          sx={{ display: { xs: 'none', sm: 'block' } }}
+          sx={{
+            display: { xs: 'none', sm: '-webkit-box' },
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: 1,
+            overflow: 'hidden',
+          }}
         >
           {item.secondaryContext}
         </Typography>

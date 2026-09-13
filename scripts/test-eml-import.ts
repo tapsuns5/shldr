@@ -39,6 +39,15 @@ async function main() {
   console.log('Parsing email with mailparser...');
   const parsed = await simpleParser(emlContent);
 
+  const attachments = (parsed.attachments ?? [])
+    .filter((a) => a.contentDisposition !== 'inline' && a.content?.length && a.content.length <= 10 * 1024 * 1024)
+    .slice(0, 10)
+    .map((a) => ({
+      fileName: a.filename || 'attachment',
+      contentType: a.contentType || undefined,
+      contentBase64: a.content.toString('base64'),
+    }));
+
   console.log('Parsed email:', {
     messageId: parsed.messageId,
     subject: parsed.subject,
@@ -46,6 +55,8 @@ async function main() {
     to: parsed.to ? (Array.isArray(parsed.to) ? parsed.to.map(a => a.text).join(', ') : parsed.to.text) : undefined,
     hasText: !!parsed.text,
     hasHtml: !!parsed.html,
+    attachmentCount: attachments.length,
+    attachmentNames: attachments.map((a) => a.fileName),
   });
 
   const payload = {
@@ -55,6 +66,7 @@ async function main() {
     subject: parsed.subject || 'No subject',
     bodyText: parsed.text || (typeof parsed.html === 'string' ? parsed.html : ' '),
     bodyHtml: parsed.html || undefined,
+    attachments: attachments.length ? attachments : undefined,
   };
 
   console.log('Sending to webhook:', WEBHOOK_URL);

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -25,6 +26,10 @@ import {
 } from '@/components/Icons';
 import type { PlanDay } from '@/hooks/use-trips';
 import PlanDetails from './PlanDetails';
+import AttachmentChips from './attachments/AttachmentChips';
+import AttachmentPreviewDialog from './attachments/AttachmentPreviewDialog';
+import type { TripDocument } from './attachments/types';
+import { useTripDocuments } from '@/hooks/use-trip-documents';
 
 interface TripDayDetailProps {
   tripId: string;
@@ -79,6 +84,18 @@ function planColor(type: string): string {
 
 export default function TripDayDetail({ tripId, tripTitle, day }: TripDayDetailProps) {
   const router = useRouter();
+  const { documents: tripDocs, refetch: refetchDocs } = useTripDocuments(tripId);
+  const [previewDoc, setPreviewDoc] = useState<TripDocument | null>(null);
+
+  const handleDeleteDoc = async (doc: TripDocument) => {
+    try {
+      const res = await fetch(`/api/trips/${tripId}/documents/${doc.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      refetchDocs();
+    } catch {
+      /* non-fatal */
+    }
+  };
 
   const handleViewEvent = (eventId: string) => {
     router.push(`/tripdetails/${tripId}/event/${eventId}`);
@@ -230,6 +247,12 @@ export default function TripDayDetail({ tripId, tripTitle, day }: TripDayDetailP
                   >
                     {item.title}
                   </Typography>
+                  {item.reservation && (
+                    <AttachmentChips
+                      documents={tripDocs.filter((d) => d.reservationId === item.id)}
+                      onPreview={setPreviewDoc}
+                    />
+                  )}
                   {item.reservation ? (
                     <PlanDetails reservation={item.reservation} />
                   ) : item.details ? (
@@ -247,6 +270,13 @@ export default function TripDayDetail({ tripId, tripTitle, day }: TripDayDetailP
           </Box>
         );
       })}
+
+      <AttachmentPreviewDialog
+        open={Boolean(previewDoc)}
+        onClose={() => setPreviewDoc(null)}
+        attachment={previewDoc}
+        onDelete={handleDeleteDoc}
+      />
     </Box>
   );
 }

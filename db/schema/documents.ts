@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { user } from './auth';
 import { trips } from './trips';
+import { reservations } from './reservations';
 
 export const documentTypeEnum = pgEnum('document_type', [
   'passport',
@@ -28,6 +29,9 @@ export const documents = pgTable(
     tripId: uuid('trip_id')
       .notNull()
       .references(() => trips.id, { onDelete: 'cascade' }),
+    reservationId: uuid('reservation_id').references(() => reservations.id, {
+      onDelete: 'cascade',
+    }),
     uploadedBy: text('uploaded_by')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),
@@ -41,6 +45,7 @@ export const documents = pgTable(
   },
   (t) => [
     index('documents_trip_id_idx').on(t.tripId),
+    index('documents_reservation_id_idx').on(t.reservationId),
     index('documents_document_type_idx').on(t.documentType),
   ]
 );

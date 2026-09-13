@@ -24,8 +24,8 @@ export default function UnrankedList({ unranked, onAdd }: UnrankedListProps) {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              px: 2,
+              gap: { xs: 1, sm: 2 },
+              px: { xs: 1.5, sm: 2 },
               py: 1.25,
               border: 1,
               borderColor: 'divider',
@@ -52,7 +52,16 @@ export default function UnrankedList({ unranked, onAdd }: UnrankedListProps) {
               <Typography variant="body2" fontWeight={600} noWrap>
                 {item.title}
               </Typography>
-              <Typography variant="caption" color="text.secondary" noWrap>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: { xs: 2, sm: 1 },
+                  overflow: 'hidden',
+                }}
+              >
                 {item.context}
               </Typography>
             </Box>

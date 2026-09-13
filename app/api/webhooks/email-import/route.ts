@@ -34,8 +34,15 @@ import {
   normalizeHostingerPayload,
   resolveImportAccount,
   verifyHostingerBearerToken,
+  type HostingerAttachmentRef,
 } from '@/lib/hostinger-email';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
+import {
+  documentTypeForEvent,
+  saveEmailAttachments,
+  sanitizeFileName,
+  type EmailAttachmentInput,
+} from '@/lib/import-attachments';
 import { enqueueEmailDelivery } from '@/lib/queue';
 import { createNotification } from '@/lib/notifications';
 
@@ -61,7 +68,49 @@ const payloadSchema = z.object({
   bodyText: z.string().min(1),
   bodyHtml: z.string().optional(),
   suggestedTripTitle: z.string().optional(),
+  attachments: z.array(z.object({
+    fileName: z.string().min(1).max(255),
+    contentType: z.string().max(120).optional(),
+    contentBase64: z.string().min(1).max(15_000_000),
+  })).max(10).optional(),
 });
+
+function fileNameFromUrl(url: string): string {
+  try {
+    const base = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() ?? '');
+    return base || 'attachment';
+  } catch {
+    return 'attachment';
+  }
+}
+
+/** Resolve Hostinger attachment refs (inline base64 or download URLs) into buffers. */
+async function resolveAttachmentRefs(refs: HostingerAttachmentRef[]): Promise<EmailAttachmentInput[]> {
+  const resolved: EmailAttachmentInput[] = [];
+  for (const ref of refs.slice(0, 10)) {
+    try {
+      if (ref.contentBase64) {
+        resolved.push({
+          fileName: sanitizeFileName(ref.fileName ?? 'attachment'),
+          contentType: ref.contentType,
+          content: Buffer.from(ref.contentBase64, 'base64'),
+        });
+        continue;
+      }
+      if (!ref.url || !/^https?:\/\//i.test(ref.url)) continue;
+      const res = await fetch(ref.url, { signal: AbortSignal.timeout(15_000) });
+      if (!res.ok) continue;
+      resolved.push({
+        fileName: sanitizeFileName(ref.fileName ?? fileNameFromUrl(ref.url)),
+        contentType: ref.contentType ?? res.headers.get('content-type')?.split(';')[0]?.trim() ?? null,
+        content: Buffer.from(await res.arrayBuffer()),
+      });
+    } catch (err) {
+      console.error('[webhook/email-import] Failed to resolve attachment:', ref.url ?? ref.fileName, err);
+    }
+  }
+  return resolved;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -114,6 +163,8 @@ export async function POST(request: NextRequest) {
   let bodyText: string;
   let bodyHtml: string | undefined;
   let suggestedTripTitle: string | undefined;
+  let attachments: EmailAttachmentInput[] = [];
+  let attachmentRefs: HostingerAttachmentRef[] = [];
 
   const raw = isRecord(body) ? body : null;
   const looksLikeHostinger = !!raw && (
@@ -172,6 +223,7 @@ export async function POST(request: NextRequest) {
     subject = message.subject;
     bodyText = message.bodyText ?? message.bodyHtml ?? '';
     bodyHtml = message.bodyHtml ?? undefined;
+    attachmentRefs = message.attachments;
   } else {
     const parsed = payloadSchema.safeParse(body);
     if (!parsed.success) {
@@ -179,6 +231,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
     ({ accountId, userId, messageId, subject, bodyText, bodyHtml, suggestedTripTitle } = parsed.data);
+    attachments = (parsed.data.attachments ?? []).map((attachment) => ({
+      fileName: attachment.fileName,
+      contentType: attachment.contentType ?? null,
+      content: Buffer.from(attachment.contentBase64, 'base64'),
+    }));
+  }
+
+  if (attachmentRefs.length) {
+    attachments = await resolveAttachmentRefs(attachmentRefs);
   }
 
   if (!bodyText.trim() && !bodyHtml?.trim()) {
@@ -260,6 +321,22 @@ export async function POST(request: NextRequest) {
       rawEmailHtml: bodyHtml ?? bodyText,
       rawEmailSubject: subject,
     });
+
+    if (attachments.length) {
+      const savedCount = await saveEmailAttachments({
+        tripId: tripOutcome.tripId,
+        reservationId: reservationResult.reservationId,
+        userId,
+        attachments,
+        documentType: documentTypeForEvent(event.type),
+      });
+      if (savedCount) {
+        console.log('[webhook/email-import] Saved attachments:', {
+          reservationId: reservationResult.reservationId,
+          savedCount,
+        });
+      }
+    }
 
     if (!reservationResult.isNew) continue;
     newReservationCount += 1;

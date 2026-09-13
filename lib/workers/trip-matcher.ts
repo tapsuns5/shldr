@@ -3,6 +3,7 @@ import { db } from '@/db';
 import { importedEmails, gmailAccounts, reservationImportLogs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { matchOrCreateTrip, upsertEmailReservation } from '@/lib/trip-matcher';
+import { attachmentsFromRawEmail, documentTypeForEvent, saveEmailAttachments } from '@/lib/import-attachments';
 import { getRedisConnection, enqueueNotification, type TripMatcherJob } from '@/lib/queue';
 import { deserializeEvents, type ParsedEmailEvent } from '@/lib/email-parser';
 
@@ -61,6 +62,26 @@ export const tripMatcherWorker = new Worker<TripMatcherJob>(
       rawEmailHtml: email.bodyHtml ?? email.rawPayload,
       rawEmailSubject: email.subject,
     });
+
+    if (email.rawPayload) {
+      try {
+        const attachments = await attachmentsFromRawEmail(email.rawPayload);
+        if (attachments.length) {
+          const savedCount = await saveEmailAttachments({
+            tripId: tripOutcome.tripId,
+            reservationId,
+            userId: account.userId,
+            attachments,
+            documentType: documentTypeForEvent(event.type),
+          });
+          if (savedCount) {
+            console.log('[trip-matcher-worker] Saved attachments:', { reservationId, savedCount });
+          }
+        }
+      } catch (err) {
+        console.error('[trip-matcher-worker] Failed to import attachments:', err);
+      }
+    }
 
     await db.insert(reservationImportLogs).values({
       reservationId,

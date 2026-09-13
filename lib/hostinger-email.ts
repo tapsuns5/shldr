@@ -3,6 +3,13 @@ import { ilike, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { accountMembers, gmailAccounts, user } from '@/db/schema';
 
+export type HostingerAttachmentRef = {
+  fileName: string | null;
+  contentType: string | null;
+  url: string | null;
+  contentBase64: string | null;
+};
+
 export type HostingerInboundMessage = {
   eventId: string;
   messageId: string | null;
@@ -13,6 +20,7 @@ export type HostingerInboundMessage = {
   bodyText: string | null;
   bodyHtml: string | null;
   bodyUrl: string | null;
+  attachments: HostingerAttachmentRef[];
 };
 
 type RawRecord = Record<string, unknown>;
@@ -52,6 +60,40 @@ function stringArray(value: unknown): string[] {
   }
   const single = stringValue(value);
   return single ? [single] : [];
+}
+
+/** Extract attachment references from a webhook record — accepts several field spellings. */
+function attachmentRefs(value: unknown): HostingerAttachmentRef[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const record = item as RawRecord;
+    const contentBase64 =
+      stringValue(record.contentBase64) ?? stringValue(record.content_base64) ?? stringValue(record.base64)
+      ?? stringValue(record.content) ?? stringValue(record.data) ?? stringValue(record.body);
+    const url =
+      stringValue(record.url) ?? stringValue(record.downloadUrl) ?? stringValue(record.download_url)
+      ?? stringValue(record.fileUrl) ?? stringValue(record.file_url) ?? stringValue(record.contentUrl)
+      ?? stringValue(record.content_url) ?? stringValue(record.link);
+    if (!contentBase64 && !url) return [];
+    return [{
+      fileName: stringValue(record.fileName) ?? stringValue(record.filename) ?? stringValue(record.file_name)
+        ?? stringValue(record.name),
+      contentType: stringValue(record.contentType) ?? stringValue(record.content_type) ?? stringValue(record.mimeType)
+        ?? stringValue(record.mime_type) ?? stringValue(record.mime),
+      url,
+      contentBase64,
+    }];
+  });
+}
+
+function attachmentRefsFromRecord(...records: Array<RawRecord | null | undefined>): HostingerAttachmentRef[] {
+  for (const record of records) {
+    if (!record) continue;
+    const refs = attachmentRefs(record.attachments ?? record.files ?? record.mail_attachments);
+    if (refs.length) return refs;
+  }
+  return [];
 }
 
 export function normalizeEmail(value: unknown): string | null {
@@ -112,6 +154,7 @@ export function normalizeHostingerPayload(payload: RawRecord): HostingerInboundM
     bodyText: bodyText.text ?? bodyHtml.text,
     bodyHtml: bodyHtml.html ?? bodyText.html,
     bodyUrl: stringValue(message.bodyUrl) ?? stringValue(message.body_url),
+    attachments: attachmentRefsFromRecord(message, payload),
   };
 }
 
@@ -134,6 +177,9 @@ export async function enrichHostingerBody(message: HostingerInboundMessage): Pro
       ...message,
       bodyText: stringValue(parsed.plainText) ?? stringValue(parsed.text) ?? stringValue(parsed.plainBody) ?? message.bodyText,
       bodyHtml: stringValue(parsed.html) ?? stringValue(parsed.bodyHtml) ?? stringValue(parsed.plainHtml) ?? message.bodyHtml,
+      attachments: message.attachments.length
+        ? message.attachments
+        : attachmentRefsFromRecord(parsed),
     };
   } catch {
     return message;

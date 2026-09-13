@@ -99,14 +99,15 @@ export default function TripStatsCards({ trips }: TripStatsCardsProps) {
   const ht = getHomeTheme(muiTheme.palette.mode);
   const router = useRouter();
   const today = dayjs().startOf('day');
+  const realTrips = trips.filter((t) => !t.isUncategorized);
 
-  const activeTrips = trips.filter((t) => {
+  const activeTrips = realTrips.filter((t) => {
     const start = dayjs(t.startDate).startOf('day');
     const end = dayjs(t.endDate).startOf('day');
     return !start.isAfter(today) && !end.isBefore(today);
   });
 
-  const upcomingTrips = trips.filter((t) => dayjs(t.startDate).startOf('day').isAfter(today));
+  const upcomingTrips = realTrips.filter((t) => dayjs(t.startDate).startOf('day').isAfter(today));
 
   const nextTrip = upcomingTrips.sort((a, b) =>
     dayjs(a.startDate).isBefore(dayjs(b.startDate)) ? -1 : 1
@@ -157,7 +158,7 @@ export default function TripStatsCards({ trips }: TripStatsCardsProps) {
         <StatCard
           icon={<LocationIcon />}
           label="Total Trips"
-          value={String(trips.length)}
+          value={String(realTrips.length)}
           subtext="All-time trips"
           accent={ht.accents.totalTrips}
           onClick={() => router.push('/trips')}

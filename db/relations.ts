@@ -235,6 +235,10 @@ export const documentsRelations = relations(documents, ({ one }) => ({
     fields: [documents.tripId],
     references: [trips.id],
   }),
+  reservation: one(reservations, {
+    fields: [documents.reservationId],
+    references: [reservations.id],
+  }),
   uploadedByUser: one(user, {
     fields: [documents.uploadedBy],
     references: [user.id],

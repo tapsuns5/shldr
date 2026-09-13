@@ -46,6 +46,7 @@ import {
   MoveIcon,
   CopyEventIcon,
   MailIcon,
+  AttachIcon,
 } from '@/components/Icons';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@mui/material/styles';
@@ -61,6 +62,11 @@ import AddPlanButton, { type PlanType } from './AddPlanButton';
 import PlanDialog from './PlanDialog';
 import MoveEventDialog from './MoveEventDialog';
 import PlanDetails from './PlanDetails';
+import AttachmentChips from './attachments/AttachmentChips';
+import AddAttachmentDialog from './attachments/AddAttachmentDialog';
+import AttachmentPreviewDialog from './attachments/AttachmentPreviewDialog';
+import type { TripDocument } from './attachments/types';
+import { useTripDocuments } from '../hooks/use-trip-documents';
 import TripRouteMap from './map/TripRouteMap';
 
 interface TripDetailProps {
@@ -119,6 +125,7 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { reservations, loading, refetch } = useReservations(trip.id);
+  const { documents: tripDocs, refetch: refetchDocs } = useTripDocuments(trip.id);
   const [selectedPlanType, setSelectedPlanType] = useState<PlanType | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [defaultDate, setDefaultDate] = useState<string | undefined>(undefined);
@@ -138,6 +145,9 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
   const [eventMoveMode, setEventMoveMode] = useState<'move' | 'copy'>('move');
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailDialogContent, setEmailDialogContent] = useState<{ html: string; subject: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<TripDocument | null>(null);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [eventAttachOpen, setEventAttachOpen] = useState(false);
 
   const plans = useMemo(
     () => reservationsToPlanDays(reservations, trip.startDate, trip.endDate),
@@ -259,6 +269,16 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
     setEventMoveOpen(true);
   };
 
+  const handleDeleteDoc = async (doc: TripDocument) => {
+    try {
+      const res = await fetch(`/api/trips/${trip.id}/documents/${doc.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete');
+      refetchDocs();
+    } catch {
+      /* non-fatal */
+    }
+  };
+
   const handleConfirmDeleteEvent = async () => {
     if (!activeEventId) return;
     setEventDeleting(true);
@@ -348,12 +368,21 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                 <ListItemIcon><ShareIcon fontSize="small" /></ListItemIcon>
                 <ListItemText>Share Trip</ListItemText>
               </MenuItem>
+              <MenuItem onClick={() => { handleCloseMenu(); setAttachOpen(true); }}>
+                <ListItemIcon><AttachIcon fontSize="small" /></ListItemIcon>
+                <ListItemText>Attach File</ListItemText>
+              </MenuItem>
               <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
                 <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
                 <ListItemText>Delete Trip</ListItemText>
               </MenuItem>
             </Menu>
           </Stack>
+
+          <AttachmentChips
+            documents={tripDocs.filter((d) => !d.reservationId)}
+            onPreview={setPreviewDoc}
+          />
         </Box>
 
         <LocationImage
@@ -639,6 +668,12 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                               <Typography variant="caption" sx={{ display: { xs: 'none', sm: 'inline' } }}>More Options</Typography>
                             </Box>
                           </Box>
+                          {item.reservation && (
+                            <AttachmentChips
+                              documents={tripDocs.filter((d) => d.reservationId === item.id)}
+                              onPreview={setPreviewDoc}
+                            />
+                          )}
                           {item.reservation ? (
                             <PlanDetails reservation={item.reservation} />
                           ) : item.details ? (
@@ -700,7 +735,7 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
       <EditTripDialog
         open={editOpen}
         trip={trip}
-        onClose={() => setEditOpen(false)}
+        onClose={() => { setEditOpen(false); refetchDocs(); }}
         onTripUpdated={handleTripUpdated}
       />
 
@@ -740,6 +775,10 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
         <MenuItem onClick={handleCopyEventClick}>
           <ListItemIcon><CopyEventIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Copy Event Detail</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => { handleCloseEventMenu(); setEventAttachOpen(true); }}>
+          <ListItemIcon><AttachIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Attach File</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDeleteEventClick} sx={{ color: 'error.main' }}>
           <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
@@ -842,6 +881,31 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Attachment preview dialog */}
+      <AttachmentPreviewDialog
+        open={Boolean(previewDoc)}
+        onClose={() => setPreviewDoc(null)}
+        attachment={previewDoc}
+        onDelete={handleDeleteDoc}
+      />
+
+      {/* Attach file dialog (trip-level) */}
+      <AddAttachmentDialog
+        open={attachOpen}
+        onClose={() => setAttachOpen(false)}
+        tripId={trip.id}
+        onAdded={refetchDocs}
+      />
+
+      {/* Attach file dialog (event-level, from itinerary item menu) */}
+      <AddAttachmentDialog
+        open={eventAttachOpen}
+        onClose={() => setEventAttachOpen(false)}
+        tripId={trip.id}
+        reservationId={activeEventId}
+        onAdded={refetchDocs}
+      />
     </Box>
   );
 }

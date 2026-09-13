@@ -73,6 +73,10 @@ export const UnfoldMoreIcon = createIcon('sort-vertical-line-duotone');
 export const CheckIcon = createIcon('check-read-line-duotone');
 export const RemoveIcon = createIcon('minus-square-line-duotone');
 export const CheckBoxOutlineBlankIcon = createIcon('minimize-square-line-duotone');
+export const AttachIcon = createIcon('paperclip-line-duotone');
+export const UploadIcon = createIcon('upload-line-duotone');
+export const FileIcon = createIcon('file-line-duotone');
+export const DownloadIcon = createIcon('download-line-duotone');
 
 // Ratings / Favorites
 export const StarIcon = createIcon('star-line-duotone');

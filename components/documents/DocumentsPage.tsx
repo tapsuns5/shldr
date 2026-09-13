@@ -32,6 +32,8 @@ import {
   ListItemAvatar,
   ListItemText,
   ListItem,
+  Tab,
+  Tabs,
 } from '@mui/material';
 import {
   DocumentsIcon,
@@ -43,6 +45,7 @@ import {
   PersonIcon,
   CheckIcon,
 } from '@/components/Icons';
+import TripFilesGrid from './TripFilesGrid';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
@@ -79,6 +82,7 @@ export default function DocumentsPage() {
   const [deleting, setDeleting] = useState(false);
   const [editingField, setEditingField] = useState<{ id: string; value: string } | null>(null);
   const [savingField, setSavingField] = useState(false);
+  const [tab, setTab] = useState(0);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -177,6 +181,19 @@ export default function DocumentsPage() {
           </Typography>
         </Box>
 
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          sx={{ borderBottom: 1, borderColor: 'divider', minHeight: 44 }}
+        >
+          <Tab label="Travel Details" sx={{ textTransform: 'none', fontWeight: 600 }} />
+          <Tab label="Trip Files" sx={{ textTransform: 'none', fontWeight: 600 }} />
+        </Tabs>
+
+        {tab === 1 ? (
+          <TripFilesGrid />
+        ) : (
+          <>
         {error && (
           <Alert severity="error" onClose={() => setError(null)}>
             {error}
@@ -323,6 +340,8 @@ export default function DocumentsPage() {
                 )}
               </Stack>
             )}
+          </>
+        )}
           </>
         )}
       </Stack>

@@ -21,6 +21,7 @@ import { LocalizationProvider, DateCalendar } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { type Dayjs } from 'dayjs';
 import LocationInput, { type LocationResult } from './LocationInput';
+import AttachmentsSection from './attachments/AttachmentsSection';
 import { type UITrip } from '../hooks/use-trips';
 
 interface EditTripDialogProps {
@@ -240,6 +241,8 @@ export default function EditTripDialog({
             )}
             <LocationInput key={locationInputKey} value={null} onChange={handleAddDestination} autoFocus={focusLocation} />
           </Box>
+
+          {trip && <AttachmentsSection tripId={trip.id} />}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>

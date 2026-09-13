@@ -78,11 +78,11 @@ function TierSection({ tier, items, allTiers, onAddToRanking, onUpdateTier }: Ti
         {tier?.color && (
           <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: tier.color }} />
         )}
-        <Typography variant="subtitle1" fontWeight={700}>
+        <Typography variant="subtitle1" fontWeight={700} noWrap>
           {tier?.label ?? 'Unranked'}
         </Typography>
         {tier?.description && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" noWrap sx={{ minWidth: 0 }}>
             — {tier.description}
           </Typography>
         )}
@@ -125,7 +125,7 @@ function TierItemRow({ item, tiers, isUnranked, onAddToRanking, onUpdateTier }: 
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 2, py: 1.25 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, px: { xs: 1.5, sm: 2 }, py: 1.25 }}>
       {item.image && (
         <Box
           component="img"
@@ -138,7 +138,16 @@ function TierItemRow({ item, tiers, isUnranked, onAddToRanking, onUpdateTier }: 
         <Typography variant="body2" fontWeight={600} noWrap>
           {item.title}
         </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            display: '-webkit-box',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: { xs: 2, sm: 1 },
+            overflow: 'hidden',
+          }}
+        >
           {item.context}
         </Typography>
       </Box>

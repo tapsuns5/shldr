@@ -74,7 +74,6 @@ const PLAN_OPTIONS: { type: PlanType; label: string; icon: React.ReactNode }[] =
   { type: 'map', label: 'Map', icon: <MapIcon /> },
   { type: 'tour', label: 'Tour', icon: <TourIcon /> },
   { type: 'meeting', label: 'Meeting', icon: <MeetingIcon /> },
-  { type: 'transportation', label: 'Transportation', icon: <BusIcon /> },
 ];
 
 export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }: AddPlanButtonProps) {
@@ -94,6 +93,17 @@ export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }
     handleClose();
   };
 
+  const label = (
+    <>
+      <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+        Add a Plan
+      </Box>
+      <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+        Add
+      </Box>
+    </>
+  );
+
   return (
     <>
       {size === 'small' ? (
@@ -112,7 +122,7 @@ export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }
             '&:hover': { bgcolor: 'action.hover' },
           }}
         >
-          Add a Plan
+          {label}
         </Button>
       ) : (
         <Button
@@ -131,7 +141,7 @@ export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }
             '&:hover': { bgcolor: 'action.hover' },
           }}
         >
-          Add a Plan
+          {label}
         </Button>
       )}
 
@@ -141,7 +151,7 @@ export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }
         onClose={handleClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-        slotProps={{ paper: { sx: { mt: 1, p: 2, width: 360 } } }}
+        slotProps={{ paper: { sx: { mt: 1, p: 2, width: { xs: 'calc(100vw - 32px)', sm: 360 }, maxWidth: 360 } } }}
       >
         <Grid container spacing={2}>
           {PLAN_OPTIONS.map((option) => (
@@ -162,6 +172,7 @@ export default function AddPlanButton({ onSelect, size = 'medium', defaultDate }
                   sx={{
                     width: 36,
                     height: 36,
+                    flexShrink: 0,
                     borderRadius: '50%',
                     bgcolor: 'primary.main',
                     color: 'white',

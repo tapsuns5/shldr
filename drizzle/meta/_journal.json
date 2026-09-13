@@ -162,6 +162,13 @@
       "when": 1788615905137,
       "tag": "0022_sour_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789306167990,
+      "tag": "0023_demonic_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }
