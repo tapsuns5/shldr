@@ -468,12 +468,10 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                     minWidth: 64,
                   }}
                 >
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', whiteSpace: 'nowrap' }}>
                     Day {dayIdx + 1}
                   </Typography>
                 </Box>
-                <Box sx={{ width: TIME_WIDTH, flexShrink: 0 }} />
-                <Box sx={{ width: SUBWAY_WIDTH, flexShrink: 0 }} />
                 <Box
                   sx={{
                     flex: 1,
@@ -483,6 +481,7 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                     pr: 2,
                     py: 0.75,
                     zIndex: 1,
+                    minWidth: 0,
                   }}
                 >
                   <Box
@@ -498,13 +497,14 @@ export default function TripDetail({ trip, onTripUpdated, displayMode = 'map' }:
                       borderRadius: 1,
                       cursor: 'pointer',
                       color: 'text.secondary',
+                      minWidth: 0,
                       '&:hover': { bgcolor: 'action.hover' },
                     }}
                   >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary', whiteSpace: 'nowrap' }}>
                       {day.date}
                     </Typography>
-                    <ChevronRightIcon sx={{ fontSize: 18 }} />
+                    <ChevronRightIcon sx={{ fontSize: 18, flexShrink: 0 }} />
                   </Box>
                   <AddPlanButton onSelect={handleSelectType} size="small" defaultDate={day.date} />
                 </Box>

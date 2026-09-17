@@ -174,8 +174,8 @@ export default function HomeScreen() {
 
         <Text variant="titleLarge" style={styles.sectionTitle}>Your travel at a glance</Text>
         <View style={styles.statsGrid}>
-          <StatCard icon="suitcase-line-duotone" label="Active trips" value={String(activeTrips.length)} detail={`${activeTrips.length} in progress`} color="#356a4c" onPress={() => router.push('/trips')} />
-          <StatCard icon="plain-2-line-duotone" label="Upcoming trips" value={String(upcomingTrips.length)} detail={`${upcomingTrips.length} planned`} color="#74c7a1" onPress={() => router.push('/trips')} />
+          <StatCard icon="suitcase-line-duotone" label="Active trips" value={String(activeTrips.length)} detail={`${activeTrips.length} in progress`} color="#356a4c" onPress={() => router.push('/trips?tab=active')} />
+          <StatCard icon="plain-2-line-duotone" label="Upcoming trips" value={String(upcomingTrips.length)} detail={`${upcomingTrips.length} planned`} color="#74c7a1" onPress={() => router.push('/trips?tab=upcoming')} />
           <StatCard icon="clock-circle-line-duotone" label="Next adventure" value={nextTrip ? (daysUntilNext === 0 ? 'Today' : `${daysUntilNext}d`) : '—'} detail={nextTrip?.title || 'No upcoming trips'} color="#285b48" onPress={() => nextTrip && router.push(`/trips/${nextTrip.id}`)} />
           <StatCard icon="map-point-line-duotone" label="Total trips" value={String(allTrips.length)} detail="All-time trips" color="#356a4c" onPress={() => router.push('/trips')} />
         </View>

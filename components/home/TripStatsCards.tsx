@@ -128,7 +128,7 @@ export default function TripStatsCards({ trips }: TripStatsCardsProps) {
           value={String(activeTrips.length)}
           subtext={activeTrips.length === 1 ? '1 trip in progress' : `${activeTrips.length} trips in progress`}
           accent={ht.accents.activeTrips}
-          onClick={activeTrips.length > 0 ? () => router.push('/trips') : undefined}
+          onClick={activeTrips.length > 0 ? () => router.push('/trips?tab=active') : undefined}
           {...shared}
         />
       </Box>
@@ -139,7 +139,7 @@ export default function TripStatsCards({ trips }: TripStatsCardsProps) {
           value={String(upcomingTrips.length)}
           subtext={upcomingTrips.length === 1 ? '1 trip planned' : `${upcomingTrips.length} trips planned`}
           accent={ht.accents.upcomingTrips}
-          onClick={upcomingTrips.length > 0 ? () => router.push('/trips') : undefined}
+          onClick={upcomingTrips.length > 0 ? () => router.push('/trips?tab=upcoming') : undefined}
           {...shared}
         />
       </Box>

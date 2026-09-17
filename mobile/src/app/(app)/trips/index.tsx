@@ -3,7 +3,7 @@ import { LayoutAnimation, View, StyleSheet } from 'react-native';
 import { RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, FAB, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { filterTrips, type TripTab } from '@shldr/shared';
 import { useAccounts } from '@/hooks/use-accounts';
@@ -19,17 +19,29 @@ const TABS: { value: TripTab; label: string }[] = [
   { value: 'uncategorized', label: 'Uncategorized' },
 ];
 
+function isTripTab(value: unknown): value is TripTab {
+  return typeof value === 'string' && TABS.some((t) => t.value === value);
+}
+
 export default function TripsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [tab, setTab] = useState<TripTab>('upcoming');
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const paramTab = isTripTab(tabParam) ? tabParam : null;
+  const [chosenTab, setChosenTab] = useState<TripTab | null>(paramTab);
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    setChosenTab(paramTab);
+  }
   const [newTripOpen, setNewTripOpen] = useState(false);
 
   const { data: accounts } = useAccounts();
   const accountId = accounts?.[0]?.id;
   const { data: trips, isLoading, isRefetching, refetch } = useTrips(accountId);
 
+  const tab = chosenTab ?? (filterTrips(trips ?? [], 'active').length > 0 ? 'active' : 'upcoming');
   const visibleTrips = useMemo(() => filterTrips(trips ?? [], tab), [trips, tab]);
   const uncategorizedTrip = useMemo(
     () => (trips ?? []).find((t) => t.isUncategorized) ?? null,
@@ -47,7 +59,7 @@ export default function TripsScreen() {
           value={tab}
           onValueChange={(value) => {
             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setTab(value as TripTab);
+            setChosenTab(value as TripTab);
           }}
           buttons={TABS}
         />

@@ -12,11 +12,24 @@ import UncategorizedEventCards from '../../components/UncategorizedEventCards';
 import { useTrips, filterTrips, formatTrip, type APITrip, type UITrip } from '../../hooks/use-trips';
 import type { LocationDisplayMode } from '../../lib/location-image';
 
+const TAB_INDEX: Record<string, number> = {
+  upcoming: 0,
+  active: 1,
+  past: 2,
+  uncategorized: 3,
+};
 
 function TripsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [tabValue, setTabValue] = useState(() => searchParams.get('tab') === 'uncategorized' ? 3 : 0);
+  const tabParam = searchParams.get('tab');
+  const paramTab = tabParam !== null && TAB_INDEX[tabParam] !== undefined ? TAB_INDEX[tabParam] : null;
+  const [chosenTab, setChosenTab] = useState<number | null>(paramTab);
+  const [prevTabParam, setPrevTabParam] = useState(tabParam);
+  if (tabParam !== prevTabParam) {
+    setPrevTabParam(tabParam);
+    setChosenTab(paramTab);
+  }
   const [accountId, setAccountId] = useState<string>('');
   const [displayMode, setDisplayMode] = useState<LocationDisplayMode>('map');
   const { trips, loading, error, setTrips } = useTrips(accountId);
@@ -49,6 +62,7 @@ function TripsPageContent() {
     setTrips((prev) => prev.map((t) => (t.id === updatedTrip.id ? updatedTrip : t)));
   };
 
+  const tabValue = chosenTab ?? (filterTrips(trips, 1).length > 0 ? 1 : 0);
   const filteredTrips = useMemo(() => filterTrips(trips, tabValue), [trips, tabValue]);
   const uncategorizedTrip = useMemo(
     () => trips.find((trip) => trip.isUncategorized) ?? null,
@@ -64,7 +78,7 @@ function TripsPageContent() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
         >
-          <SubTabs value={tabValue} onChange={(_, v) => setTabValue(v)} accountId={accountId} onTripCreated={handleTripCreated} />
+          <SubTabs value={tabValue} onChange={(_, v) => setChosenTab(v)} accountId={accountId} onTripCreated={handleTripCreated} />
 
           {tabValue === 3 ? (
             <UncategorizedEventCards trip={uncategorizedTrip} tripsLoading={loading} />
